@@ -5,8 +5,8 @@ import (
 )
 
 var (
-	errColInx = "Mat64 Error: Column index out of range"
-	errRowInx = "Mat64 Error: Column index out of range"
+	errColInx = "Mat64 Error: Column index %d is out of range"
+	errRowInx = "Mat64 Error: Row index %d is out of range"
 )
 
 type mat64 struct {
@@ -32,7 +32,7 @@ func NewMat(r, c int) *mat64 {
 // of a mat64 object.
 func (m *mat64) Col(c int) []float64 {
 	if c >= m.numCols {
-		log.Fatal(errColInx)
+		log.Fatalf(errColInx, c)
 	}
 	vec := make([]float64, m.numRows)
 	for i := 0; i < m.numRows; i++ {
@@ -45,7 +45,7 @@ func (m *mat64) Col(c int) []float64 {
 // of a mat64 object.
 func (m *mat64) Row(r int) []float64 {
 	if r >= m.numRows {
-		log.Fatal(errRowInx)
+		log.Fatalf(errRowInx, r)
 	}
 	vec := make([]float64, m.numCols)
 	for i := 0; i < m.numCols; i++ {
@@ -58,11 +58,11 @@ func (m *mat64) Row(r int) []float64 {
 // the specified row and col. It throws errors if the indeces are out
 // of range.
 func (m *mat64) At(r, c int) float64 {
-	if r > m.numRows {
-		log.Fatal(errRowInx)
+	if r >= m.numRows {
+		log.Fatalf(errRowInx, r)
 	}
 	if c > m.numCols {
-		log.Fatal(errColInx)
+		log.Fatalf(errColInx, c)
 	}
 	return m.vals[r*m.numCols+c]
 }
