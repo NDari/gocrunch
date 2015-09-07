@@ -26,7 +26,6 @@ func NewMat(r, c int) *mat64 {
 		numCols: c,
 		vals:    make([]float64, r*c),
 	}
-
 }
 
 // Function Col returns a slice representing a coloumn
@@ -53,5 +52,17 @@ func (m *mat64) Row(r int) []float64 {
 		vec[i] = m.vals[r*m.numCols+i]
 	}
 	return vec
+}
 
+// Function At returns the values of the entry in an mat64 object at
+// the specified row and col. It throws errors if the indeces are out
+// of range.
+func (m *mat64) At(r, c int) float64 {
+	if r > m.numRows {
+		log.Fatal(errRowInx)
+	}
+	if c > m.numCols {
+		log.Fatal(errColInx)
+	}
+	return m.vals[r*m.numCols+c]
 }

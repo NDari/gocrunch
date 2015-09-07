@@ -37,3 +37,14 @@ func TestRow(t *testing.T) {
 		}
 	}
 }
+
+func TestAt(t *testing.T) {
+	m := NewMat(3, 4)
+	for i := 0; i < 12; i++ {
+		m.vals[i] = float64(i)
+	}
+	got := m.At(2, 1)
+	if got != 9.0 {
+		t.Errorf("got %f, want %f", got, 9.0)
+	}
+}
