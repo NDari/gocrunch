@@ -4,8 +4,25 @@ import (
 	"testing"
 )
 
+func TestI(t *testing.T) {
+	m := I(4, 4)
+	for i := 0; i < 4; i++ {
+		for j := 0; j < 4; j++ {
+			if i == j {
+				if m.vals[i*4+j] != 1.0 {
+					t.Errorf("I[%d,%d] == %f, want 1.0", i, j, m.vals[i*4+j])
+				}
+			} else {
+				if m.vals[i*4+j] != 0.0 {
+					t.Errorf("I[%d,%d] == %f, want 0.0", i, j, m.vals[i*4+j])
+				}
+			}
+		}
+	}
+}
+
 func TestCol(t *testing.T) {
-	m := NewMat(3, 4)
+	m := New(3, 4)
 	for i := 0; i < 12; i++ {
 		m.vals[i] = float64(i)
 	}
@@ -22,7 +39,7 @@ func TestCol(t *testing.T) {
 }
 
 func TestRow(t *testing.T) {
-	m := NewMat(3, 4)
+	m := New(3, 4)
 	for i := 0; i < 12; i++ {
 		m.vals[i] = float64(i)
 	}
@@ -39,7 +56,7 @@ func TestRow(t *testing.T) {
 }
 
 func TestAt(t *testing.T) {
-	m := NewMat(3, 4)
+	m := New(3, 4)
 	for i := 0; i < 12; i++ {
 		m.vals[i] = float64(i)
 	}
