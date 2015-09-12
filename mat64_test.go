@@ -5,7 +5,7 @@ import (
 )
 
 func TestI(t *testing.T) {
-	m := I(4, 4)
+	m := I(4)
 	for i := 0; i < 4; i++ {
 		for j := 0; j < 4; j++ {
 			if i == j {
@@ -63,5 +63,18 @@ func TestAt(t *testing.T) {
 	got := m.At(2, 1)
 	if got != 9.0 {
 		t.Errorf("got %f, want %f", got, 9.0)
+	}
+}
+
+func TestT(t *testing.T) {
+	m := New(5, 7)
+	n := m.T()
+	for i := 0; i < 5; i++ {
+		for j := 0; j < 7; j++ {
+			if n.At(j, i) != m.At(i, j) {
+				t.Errorf("transpose.At(%d, %d) is %f, but m.At[%d, %d] is %f",
+					i, j, n.At(j, i), j, i, m.At(i, j))
+			}
+		}
 	}
 }
