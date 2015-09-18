@@ -67,14 +67,42 @@ func TestAt(t *testing.T) {
 }
 
 func TestT(t *testing.T) {
-	m := New(5, 7)
+	var (
+		row = 5
+		col = 7
+	)
+	m := New(row, col)
 	n := m.T()
-	for i := 0; i < 5; i++ {
-		for j := 0; j < 7; j++ {
+	for i := 0; i < row; i++ {
+		for j := 0; j < col; j++ {
 			if n.At(j, i) != m.At(i, j) {
 				t.Errorf("transpose.At(%d, %d) is %f, but m.At[%d, %d] is %f",
 					i, j, n.At(j, i), j, i, m.At(i, j))
 			}
+		}
+	}
+	o := n.T()
+	for i := 0; i < row*col; i++ {
+		if o.vals[i] != m.vals[i] {
+			t.Errorf("mat.T.T != mat at %d", i)
+		}
+	}
+}
+
+func TestTimes(t *testing.T) {
+	m := New(13, 13)
+	q := I(13)
+	if !m.Times(q).Equals(m) {
+		t.Errorf("A Square matrix times the identity matrix should be equal to itself")
+	}
+}
+
+func TestApply(t *testing.T) {
+	m := New(4, 4)
+	m.Apply(func(i float64) float64 { return i + 1.0 })
+	for i := 0; i < 16; i++ {
+		if m.vals[i] != 1.0 {
+			t.Errorf("expected 1.0, got %f", m.vals[i])
 		}
 	}
 }
