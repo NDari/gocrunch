@@ -99,7 +99,17 @@ func TestTimes(t *testing.T) {
 
 func TestApply(t *testing.T) {
 	m := New(4, 4)
-	m.Apply(func(i float64) float64 { return i + 1.0 })
+	n := m.Apply(func(i float64) float64 { return i + 1.0 })
+	for i := 0; i < 16; i++ {
+		if n.vals[i] != 1.0 {
+			t.Errorf("expected 1.0, got %f", n.vals[i])
+		}
+	}
+}
+
+func TestApplyInPlace(t *testing.T) {
+	m := New(4, 4)
+	m.ApplyInPlace(func(i float64) float64 { return i + 1.0 })
 	for i := 0; i < 16; i++ {
 		if m.vals[i] != 1.0 {
 			t.Errorf("expected 1.0, got %f", m.vals[i])

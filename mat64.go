@@ -21,7 +21,7 @@ type entry struct {
 	index int
 }
 
-type elemental func(float64) float64
+type ElementalFn func(float64) float64
 
 // Function New returns a mat64 object with the given rows and cols
 func New(r, c int) *mat64 {
@@ -115,7 +115,19 @@ func (m *mat64) Times(n *mat64) *mat64 {
 	return o
 }
 
-func (m *mat64) Apply(f elemental) {
+// Function Apply calls a given Elemental function on each Element
+// a a matrix, returning a new trasformed matrix
+func (m *mat64) Apply(f ElementalFn) *mat64 {
+	n := New(m.numRows, m.numCols)
+	for i := 0; i < m.numRows*m.numCols; i++ {
+		n.vals[i] = f(m.vals[i])
+	}
+	return n
+}
+
+// Function ApplyInPlace calls a given Elemental function on each Element
+// a a matrix, and then returns the transformed matrix.
+func (m *mat64) ApplyInPlace(f ElementalFn) {
 	for i := 0; i < m.numRows*m.numCols; i++ {
 		m.vals[i] = f(m.vals[i])
 	}
