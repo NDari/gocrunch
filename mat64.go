@@ -21,9 +21,12 @@ type entry struct {
 	index int
 }
 
+// ElementalFn is a function that takes a float64 and returns a
+// float64. This function can therefore be applied to each element
+// of a mat64, and can be used to contruct a new trasformed mat64.
 type ElementalFn func(float64) float64
 
-// Function New returns a mat64 object with the given rows and cols
+// New returns a mat64 object with the given rows and cols
 func New(r, c int) *mat64 {
 	return &mat64{
 		numRows: r,
@@ -32,6 +35,7 @@ func New(r, c int) *mat64 {
 	}
 }
 
+// I returns an r by r identity matrix for a given r.
 func I(r int) *mat64 {
 	identity := New(r, r)
 	for i := 0; i < r; i++ {
@@ -40,7 +44,7 @@ func I(r int) *mat64 {
 	return identity
 }
 
-// Function Col returns a slice representing a coloumn
+// Col returns a slice representing a coloumn
 // of a mat64 object.
 func (m *mat64) Col(c int) []float64 {
 	if c >= m.numCols {
@@ -53,7 +57,7 @@ func (m *mat64) Col(c int) []float64 {
 	return vec
 }
 
-// Function Row returns a slice representing a row
+// Row returns a slice representing a row
 // of a mat64 object.
 func (m *mat64) Row(r int) []float64 {
 	if r >= m.numRows {
@@ -66,7 +70,7 @@ func (m *mat64) Row(r int) []float64 {
 	return vec
 }
 
-// Function At returns the values of the entry in an mat64 object at
+// At returns the values of the entry in an mat64 object at
 // the specified row and col. It throws errors if the indeces are out
 // of range.
 func (m *mat64) At(r, c int) float64 {
@@ -79,7 +83,10 @@ func (m *mat64) At(r, c int) float64 {
 	return m.vals[r*m.numCols+c]
 }
 
-func (m *mat64) T() *mat64 {
+// Transpose returns a copy of a given matrix with the elements
+// mirriored across the diagonal. i.e. and element At(i, j) becomes the
+// element At(j, i). This function leaves the original matrix intact.
+func (m *mat64) Transpose() *mat64 {
 	transpose := New(m.numCols, m.numRows)
 	for i := 0; i < m.numRows; i++ {
 		for j := 0; j < m.numCols; j++ {
@@ -89,7 +96,24 @@ func (m *mat64) T() *mat64 {
 	return transpose
 }
 
-// Fucntion Equals checks if two mat objects have the same shape and the
+// TransposeInPlace a given matrix with the elements
+// mirriored across the diagonal. i.e. and element At(i, j) becomes the
+// element At(j, i).
+// func (m *mat64) TransposeInPlace() *mat64 {
+// 	for i := 0; i < m.numCols*m.numRows; i++ {
+// 		fmt.Println("index", i)
+// 		fmt.Println("multiplication",m.numCols*int(i%m.numRows))
+// 		fmt.Println("addition", int(i/m.numRows))
+// 		m.vals[i] = m.vals[m.numCols*int(i%m.numRows) + int(i/m.numRows)]
+// 		fmt.Println("val",m.vals[i])
+// 	}
+// 	m.numRows, m.numCols = m.numCols, m.numRows
+// 	fmt.Println("in func",m)
+// 	return m
+// }
+
+
+// Equals checks if two mat objects have the same shape and the
 // same entries in each row and column.
 func (m *mat64) Equals(n *mat64) bool {
 	if m.numRows != n.numRows || m.numCols != m.numCols {
@@ -103,7 +127,9 @@ func (m *mat64) Equals(n *mat64) bool {
 	return true
 }
 
-// Function Times is the element-wise multiplication of two matrices.
+// Times returns a new matrix that is the result of
+// element-wise multiplication of the matrix by another, leaving
+// both original matrices intact.
 func (m *mat64) Times(n *mat64) *mat64 {
 	if m.numRows != n.numRows || m.numCols != m.numCols {
 		log.Fatalf(errMismatch, "Times")
@@ -115,8 +141,8 @@ func (m *mat64) Times(n *mat64) *mat64 {
 	return o
 }
 
-// Function Apply calls a given Elemental function on each Element
-// a a matrix, returning a new trasformed matrix
+// Apply calls a given Elemental function on each Element
+// a a matrix, returning a new trasformed matrix.
 func (m *mat64) Apply(f ElementalFn) *mat64 {
 	n := New(m.numRows, m.numCols)
 	for i := 0; i < m.numRows*m.numCols; i++ {
@@ -125,10 +151,11 @@ func (m *mat64) Apply(f ElementalFn) *mat64 {
 	return n
 }
 
-// Function ApplyInPlace calls a given Elemental function on each Element
+// ApplyInPlace calls a given Elemental function on each Element
 // a a matrix, and then returns the transformed matrix.
-func (m *mat64) ApplyInPlace(f ElementalFn) {
+func (m *mat64) ApplyInPlace(f ElementalFn) *mat64 {
 	for i := 0; i < m.numRows*m.numCols; i++ {
 		m.vals[i] = f(m.vals[i])
 	}
+	return m
 }

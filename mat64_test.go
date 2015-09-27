@@ -2,6 +2,7 @@ package mat64
 
 import (
 	"testing"
+	"fmt"
 )
 
 func TestI(t *testing.T) {
@@ -10,11 +11,11 @@ func TestI(t *testing.T) {
 		for j := 0; j < 4; j++ {
 			if i == j {
 				if m.vals[i*4+j] != 1.0 {
-					t.Errorf("I[%d,%d] == %f, want 1.0", i, j, m.vals[i*4+j])
+					t.Errorf("I[%v,%v] == %v, want 1.0", i, j, m.vals[i*4+j])
 				}
 			} else {
 				if m.vals[i*4+j] != 0.0 {
-					t.Errorf("I[%d,%d] == %f, want 0.0", i, j, m.vals[i*4+j])
+					t.Errorf("I[%v,%v] == %v, want 0.0", i, j, m.vals[i*4+j])
 				}
 			}
 		}
@@ -28,7 +29,7 @@ func TestCol(t *testing.T) {
 	}
 	got := m.Col(2)
 	if len(got) != 3 {
-		t.Errorf("len(m.Col(3)) == %d, want 3", len(got))
+		t.Errorf("len(m.Col(3)) == %v, want 3", len(got))
 	}
 	want := []float64{2.0, 6.0, 10.0}
 	for i := 0; i < len(got); i++ {
@@ -45,12 +46,12 @@ func TestRow(t *testing.T) {
 	}
 	got := m.Row(1)
 	if len(got) != 4 {
-		t.Errorf("len(m.Col(3)) == %d, want 4", len(got))
+		t.Errorf("len(m.Col(3)) == %v, want 4", len(got))
 	}
 	want := []float64{4.0, 5.0, 6.0, 7.0}
 	for i := 0; i < len(got); i++ {
 		if want[i] != got[i] {
-			t.Errorf("got[%d] is %f, want %f", i, got[i], want[i])
+			t.Errorf("got[%v] is %v, want %v", i, got[i], want[i])
 		}
 	}
 }
@@ -62,32 +63,65 @@ func TestAt(t *testing.T) {
 	}
 	got := m.At(2, 1)
 	if got != 9.0 {
-		t.Errorf("got %f, want %f", got, 9.0)
+		t.Errorf("got %v, want 9.0", got)
 	}
 }
 
-func TestT(t *testing.T) {
+func TestTranspose(t *testing.T) {
 	var (
 		row = 5
 		col = 7
 	)
 	m := New(row, col)
-	n := m.T()
+	n := m.Transpose()
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
 			if n.At(j, i) != m.At(i, j) {
-				t.Errorf("transpose.At(%d, %d) is %f, but m.At[%d, %d] is %f",
-					i, j, n.At(j, i), j, i, m.At(i, j))
+				fmt.Println(n.At(j,i))
+				t.Errorf("transpose.At(%v, %v) is %v, but m.At[%v, %v] is %v", i, j, n.At(j, i), j, i, m.At(i, j))
 			}
 		}
 	}
-	o := n.T()
+	o := n.Transpose()
 	for i := 0; i < row*col; i++ {
 		if o.vals[i] != m.vals[i] {
-			t.Errorf("mat.T.T != mat at %d", i)
+			t.Errorf("mat.T.T != mat at %v", i)
 		}
 	}
 }
+
+// func TestTransposeInPlace(t *testing.T) {
+// 	var (
+// 		row = 5
+// 		col = 7
+// 	)
+// 	m := New(row, col)
+// 	for i := 0; i < row; i++ {
+// 		for j := 0; j < col; j++ {
+// 			m.vals[i*m.numCols+j] = float64(i*m.numCols+j)
+// 		}
+// 	}
+// 	n := m.Transpose()
+// 	m.TransposeInPlace()
+// 	fmt.Println(m)
+// 	fmt.Println(n)
+// 	for i := 0; i < col; i++ {
+// 		for j := 0; j < row; j++ {
+// 			fmt.Println(i, j)
+// 			if n.At(i, j) != m.At(i, j) {
+// 				fmt.Println(n.At(i, j))
+// 				t.Errorf("TransposeInPlace.At(%v, %v) is %v, but Transpose.At(%v, %v) is %v",
+// 					     i, j, n.At(i, j), i, j, m.At(i, j))
+// 			}
+// 		}
+// 	}
+// 	o := n.Transpose()
+// 	for i := 0; i < row*col; i++ {
+// 		if o.vals[i] != m.vals[i] {
+// 			t.Errorf("mat.T.T != mat at %v", i)
+// 		}
+// 	}
+// }
 
 func TestTimes(t *testing.T) {
 	m := New(13, 13)
@@ -102,7 +136,7 @@ func TestApply(t *testing.T) {
 	n := m.Apply(func(i float64) float64 { return i + 1.0 })
 	for i := 0; i < 16; i++ {
 		if n.vals[i] != 1.0 {
-			t.Errorf("expected 1.0, got %f", n.vals[i])
+			t.Errorf("expected 1.0, got %v", n.vals[i])
 		}
 	}
 }
@@ -112,7 +146,7 @@ func TestApplyInPlace(t *testing.T) {
 	m.ApplyInPlace(func(i float64) float64 { return i + 1.0 })
 	for i := 0; i < 16; i++ {
 		if m.vals[i] != 1.0 {
-			t.Errorf("expected 1.0, got %f", m.vals[i])
+			t.Errorf("expected 1.0, got %v", m.vals[i])
 		}
 	}
 }
