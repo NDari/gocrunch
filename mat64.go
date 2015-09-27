@@ -35,7 +35,7 @@ func New(r, c int) *mat64 {
 	}
 }
 
-// I returns an r by r identity matrix for a given r.
+// Identity returns an r by r identity matrix for a given r.
 func Identity(r int) *mat64 {
 	identity := New(r, r)
 	for i := 0; i < r; i++ {
