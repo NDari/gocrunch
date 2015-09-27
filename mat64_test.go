@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-func TestI(t *testing.T) {
-	m := I(4)
+func TestIdentity(t *testing.T) {
+	m := Identity(4)
 	for i := 0; i < 4; i++ {
 		for j := 0; j < 4; j++ {
 			if i == j {
@@ -97,7 +97,7 @@ func TestDot(t *testing.T) {
 	)
 
 	m := New(row, row)
-	q := I(row)
+	q := Identity(row)
 	if !m.Dot(q).Equals(m) {
 		t.Errorf("A Square matrix times the identity matrix should be equal to itself")
 	}
@@ -128,7 +128,7 @@ func TestDotInPlace(t *testing.T) {
 		col = 7
 	)
 	m := New(row, row)
-	q := I(row)
+	q := Identity(row)
 	if !m.Dot(q).Equals(m.DotInPlace(q)) {
 		t.Errorf("A Square matrix times the identity matrix should be equal to itself")
 	}
