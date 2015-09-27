@@ -90,39 +90,6 @@ func TestTranspose(t *testing.T) {
 	}
 }
 
-// func TestTransposeInPlace(t *testing.T) {
-// 	var (
-// 		row = 5
-// 		col = 7
-// 	)
-// 	m := New(row, col)
-// 	for i := 0; i < row; i++ {
-// 		for j := 0; j < col; j++ {
-// 			m.vals[i*m.numCols+j] = float64(i*m.numCols+j)
-// 		}
-// 	}
-// 	n := m.Transpose()
-// 	m.TransposeInPlace()
-// 	fmt.Println(m)
-// 	fmt.Println(n)
-// 	for i := 0; i < col; i++ {
-// 		for j := 0; j < row; j++ {
-// 			fmt.Println(i, j)
-// 			if n.At(i, j) != m.At(i, j) {
-// 				fmt.Println(n.At(i, j))
-// 				t.Errorf("TransposeInPlace.At(%v, %v) is %v, but Transpose.At(%v, %v) is %v",
-// 					     i, j, n.At(i, j), i, j, m.At(i, j))
-// 			}
-// 		}
-// 	}
-// 	o := n.Transpose()
-// 	for i := 0; i < row*col; i++ {
-// 		if o.vals[i] != m.vals[i] {
-// 			t.Errorf("mat.T.T != mat at %v", i)
-// 		}
-// 	}
-// }
-
 func TestTimes(t *testing.T) {
 	m := New(13, 13)
 	q := I(13)

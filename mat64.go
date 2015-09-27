@@ -96,23 +96,6 @@ func (m *mat64) Transpose() *mat64 {
 	return transpose
 }
 
-// TransposeInPlace a given matrix with the elements
-// mirriored across the diagonal. i.e. and element At(i, j) becomes the
-// element At(j, i).
-// func (m *mat64) TransposeInPlace() *mat64 {
-// 	for i := 0; i < m.numCols*m.numRows; i++ {
-// 		fmt.Println("index", i)
-// 		fmt.Println("multiplication",m.numCols*int(i%m.numRows))
-// 		fmt.Println("addition", int(i/m.numRows))
-// 		m.vals[i] = m.vals[m.numCols*int(i%m.numRows) + int(i/m.numRows)]
-// 		fmt.Println("val",m.vals[i])
-// 	}
-// 	m.numRows, m.numCols = m.numCols, m.numRows
-// 	fmt.Println("in func",m)
-// 	return m
-// }
-
-
 // Equals checks if two mat objects have the same shape and the
 // same entries in each row and column.
 func (m *mat64) Equals(n *mat64) bool {
