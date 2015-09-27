@@ -1,4 +1,4 @@
-package mat64
+package Mat64
 
 import (
 	"fmt"
@@ -10,12 +10,12 @@ func TestIdentity(t *testing.T) {
 	for i := 0; i < 4; i++ {
 		for j := 0; j < 4; j++ {
 			if i == j {
-				if m.vals[i*4+j] != 1.0 {
-					t.Errorf("I[%v,%v] == %v, want 1.0", i, j, m.vals[i*4+j])
+				if m.Vals[i*4+j] != 1.0 {
+					t.Errorf("I[%v,%v] == %v, want 1.0", i, j, m.Vals[i*4+j])
 				}
 			} else {
-				if m.vals[i*4+j] != 0.0 {
-					t.Errorf("I[%v,%v] == %v, want 0.0", i, j, m.vals[i*4+j])
+				if m.Vals[i*4+j] != 0.0 {
+					t.Errorf("I[%v,%v] == %v, want 0.0", i, j, m.Vals[i*4+j])
 				}
 			}
 		}
@@ -25,7 +25,7 @@ func TestIdentity(t *testing.T) {
 func TestCol(t *testing.T) {
 	m := New(3, 4)
 	for i := 0; i < 12; i++ {
-		m.vals[i] = float64(i)
+		m.Vals[i] = float64(i)
 	}
 	got := m.Col(2)
 	if len(got) != 3 {
@@ -42,7 +42,7 @@ func TestCol(t *testing.T) {
 func TestRow(t *testing.T) {
 	m := New(3, 4)
 	for i := 0; i < 12; i++ {
-		m.vals[i] = float64(i)
+		m.Vals[i] = float64(i)
 	}
 	got := m.Row(1)
 	if len(got) != 4 {
@@ -59,7 +59,7 @@ func TestRow(t *testing.T) {
 func TestAt(t *testing.T) {
 	m := New(3, 4)
 	for i := 0; i < 12; i++ {
-		m.vals[i] = float64(i)
+		m.Vals[i] = float64(i)
 	}
 	got := m.At(2, 1)
 	if got != 9.0 {
@@ -84,7 +84,7 @@ func TestTranspose(t *testing.T) {
 	}
 	o := n.Transpose()
 	for i := 0; i < row*col; i++ {
-		if o.vals[i] != m.vals[i] {
+		if o.Vals[i] != m.Vals[i] {
 			t.Errorf("mat.T.T != mat at %v", i)
 		}
 	}
@@ -104,19 +104,19 @@ func TestDot(t *testing.T) {
 	m = New(row, col)
 	n := New(row, col)
 	for i := 0; i < row*col; i++ {
-		m.vals[i] = float64(i)
+		m.Vals[i] = float64(i)
 	}
 	o := m.Dot(n)
 	for i := 0; i < row*col; i++ {
-		if o.vals[i] != 0.0 {
-			t.Errorf("Dot product with 0 matrix, expect 0.0, got %v", o.vals[i])
+		if o.Vals[i] != 0.0 {
+			t.Errorf("Dot product with 0 matrix, expect 0.0, got %v", o.Vals[i])
 		}
 	}
 	o = m.Dot(m)
 	p := m.Apply(func(i float64) float64 { return i * i })
 	for i := 0; i < row*col; i++ {
-		if o.vals[i] != p.vals[i] {
-			t.Errorf("Dot product matrix with itself, expect %v, got %v", o.vals[i], p.vals[i])
+		if o.Vals[i] != p.Vals[i] {
+			t.Errorf("Dot product matrix with itself, expect %v, got %v", o.Vals[i], p.Vals[i])
 		}
 	}
 
@@ -135,22 +135,22 @@ func TestDotInPlace(t *testing.T) {
 	m = New(row, col)
 	n := New(row, col)
 	for i := 0; i < row*col; i++ {
-		m.vals[i] = float64(i)
+		m.Vals[i] = float64(i)
 	}
 	m.DotInPlace(n)
 	for i := 0; i < row*col; i++ {
-		if m.vals[i] != 0.0 {
-			t.Errorf("DotInPlace product with 0 matrix, expect 0.0, got %v", m.vals[i])
+		if m.Vals[i] != 0.0 {
+			t.Errorf("DotInPlace product with 0 matrix, expect 0.0, got %v", m.Vals[i])
 		}
 	}
 	for i := 0; i < row*col; i++ {
-		n.vals[i] = float64(i)
+		n.Vals[i] = float64(i)
 	}
 	p := n.Apply(func(i float64) float64 { return i * i })
 	n.DotInPlace(n)
 	for i := 0; i < row*col; i++ {
-		if n.vals[i] != p.vals[i] {
-			t.Errorf("Dot product matrix with itself, expect %v, got %v", p.vals[i], n.vals[i])
+		if n.Vals[i] != p.Vals[i] {
+			t.Errorf("Dot product matrix with itself, expect %v, got %v", p.Vals[i], n.Vals[i])
 		}
 	}
 
@@ -160,8 +160,8 @@ func TestApply(t *testing.T) {
 	m := New(4, 4)
 	n := m.Apply(func(i float64) float64 { return i + 1.0 })
 	for i := 0; i < 16; i++ {
-		if n.vals[i] != 1.0 {
-			t.Errorf("expected 1.0, got %v", n.vals[i])
+		if n.Vals[i] != 1.0 {
+			t.Errorf("expected 1.0, got %v", n.Vals[i])
 		}
 	}
 }
@@ -170,8 +170,8 @@ func TestApplyInPlace(t *testing.T) {
 	m := New(4, 4)
 	m.ApplyInPlace(func(i float64) float64 { return i + 1.0 })
 	for i := 0; i < 16; i++ {
-		if m.vals[i] != 1.0 {
-			t.Errorf("expected 1.0, got %v", m.vals[i])
+		if m.Vals[i] != 1.0 {
+			t.Errorf("expected 1.0, got %v", m.Vals[i])
 		}
 	}
 }
