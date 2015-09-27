@@ -110,18 +110,30 @@ func (m *mat64) Equals(n *mat64) bool {
 	return true
 }
 
-// Times returns a new matrix that is the result of
+// Dot returns a new matrix that is the result of
 // element-wise multiplication of the matrix by another, leaving
 // both original matrices intact.
-func (m *mat64) Times(n *mat64) *mat64 {
+func (m *mat64) Dot(n *mat64) *mat64 {
 	if m.numRows != n.numRows || m.numCols != m.numCols {
-		log.Fatalf(errMismatch, "Times")
+		log.Fatalf(errMismatch, "Dot")
 	}
 	o := New(m.numRows, m.numCols)
 	for i := 0; i < m.numCols*m.numRows; i++ {
 		o.vals[i] = m.vals[i] * n.vals[i]
 	}
 	return o
+}
+
+// DotInPlace multiplies a Mat64 by another in place. This means that
+// the original matrix is lost.
+func (m *mat64) DotInPlace(n *mat64) *mat64 {
+	if m.numRows != n.numRows || m.numCols != m.numCols {
+		log.Fatalf(errMismatch, "Dot")
+	}
+	for i := 0; i < m.numCols*m.numRows; i++ {
+		m.vals[i] *= n.vals[i]
+	}
+	return m
 }
 
 // Apply calls a given Elemental function on each Element

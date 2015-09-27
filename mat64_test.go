@@ -1,8 +1,8 @@
 package mat64
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func TestI(t *testing.T) {
@@ -77,7 +77,7 @@ func TestTranspose(t *testing.T) {
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
 			if n.At(j, i) != m.At(i, j) {
-				fmt.Println(n.At(j,i))
+				fmt.Println(n.At(j, i))
 				t.Errorf("transpose.At(%v, %v) is %v, but m.At[%v, %v] is %v", i, j, n.At(j, i), j, i, m.At(i, j))
 			}
 		}
@@ -90,12 +90,70 @@ func TestTranspose(t *testing.T) {
 	}
 }
 
-func TestTimes(t *testing.T) {
-	m := New(13, 13)
-	q := I(13)
-	if !m.Times(q).Equals(m) {
+func TestDot(t *testing.T) {
+	var (
+		row = 5
+		col = 7
+	)
+
+	m := New(row, row)
+	q := I(row)
+	if !m.Dot(q).Equals(m) {
 		t.Errorf("A Square matrix times the identity matrix should be equal to itself")
 	}
+	m = New(row, col)
+	n := New(row, col)
+	for i := 0; i < row*col; i++ {
+		m.vals[i] = float64(i)
+	}
+	o := m.Dot(n)
+	for i := 0; i < row*col; i++ {
+		if o.vals[i] != 0.0 {
+			t.Errorf("Dot product with 0 matrix, expect 0.0, got %v", o.vals[i])
+		}
+	}
+	o = m.Dot(m)
+	p := m.Apply(func(i float64) float64 { return i * i })
+	for i := 0; i < row*col; i++ {
+		if o.vals[i] != p.vals[i] {
+			t.Errorf("Dot product matrix with itself, expect %v, got %v", o.vals[i], p.vals[i])
+		}
+	}
+
+}
+
+func TestDotInPlace(t *testing.T) {
+	var (
+		row = 5
+		col = 7
+	)
+	m := New(row, row)
+	q := I(row)
+	if !m.Dot(q).Equals(m.DotInPlace(q)) {
+		t.Errorf("A Square matrix times the identity matrix should be equal to itself")
+	}
+	m = New(row, col)
+	n := New(row, col)
+	for i := 0; i < row*col; i++ {
+		m.vals[i] = float64(i)
+	}
+	m.DotInPlace(n)
+	for i := 0; i < row*col; i++ {
+		if m.vals[i] != 0.0 {
+			t.Errorf("DotInPlace product with 0 matrix, expect 0.0, got %v", m.vals[i])
+		}
+	}
+	for i := 0; i < row*col; i++ {
+		n.vals[i] = float64(i)
+	}
+	p := n.Apply(func(i float64) float64 { return i * i })
+	n.DotInPlace(n)
+	for i := 0; i < row*col; i++ {
+		if n.vals[i] != p.vals[i] {
+			t.Errorf("Dot product matrix with itself, expect %v, got %v", p.vals[i], n.vals[i])
+		}
+	}
+
 }
 
 func TestApply(t *testing.T) {
