@@ -1,3 +1,4 @@
+// Package Mat64 contains a float64 Matrix object for Go.
 package Mat64
 
 import (
@@ -39,28 +40,28 @@ func Identity(r int) *Mat64 {
 	return identity
 }
 
-// Col returns a slice representing a column.
-// of a Mat64 object.
-func (m *Mat64) Col(c int) []float64 {
+// Col returns a Mat64, representing a single column of the
+// original mat64 object at a given location.
+func (m *Mat64) Col(c int) *Mat64 {
 	if c >= m.NumCols {
 		log.Fatalf(errColInx, "Col", c)
 	}
-	vec := make([]float64, m.NumRows)
+	vec := New(m.NumRows, 1)
 	for i := 0; i < m.NumRows; i++ {
-		vec[i] = m.Vals[i*m.NumCols+c]
+		vec.Vals[i] = m.Vals[i*m.NumCols+c]
 	}
 	return vec
 }
 
-// Row returns a slice representing a row
-// of a Mat64 object.
-func (m *Mat64) Row(r int) []float64 {
+// Row returns a Mat64, representing a single row of the
+// original Mat64 object at the give location.
+func (m *Mat64) Row(r int) *Mat64 {
 	if r >= m.NumRows {
 		log.Fatalf(errRowInx, "Row", r)
 	}
-	vec := make([]float64, m.NumCols)
+	vec := New(1, m.NumCols)
 	for i := 0; i < m.NumCols; i++ {
-		vec[i] = m.Vals[r*m.NumCols+i]
+		vec.Vals[i] = m.Vals[r*m.NumCols+i]
 	}
 	return vec
 }
@@ -105,12 +106,12 @@ func (m *Mat64) Equals(n *Mat64) bool {
 	return true
 }
 
-// Dot returns a new matrix that is the result of
+// Times returns a new matrix that is the result of
 // element-wise multiplication of the matrix by another, leaving
 // both original matrices intact.
-func (m *Mat64) Dot(n *Mat64) *Mat64 {
+func (m *Mat64) Times(n *Mat64) *Mat64 {
 	if m.NumRows != n.NumRows || m.NumCols != m.NumCols {
-		log.Fatalf(errMismatch, "Dot")
+		log.Fatalf(errMismatch, "Times")
 	}
 	o := New(m.NumRows, m.NumCols)
 	for i := 0; i < m.NumCols*m.NumRows; i++ {
@@ -119,11 +120,11 @@ func (m *Mat64) Dot(n *Mat64) *Mat64 {
 	return o
 }
 
-// DotInPlace multiplies a Mat64 by another in place. This means that
+// TimesInPlace multiplies a Mat64 by another in place. This means that
 // the original matrix is lost.
-func (m *Mat64) DotInPlace(n *Mat64) *Mat64 {
+func (m *Mat64) TimesInPlace(n *Mat64) *Mat64 {
 	if m.NumRows != n.NumRows || m.NumCols != m.NumCols {
-		log.Fatalf(errMismatch, "Dot")
+		log.Fatalf(errMismatch, "Times")
 	}
 	for i := 0; i < m.NumCols*m.NumRows; i++ {
 		m.Vals[i] *= n.Vals[i]
@@ -148,4 +149,36 @@ func (m *Mat64) ApplyInPlace(f ElementalFn) *Mat64 {
 		m.Vals[i] = f(m.Vals[i])
 	}
 	return m
+}
+
+// Dot is the matrix multiplication of two Mat64 objects. Consider
+// The following two mat64 objects, pretty printed for illusration:
+//
+// A = [[1, 0],
+//      [0, 1]]
+//
+// and
+//
+// B = [[4, 1],
+//      [2, 2]]
+//
+// A.Dot(B) = [[4, 1],
+//             [2, 2]]
+//
+// The number of elements in the first matrix row, must equal the number
+// elements in the second matrix column.
+func (m *Mat64) Dot(n *Mat64) *Mat64 {
+	if m.NumCols != n.NumRows {
+		log.Fatalf(errMismatch, "Dot")
+	}
+	o := New(m.NumRows, n.NumCols)
+	items := m.NumCols
+	for i := 0; i < m.NumRows; i++ {
+		for j := 0; j < n.NumCols; j++ {
+			for k := 0; k < items; k++ {
+				o.Vals[i*o.NumRows+j] += (m.At(i, k) * n.At(k, j))
+			}
+		}
+	}
+	return o
 }
