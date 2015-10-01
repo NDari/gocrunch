@@ -193,15 +193,32 @@ func TestDot(t *testing.T) {
 	n := New(col, row)
 	o := m.Dot(n)
 	if o.NumRows != row {
-		t.Errorf("m.Dot(n).numRows expected 10, got %v", m.NumRows)
+		t.Errorf("m.Dot(n).numRows expected %v, got %v", row, m.NumRows)
 	}
 	if o.NumCols != row {
-		t.Errorf("m.Dot(n).numCols expected 10, got %v", m.NumCols)
+		t.Errorf("m.Dot(n).numCols expected %v, got %v", row, m.NumCols)
 	}
 	for i := 0; i < row*row; i++ {
 		o.Vals[i] = float64(i)
 	}
 	if !o.Dot(Identity(row)).Equals(o) {
 		t.Errorf("mat64 x identity != mat64...")
+	}
+}
+
+func TestReset(t *testing.T) {
+	var (
+		row = 21
+		col = 13
+	)
+	m := New(row, col)
+	for i := 0; i < row*col; i++ {
+		m.Vals[i] = float64(i)
+	}
+	m.Reset()
+	for i := 0; i < row*col; i++ {
+		if m.Vals[i] != 0.0 {
+			t.Errorf("m.Reset at %v is equal %v", i, m.Vals[i])
+		}
 	}
 }

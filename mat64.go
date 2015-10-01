@@ -182,3 +182,11 @@ func (m *Mat64) Dot(n *Mat64) *Mat64 {
 	}
 	return o
 }
+
+// Reset puts all the elements of a Mat64 values set to 0.0.
+func (m *Mat64) Reset() *Mat64 {
+	for i := 0; i < m.NumCols*m.NumRows; i++ {
+		m.Vals[i] = 0.0
+	}
+	return m
+}
