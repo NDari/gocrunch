@@ -3,6 +3,8 @@ package Mat64
 
 import (
 	"log"
+	"os"
+	"strconv"
 )
 
 var (
@@ -185,8 +187,31 @@ func (m *Mat64) Dot(n *Mat64) *Mat64 {
 
 // Reset puts all the elements of a Mat64 values set to 0.0.
 func (m *Mat64) Reset() *Mat64 {
-	for i := 0; i < m.NumCols*m.NumRows; i++ {
-		m.Vals[i] = 0.0
+	return m.ApplyInPlace(func(i float64) float64 { return 0.0 })
+}
+
+// Dump prints the content of a Mat64 object to a file, using the given
+// delimeter between the elements of a row, and a new line between rows.
+// For instance, giving the comma (",") as a delimiter will essentially
+// creates a csv file from the Mat64 object.
+func (m *Mat64) Dump(fileName, delemiter string) {
+	var str string
+	for i := 0; i < m.NumRows; i++ {
+		for j := 0; j < m.NumCols; j++ {
+			str += strconv.FormatFloat(m.Vals[i*m.NumRows+j], 'f', 14, 64)
+			str += delimeter
+		}
+		if i+1 != m.NumRows {
+			str += "\n"
+		}
 	}
-	return m
+	f, err := os.Create(fileName)
+	if err != nil {
+		log.Fatalf(err)
+	}
+	defer f.Close()
+	_, err = f.WriteString(str)
+	if err != nil {
+		log.Fatalf(err)
+	}
 }
