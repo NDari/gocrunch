@@ -34,6 +34,25 @@ func I(r int) [][]float64 {
 	return identity
 }
 
+// Ones returns a new 2D slice where all the elements are equal to 1.0
+func Ones(r, c int) [][]float64 {
+	return Apply(func(i float64) float64 { return 1.0 }, New(r, c))
+}
+
+// Inc returns a 2D slice, where element [0][0] == 0.0, and each
+// subsequent elemnt is incrmeneted by 1.0
+func Inc(r, c int) [][]float64 {
+	m := New(r, c)
+	iter := 0
+	for i := 0; i < r; i++ {
+		for j := 0; j < c; j++ {
+			m[i][j] = float64(iter)
+			iter++
+		}
+	}
+	return m
+}
+
 // Col returns a column of a 2D slice of float64s.
 func Col(c int, m [][]float64) []float64 {
 	vec := make([]float64, len(m))

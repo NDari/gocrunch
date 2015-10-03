@@ -24,19 +24,27 @@ func TestI(t *testing.T) {
 	}
 }
 
+func TestOnes(t *testing.T) {
+	var (
+		row = 12
+		col = 7
+	)
+	o := Ones(row, col)
+	for i := 0; i < row; i++ {
+		for j := 0; j < col; j++ {
+			if o[i][j] != 1.0 {
+				t.Errorf("Ones[%v][%v]: expected 1.0, got %v", i, j, o[i][j])
+			}
+		}
+	}
+}
+
 func TestCol(t *testing.T) {
 	var (
 		row = 3
 		col = 4
 	)
-	m := New(row, col)
-	iter := 0
-	for i := 0; i < row; i++ {
-		for j := 0; j < col; j++ {
-			m[i][j] = float64(iter)
-			iter++
-		}
-	}
+	m := Inc(row, col)
 	got := Col(2, m)
 	if len(got) != row {
 		t.Errorf("got.NumRows == %v, want %v", len(got), row)
@@ -54,14 +62,7 @@ func TestRow(t *testing.T) {
 		row = 3
 		col = 4
 	)
-	m := New(row, col)
-	iter := 0
-	for i := 0; i < row; i++ {
-		for j := 0; j < col; j++ {
-			m[i][j] = float64(iter)
-			iter++
-		}
-	}
+	m := Inc(row, col)
 	got := Row(1, m)
 	if len(got) != col {
 		t.Errorf("len(got) == %v, want %v", len(got), col)
@@ -79,7 +80,7 @@ func TestT(t *testing.T) {
 		row = 5
 		col = 7
 	)
-	m := New(row, col)
+	m := Inc(row, col)
 	n := T(m)
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
@@ -88,8 +89,16 @@ func TestT(t *testing.T) {
 			}
 		}
 	}
-	if !Equal(m, T(T(m))) {
+	ttm := T(T(m))
+	if !Equal(m, ttm) {
 		t.Errorf("mat.T.T != mat")
+		for i := 0; i < row; i++ {
+			for j := 0; j < col; j++ {
+				if ttm[i][j] != m[i][j] {
+					t.Errorf("At [%v][%v]: expected %v, got %v", i, j, m[i][j], ttm[i][j])
+				}
+			}
+		}
 	}
 }
 
@@ -103,15 +112,8 @@ func TestTimes(t *testing.T) {
 	if !Equal(Times(m, q), m) {
 		t.Errorf("A Square matrix times the identity matrix should be equal to itself")
 	}
-	m = New(row, col)
+	m = Inc(row, col)
 	n := New(row, col)
-	iter := 0
-	for i := 0; i < row; i++ {
-		for j := 0; j < col; j++ {
-			m[i][j] = float64(iter)
-			iter++
-		}
-	}
 	o := Times(m, n)
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
@@ -157,13 +159,7 @@ func TestDot(t *testing.T) {
 	if len(o[0]) != row {
 		t.Errorf("Dot(m, n)'s numCols expected %v, got %v", row, len(o[0]))
 	}
-	iter := 0
-	for i := 0; i < row; i++ {
-		for j := 0; j < row; j++ {
-			o[i][j] = float64(iter)
-			iter++
-		}
-	}
+	o = Inc(row, row)
 	p := Dot(I(row), o)
 	if !Equal(p, o) {
 		t.Errorf("o x I != o...")
@@ -175,14 +171,7 @@ func TestReset(t *testing.T) {
 		row = 21
 		col = 13
 	)
-	m := New(row, col)
-	iter := 0
-	for i := 0; i < row; i++ {
-		for j := 0; j < col; j++ {
-			m[i][j] = float64(iter)
-			iter++
-		}
-	}
+	m := Inc(row, col)
 	m = Reset(m)
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
