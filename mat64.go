@@ -1,4 +1,5 @@
-// Package mat64 contains a float64 Matrix object for Go.
+// Package mat64 supplies functions that create or act
+// on 2D slices of float64s, for the Go language.
 package mat64
 
 import (
@@ -160,11 +161,14 @@ func Dot(m, n [][]float64) [][]float64 {
 	return o
 }
 
-// Reset puts all the elements of a mat64 values set to 0.0.
+// Reset sets the values of all entries in a 2D slice of float64s
+// to 0.0
 func Reset(m [][]float64) [][]float64 {
 	return Apply(func(i float64) float64 { return 0.0 }, m)
 }
 
+// ToString converts a 2D slice of float64s into a 2D slice
+// of strings.
 func ToString(m [][]float64) [][]string {
 	str := make([][]string, len(m))
 	for i := 0; i < len(m); i++ {
@@ -187,9 +191,20 @@ func Dump(m [][]float64, fileName string) {
 	}
 	defer f.Close()
 	w := csv.NewWriter(f)
-	w.Comma = rune(' ')
 	w.WriteAll(ToString(m))
 	if err = w.Error(); err != nil {
 		log.Fatalf("Error in csv writer for file %v: %v", fileName, err)
 	}
+}
+
+// Copy copies the content of a 2D slice of float64s into another with
+// the same shape. This is a deep copy, unlike the builtin copy function
+// that is shallow for 2D slices.
+func Copy(m [][]float64) [][]float64 {
+	n := make([][]float64, len(m))
+	for i := 0; i < len(m); i++ {
+		n[i] = make([]float64, len(m[i]))
+		copy(n, m)
+	}
+	return n
 }
