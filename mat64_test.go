@@ -1,6 +1,7 @@
 package mat64
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -180,4 +181,15 @@ func TestReset(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestToString(t *testing.T) {
+	m := New(10, 10)
+	n := ToString(m)
+	fmt.Println(n)
+}
+
+func TestDump(t *testing.T) {
+	m := Inc(10, 3)
+	Dump(m, "output")
 }

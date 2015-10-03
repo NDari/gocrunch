@@ -2,6 +2,7 @@
 package mat64
 
 import (
+	"encoding/csv"
 	"log"
 	"os"
 	"strconv"
@@ -164,28 +165,31 @@ func Reset(m [][]float64) [][]float64 {
 	return Apply(func(i float64) float64 { return 0.0 }, m)
 }
 
+func ToString(m [][]float64) [][]string {
+	str := make([][]string, len(m))
+	for i := 0; i < len(m); i++ {
+		str[i] = make([]string, len(m[i]))
+		for j := 0; j < len(m[i]); j++ {
+			str[i][j] = strconv.FormatFloat(m[i][j], 'e', 14, 64)
+		}
+	}
+	return str
+}
+
 // Dump prints the content of a mat64 object to a file, using the given
 // delimeter between the elements of a row, and a new line between rows.
 // For instance, giving the comma (",") as a delimiter will essentially
 // creates a csv file from the mat64 object.
-func Dump(m [][]float64, fileName, delimiter string) {
-	var str string
-	for i := 0; i < len(m); i++ {
-		for j := 0; j < len(m[i]); j++ {
-			str += strconv.FormatFloat(m[i][j], 'f', 14, 64)
-			str += delimiter
-		}
-		if i+1 != len(m) {
-			str += "\n"
-		}
-	}
+func Dump(m [][]float64, fileName string) {
 	f, err := os.Create(fileName)
 	if err != nil {
 		log.Fatalf("Cannot open %v: %v", fileName, err)
 	}
 	defer f.Close()
-	_, err = f.WriteString(str)
-	if err != nil {
-		log.Fatalf("Cannot write to %v: %v", fileName, err)
+	w := csv.NewWriter(f)
+	w.Comma = rune(' ')
+	w.WriteAll(ToString(m))
+	if err = w.Error(); err != nil {
+		log.Fatalf("Error in csv writer for file %v: %v", fileName, err)
 	}
 }
