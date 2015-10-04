@@ -197,6 +197,37 @@ func Dump(m [][]float64, fileName string) {
 	}
 }
 
+// FromString converts a 2D slice of strings into a 2D slice of float64s.
+func FromString(str [][]string) [][]float64 {
+	var err error
+	m := make([][]float64, len(str))
+	for i := 0; i < len(str); i++ {
+		m[i] = make([]float64, len(str[i]))
+		for j := 0; j < len(str[i]); j++ {
+			m[i][j], err = strconv.ParseFloat(str[i][j], 64)
+			if err != nil {
+				log.Fatalf("Died on string to float conversion: %v", err)
+			}
+		}
+	}
+	return m
+}
+
+// Load generates a 2D slice of floats from a csv file.
+func Load(fileName string) [][]float64 {
+	f, err := os.Open(fileName)
+	if err != nil {
+		log.Fatalf("Cannot open %v: %v", fileName, err)
+	}
+	defer f.Close()
+	r := csv.NewReader(f)
+	str, err := r.ReadAll()
+	if err != nil {
+		log.Fatalf("Error in csv reader for file %v: %v", fileName, err)
+	}
+	return FromString(str)
+}
+
 // Copy copies the content of a 2D slice of float64s into another with
 // the same shape. This is a deep copy, unlike the builtin copy function
 // that is shallow for 2D slices.
@@ -204,7 +235,7 @@ func Copy(m [][]float64) [][]float64 {
 	n := make([][]float64, len(m))
 	for i := 0; i < len(m); i++ {
 		n[i] = make([]float64, len(m[i]))
-		copy(n, m)
+		copy(n[i], m[i])
 	}
 	return n
 }

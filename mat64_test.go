@@ -1,6 +1,8 @@
 package mat64
 
 import (
+	"log"
+	"os"
 	"testing"
 )
 
@@ -179,6 +181,20 @@ func TestReset(t *testing.T) {
 				t.Errorf("Reset(m) at m[%v][%v] is equal %v", i, j, m[i][j])
 			}
 		}
+	}
+}
+
+func TestDump(t *testing.T) {
+	fileName := "output"
+	m := Inc(20, 30)
+	Dump(m, fileName)
+	n := Load(fileName)
+	if !Equal(m, n) {
+		t.Errorf("Dumped 2D slice is not Equal Loaded 2D slice")
+	}
+	err := os.Remove(fileName)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
