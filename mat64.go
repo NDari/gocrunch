@@ -180,10 +180,8 @@ func ToString(m [][]float64) [][]string {
 	return str
 }
 
-// Dump prints the content of a mat64 object to a file, using the given
+// Dump prints the content of a mat64 object to a file, using comma as the
 // delimeter between the elements of a row, and a new line between rows.
-// For instance, giving the comma (",") as a delimiter will essentially
-// creates a csv file from the mat64 object.
 func Dump(m [][]float64, fileName string) {
 	f, err := os.Create(fileName)
 	if err != nil {
