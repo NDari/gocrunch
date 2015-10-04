@@ -205,3 +205,15 @@ func TestCopy(t *testing.T) {
 		t.Errorf("m != its copy")
 	}
 }
+
+func TestAppendCol(t *testing.T) {
+	m := Inc(5, 7)
+	v := []float64{12, 13, 17, 19, 21}
+	m = AppendCol(m, v)
+	p := Col(7, m)
+	for i := 0; i < len(v); i++ {
+		if v[i] != p[i] {
+			t.Errorf("In AppendCol, expected %v, got %v", v[i], p[i])
+		}
+	}
+}

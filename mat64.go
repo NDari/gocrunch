@@ -239,3 +239,24 @@ func Copy(m [][]float64) [][]float64 {
 	}
 	return n
 }
+
+// AppendCol appends a column to the right side of a 2D slice of float64s.
+func AppendCol(m [][]float64, v []float64) [][]float64 {
+	if len(m) != len(v) {
+		log.Fatalf(errMismatch, "AppendCol")
+	}
+	for i := 0; i < len(v); i++ {
+		m[i] = append(m[i], v[i])
+	}
+	return m
+}
+
+// Print prints a 2D slice of float64s to the std out.
+func Print(m [][]float64) {
+	w := csv.NewWriter(os.Stdout)
+	w.Comma = rune(' ')
+	w.WriteAll(ToString(m))
+	if err := w.Error(); err != nil {
+		log.Fatalf("Error in csv writer to std out:", err)
+	}
+}
