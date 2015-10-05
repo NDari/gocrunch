@@ -104,6 +104,15 @@ func TestT(t *testing.T) {
 	}
 }
 
+func TestTAsync(t *testing.T) {
+	m := Inc(13, 12)
+	n := T(m)
+	o := <-TAsync(m)
+	if !Equal(n, o) {
+		t.Errorf("T() != TAsync")
+	}
+}
+
 func TestTimes(t *testing.T) {
 	var (
 		row = 5
@@ -128,6 +137,33 @@ func TestTimes(t *testing.T) {
 	m = Apply(func(i float64) float64 { return i * i }, m)
 	if !Equal(o, m) {
 		t.Errorf("m times m != m.Apply( i * i for each element i in m)")
+	}
+}
+
+func TestTimesAsync(t *testing.T) {
+	var (
+		row = 5
+		col = 7
+	)
+	m := New(row, row)
+	q := I(row)
+	if !Equal(<-TimesAsync(m, q), m) {
+		t.Errorf("A Square matrix times the identity matrix should be equal to itself")
+	}
+	m = Inc(row, col)
+	n := New(row, col)
+	o := <-TimesAsync(m, n)
+	for i := 0; i < row; i++ {
+		for j := 0; j < col; j++ {
+			if o[i][j] != 0.0 {
+				t.Errorf("o[%v][%v] == %v, expected 0.0", i, j, o[i][j])
+			}
+		}
+	}
+	o = <-TimesAsync(m, m)
+	m = Apply(func(i float64) float64 { return i * i }, m)
+	if !Equal(o, m) {
+		t.Errorf("m TimesAsync m != m.Apply( i * i for each element i in m)")
 	}
 }
 
@@ -166,6 +202,28 @@ func TestDot(t *testing.T) {
 	if !Equal(p, o) {
 		t.Errorf("o x I != o...")
 	}
+}
+
+func TestDotAsync(t *testing.T) {
+	var (
+		row = 10
+		col = 4
+	)
+	m := New(row, col)
+	n := New(col, row)
+	o := <-DotAsync(m, n)
+	if len(o) != row {
+		t.Errorf("DotAsync(m, n)'s numRows expected %v, got %v", row, len(o))
+	}
+	if len(o[0]) != row {
+		t.Errorf("Dot(m, n)'s numCols expected %v, got %v", row, len(o[0]))
+	}
+	o = Inc(row, row)
+	p := <-DotAsync(I(row), o)
+	if !Equal(p, o) {
+		t.Errorf("o x I != o...")
+	}
+
 }
 
 func TestReset(t *testing.T) {

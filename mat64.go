@@ -16,7 +16,11 @@ var (
 // ElementalFn is a function that takes a float64 and returns a
 // float64. This function can therefore be applied to each element
 // of a 2D float64 slice, and can be used to construct a new one.
-type ElementalFn func(float64) float64
+type elementalFn func(float64) float64
+
+// Future2DSlice is a channel which is used in async operations
+// internally.
+type future2DSlice chan [][]float64
 
 // New returns a 2D slice of float64s with the given row and columns.
 func New(r, c int) [][]float64 {
@@ -86,6 +90,14 @@ func T(m [][]float64) [][]float64 {
 	return transpose
 }
 
+// TAsync Runs T() in a goroutine, returning a channel which will
+// contain the result when the goroutine is done.
+func TAsync(m [][]float64) future2DSlice {
+	c := make(future2DSlice)
+	go func() { c <- T(m) }()
+	return c
+}
+
 // Equals checks if two mat objects have the same shape and the
 // same entries in each row and column.
 func Equal(m, n [][]float64) bool {
@@ -124,9 +136,17 @@ func Times(m, n [][]float64) [][]float64 {
 	return o
 }
 
-// Apply calls a given Elemental function on each Element
+// TimesAsync runs Times() in a gorroutine, returning a channel
+// which will contain the result when the goroutine is done.
+func TimesAsync(m, n [][]float64) future2DSlice {
+	c := make(future2DSlice)
+	go func() { c <- Times(m, n) }()
+	return c
+}
+
+// Apply calls a given elemental function on each Element
 // of a 2D slice, returning it afterwards.
-func Apply(f ElementalFn, m [][]float64) [][]float64 {
+func Apply(f elementalFn, m [][]float64) [][]float64 {
 	for i := 0; i < len(m); i++ {
 		for j := 0; j < len(m[i]); j++ {
 			m[i][j] = f(m[i][j])
@@ -136,7 +156,6 @@ func Apply(f ElementalFn, m [][]float64) [][]float64 {
 }
 
 // Dot is the matrix multiplication of two 2D slices of float64s
-
 func Dot(m, n [][]float64) [][]float64 {
 	lenm := len(m)
 	// make sure that the length of the row of m matches the length of
@@ -159,6 +178,14 @@ func Dot(m, n [][]float64) [][]float64 {
 		}
 	}
 	return o
+}
+
+// DotAsync will apply Dot() in a goroutine, returning a channel that
+// with contain the result when the goroutine is done.
+func DotAsync(m, n [][]float64) future2DSlice {
+	c := make(future2DSlice)
+	go func() { c <- Dot(m, n) }()
+	return c
 }
 
 // Reset sets the values of all entries in a 2D slice of float64s
