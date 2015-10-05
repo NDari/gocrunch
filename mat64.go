@@ -18,10 +18,6 @@ var (
 // of a 2D float64 slice, and can be used to construct a new one.
 type elementalFn func(float64) float64
 
-// Future2DSlice is a channel which is used in async operations
-// internally.
-type future2DSlice chan [][]float64
-
 // New returns a 2D slice of float64s with the given row and columns.
 func New(r, c int) [][]float64 {
 	arr := make([][]float64, r)
@@ -90,14 +86,6 @@ func T(m [][]float64) [][]float64 {
 	return transpose
 }
 
-// TAsync Runs T() in a goroutine, returning a channel which will
-// contain the result when the goroutine is done.
-func TAsync(m [][]float64) future2DSlice {
-	c := make(future2DSlice)
-	go func() { c <- T(m) }()
-	return c
-}
-
 // Equals checks if two mat objects have the same shape and the
 // same entries in each row and column.
 func Equal(m, n [][]float64) bool {
@@ -136,14 +124,6 @@ func Times(m, n [][]float64) [][]float64 {
 	return o
 }
 
-// TimesAsync runs Times() in a gorroutine, returning a channel
-// which will contain the result when the goroutine is done.
-func TimesAsync(m, n [][]float64) future2DSlice {
-	c := make(future2DSlice)
-	go func() { c <- Times(m, n) }()
-	return c
-}
-
 // Apply calls a given elemental function on each Element
 // of a 2D slice, returning it afterwards.
 func Apply(f elementalFn, m [][]float64) [][]float64 {
@@ -178,14 +158,6 @@ func Dot(m, n [][]float64) [][]float64 {
 		}
 	}
 	return o
-}
-
-// DotAsync will apply Dot() in a goroutine, returning a channel that
-// with contain the result when the goroutine is done.
-func DotAsync(m, n [][]float64) future2DSlice {
-	c := make(future2DSlice)
-	go func() { c <- Dot(m, n) }()
-	return c
 }
 
 // Reset sets the values of all entries in a 2D slice of float64s
