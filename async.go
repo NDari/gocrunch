@@ -2,7 +2,7 @@ package mat64
 
 // Future2DSlice is a channel which is used in async operations
 // internally.
-type Future2DSlice chan [][]float64
+type Future2DSlice chan Mat64
 
 // TAsync Runs T() in a goroutine, returning a channel which will
 // contain the result when the goroutine is done.
