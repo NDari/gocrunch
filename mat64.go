@@ -13,16 +13,13 @@ var (
 	errMismatch = "mat64.%s Error: Shape mismatch of the slices"
 )
 
-// Mat64 is an alias for a 2D slice of float64s.
-type Mat64 [][]float64
-
 // ElementalFn is a function that takes a float64 and returns a
 // float64. This function can therefore be applied to each element
 // of a 2D float64 slice, and can be used to construct a new one.
 type ElementalFn func(float64) float64
 
 // New returns a 2D slice of float64s with the given row and columns.
-func New(r, c int) Mat64 {
+func New(r, c int) [][]float64 {
 	arr := make([][]float64, r)
 	for i := 0; i < r; i++ {
 		arr[i] = make([]float64, c)
@@ -31,7 +28,7 @@ func New(r, c int) Mat64 {
 }
 
 // I returns an r by r identity matrix for a given r.
-func I(r int) Mat64 {
+func I(r int) [][]float64 {
 	identity := New(r, r)
 	for i := 0; i < r; i++ {
 		identity[i][i] = 1.0
@@ -40,13 +37,13 @@ func I(r int) Mat64 {
 }
 
 // Ones returns a new 2D slice where all the elements are equal to 1.0
-func Ones(r, c int) Mat64 {
+func Ones(r, c int) [][]float64 {
 	return Apply(func(i float64) float64 { return 1.0 }, New(r, c))
 }
 
 // Inc returns a 2D slice, where element [0][0] == 0.0, and each
 // subsequent elemnt is incrmeneted by 1.0
-func Inc(r, c int) Mat64 {
+func Inc(r, c int) [][]float64 {
 	m := New(r, c)
 	iter := 0
 	for i := 0; i < r; i++ {
@@ -59,7 +56,7 @@ func Inc(r, c int) Mat64 {
 }
 
 // Col returns a column of a 2D slice of float64s.
-func Col(c int, m Mat64) []float64 {
+func Col(c int, m [][]float64) []float64 {
 	vec := make([]float64, len(m))
 	for r := 0; r < len(m); r++ {
 		vec[r] = m[r][c]
@@ -68,7 +65,7 @@ func Col(c int, m Mat64) []float64 {
 }
 
 // Row returns a row of a 2D slice of float64s
-func Row(r int, m Mat64) []float64 {
+func Row(r int, m [][]float64) []float64 {
 	vec := make([]float64, len(m[r]))
 	for c := 0; c < len(m[r]); c++ {
 		vec[c] = m[r][c]
@@ -79,7 +76,7 @@ func Row(r int, m Mat64) []float64 {
 // T returns a copy of a given matrix with the elements
 // mirrored across the diagonal. for example, the element At(i, j) becomes the
 // element At(j, i). This function leaves the original matrix intact.
-func T(m Mat64) Mat64 {
+func T(m [][]float64) [][]float64 {
 	transpose := New(len(m[0]), len(m))
 	for i := 0; i < len(m); i++ {
 		for j := 0; j < len(m[i]); j++ {
@@ -91,7 +88,7 @@ func T(m Mat64) Mat64 {
 
 // Equals checks if two mat objects have the same shape and the
 // same entries in each row and column.
-func Equal(m, n Mat64) bool {
+func Equal(m, n [][]float64) bool {
 	if len(m) != len(n) {
 		return false
 	}
@@ -110,7 +107,7 @@ func Equal(m, n Mat64) bool {
 
 // Times returns a new 2D slice that is the result of
 // element-wise multiplication of two 2D slices.
-func Times(m, n Mat64) Mat64 {
+func Times(m, n [][]float64) [][]float64 {
 	if len(m) != len(n) {
 		log.Fatalf(errMismatch, "Times")
 	}
@@ -129,7 +126,7 @@ func Times(m, n Mat64) Mat64 {
 
 // Apply calls a given elemental function on each Element
 // of a 2D slice, returning it afterwards.
-func Apply(f ElementalFn, m Mat64) Mat64 {
+func Apply(f ElementalFn, m [][]float64) [][]float64 {
 	for i := 0; i < len(m); i++ {
 		for j := 0; j < len(m[i]); j++ {
 			m[i][j] = f(m[i][j])
@@ -139,7 +136,7 @@ func Apply(f ElementalFn, m Mat64) Mat64 {
 }
 
 // Dot is the matrix multiplication of two 2D slices of float64s
-func Dot(m, n Mat64) Mat64 {
+func Dot(m, n [][]float64) [][]float64 {
 	lenm := len(m)
 	// make sure that the length of the row of m matches the length of
 	// each column in n.
@@ -165,13 +162,13 @@ func Dot(m, n Mat64) Mat64 {
 
 // Reset sets the values of all entries in a 2D slice of float64s
 // to 0.0
-func Reset(m Mat64) Mat64 {
+func Reset(m [][]float64) [][]float64 {
 	return Apply(func(i float64) float64 { return 0.0 }, m)
 }
 
 // ToString converts a 2D slice of float64s into a 2D slice
 // of strings.
-func ToString(m Mat64) [][]string {
+func ToString(m [][]float64) [][]string {
 	str := make([][]string, len(m))
 	for i := 0; i < len(m); i++ {
 		str[i] = make([]string, len(m[i]))
@@ -182,9 +179,9 @@ func ToString(m Mat64) [][]string {
 	return str
 }
 
-// Dump prints the content of a Mat64 object to a file, using comma as the
+// Dump prints the content of a [][]float64 object to a file, using comma as the
 // delimeter between the elements of a row, and a new line between rows.
-func Dump(m Mat64, fileName string) {
+func Dump(m [][]float64, fileName string) {
 	f, err := os.Create(fileName)
 	if err != nil {
 		log.Fatalf("Cannot open %v: %v", fileName, err)
@@ -198,7 +195,7 @@ func Dump(m Mat64, fileName string) {
 }
 
 // FromString converts a 2D slice of strings into a 2D slice of float64s.
-func FromString(str [][]string) Mat64 {
+func FromString(str [][]string) [][]float64 {
 	var err error
 	m := make([][]float64, len(str))
 	for i := 0; i < len(str); i++ {
@@ -214,7 +211,7 @@ func FromString(str [][]string) Mat64 {
 }
 
 // Load generates a 2D slice of floats from a csv file.
-func Load(fileName string) Mat64 {
+func Load(fileName string) [][]float64 {
 	f, err := os.Open(fileName)
 	if err != nil {
 		log.Fatalf("Cannot open %v: %v", fileName, err)
@@ -231,7 +228,7 @@ func Load(fileName string) Mat64 {
 // Copy copies the content of a 2D slice of float64s into another with
 // the same shape. This is a deep copy, unlike the builtin copy function
 // that is shallow for 2D slices.
-func Copy(m Mat64) Mat64 {
+func Copy(m [][]float64) [][]float64 {
 	n := make([][]float64, len(m))
 	for i := 0; i < len(m); i++ {
 		n[i] = make([]float64, len(m[i]))
@@ -241,7 +238,7 @@ func Copy(m Mat64) Mat64 {
 }
 
 // AppendCol appends a column to the right side of a 2D slice of float64s.
-func AppendCol(m Mat64, v []float64) Mat64 {
+func AppendCol(m [][]float64, v []float64) [][]float64 {
 	if len(m) != len(v) {
 		log.Fatalf(errMismatch, "AppendCol")
 	}
@@ -252,7 +249,7 @@ func AppendCol(m Mat64, v []float64) Mat64 {
 }
 
 // Print prints a 2D slice of float64s to the std out.
-func Print(m Mat64) {
+func Print(m [][]float64) {
 	w := csv.NewWriter(os.Stdout)
 	w.Comma = rune(' ')
 	w.WriteAll(ToString(m))
