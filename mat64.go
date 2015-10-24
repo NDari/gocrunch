@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	errMismatch = "mat64.%s Error: Shape mismatch of the slices"
+	errRowMismatch = "mat64.%v Error: Row mismatch of the slices"
+	errColMismatch = "mat64.%v Error: Col mismatch of the slices at col %v"
 )
 
 // ElementalFn is a function that takes a float64 and returns a
@@ -135,12 +136,12 @@ func Equal(m, n [][]float64) bool {
 // element-wise multiplication of two 2D slices.
 func Times(m, n [][]float64) [][]float64 {
 	if len(m) != len(n) {
-		log.Fatalf(errMismatch, "Times")
+		log.Fatalf(errRowMismatch, "Times")
 	}
 	o := make([][]float64, len(m))
 	for i := 0; i < len(m); i++ {
 		if len(m[i]) != len(n[i]) {
-			log.Fatalf(errMismatch, "Times")
+			log.Fatalf(errColMismatch, "Times", i)
 		}
 		o[i] = make([]float64, len(m[i]))
 		for j := 0; j < len(m[i]); j++ {
@@ -168,13 +169,19 @@ func Dot(m, n [][]float64) [][]float64 {
 	// each column in n.
 	for i := 0; i < len(n); i++ {
 		if lenm != len(n[i]) {
-			log.Fatalf(errMismatch, "Dot")
+			msg := "mat64.Dot Error: length of column %v on the second matrix\n"
+			msg += "is %v, which does not match the length of the row of the \n"
+			msg += "first matrix, which is %v"
+			log.Fatalf(msg, i, len(n[i]), len(m))
 		}
 	}
 	o := make([][]float64, len(m))
 	for i := 0; i < len(m); i++ {
 		if len(m[i]) != len(n) {
-			log.Fatalf(errMismatch, "Dot")
+			msg := "mat64.Dot Error: length of column %v on the first matrix\n"
+			msg += "is %v, which does not match the length of the row of the \n"
+			msg += "second matrix, which is %v"
+			log.Fatalf(msg, i, len(m[i]), len(n))
 		}
 		o[i] = make([]float64, len(n[0]))
 		for j := 0; j < len(m[i]); j++ {
@@ -266,7 +273,7 @@ func Copy(m [][]float64) [][]float64 {
 // AppendCol appends a column to the right side of a 2D slice of float64s.
 func AppendCol(m [][]float64, v []float64) [][]float64 {
 	if len(m) != len(v) {
-		log.Fatalf(errMismatch, "AppendCol")
+		log.Fatalf(errRowMismatch, "AppendCol")
 	}
 	for i := 0; i < len(v); i++ {
 		m[i] = append(m[i], v[i])
@@ -291,7 +298,7 @@ func AppendCol(m [][]float64, v []float64) [][]float64 {
 // o is [[1.0, 2.0, 5.0, 6.0], [3.0, 4.0, 7.0, 8.0]]
 func Concat(m, n [][]float64) [][]float64 {
 	if len(m) != len(n) {
-		log.Fatalf(errMismatch, "Concat")
+		log.Fatalf(errRowMismatch, "Concat")
 	}
 	o := make([][]float64, len(m))
 	for i := 0; i < len(m); i++ {
