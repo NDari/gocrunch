@@ -29,6 +29,27 @@ func Col(c int, m [][]float64) []float64
 ```
 Col returns a column of a 2D slice of float64s.
 
+#### func  Concat
+
+```go
+func Concat(m, n [][]float64) [][]float64
+```
+Concat concatenates the inner slices of 2 2D slices of float64s.
+
+For example, if we have:
+
+m := [[1, 2], [3, 4]]
+
+n := [[5, 6], [7, 8]]
+
+and
+
+o := mat64.Concat(m, n)
+
+then:
+
+o is [[1, 2, 5, 6], [3, 4, 7, 8]]
+
 #### func  Copy
 
 ```go
@@ -95,7 +116,26 @@ Load generates a 2D slice of floats from a csv file.
 ```go
 func New(r, c int) [][]float64
 ```
-New returns a 2D slice of float64s with the given row and columns.
+New returns a 2D slice of float64s with the given number of row and columns.
+This function should be used as a convenience tool, and it is exactly equivalent
+to the normal method of allocating a uniform (non-jagged) 2D slice of float64s.
+
+If it is anticipated that the 2D slice will grow, use the "NewExpand" function
+below. For full details, read that function's documentation.
+
+#### func  NewExpand
+
+```go
+func NewExpand(r, c int) [][]float64
+```
+NewExpand returns a 2D slice of float64s, with the given number of rows and
+columns. The difference between this function and the "New" function above is
+that the inner slices are allocated with double the capacity, and hence can grow
+without the need for reallocation up to column * 2.
+
+Note that this extended capacity will waste memory, so the NewExtend should be
+used with care in situations where the performance gained by avoiding
+reallocation justifies the extra cost in memory.
 
 #### func  Ones
 

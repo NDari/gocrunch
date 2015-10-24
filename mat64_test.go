@@ -217,3 +217,34 @@ func TestAppendCol(t *testing.T) {
 		}
 	}
 }
+
+func TestConcat(t *testing.T) {
+	var (
+		row = 3
+		col = 7
+	)
+	m := Inc(row, col)
+	n := I(row)
+	o := Concat(m, n)
+	if len(o) != row {
+		t.Errorf("len of concatinated 2Dslice is %v, expected %v", len(o), row)
+	}
+	for i := 0; i < len(o); i++ {
+		if len(o[i]) != (row + col) {
+			t.Errorf("length of concatinated slice o[%v] == %v, expected %v", i, len(o[i]), row+col)
+		}
+	}
+	for i := 0; i < row; i++ {
+		for j := 0; j < row+col; j++ {
+			if j < col {
+				if o[i][j] != m[i][j] {
+					t.Errorf("concinated array at [%v][%v] is %v, expected %v", i, j, o[i][j], m[i][j])
+				}
+			} else {
+				if o[i][j] != n[i][j-col] {
+					t.Errorf("concinated array at [%v][%v] is %v, expected %v", i, j, o[i][j], n[i][j-col])
+				}
+			}
+		}
+	}
+}

@@ -18,11 +18,33 @@ var (
 // of a 2D float64 slice, and can be used to construct a new one.
 type ElementalFn func(float64) float64
 
-// New returns a 2D slice of float64s with the given row and columns.
+// New returns a 2D slice of float64s with the given number of row and columns.
+// This function should be used as a convenience tool, and it is exactly
+// equivalent to the normal method of allocating a uniform (non-jagged)
+// 2D slice of float64s.
+//
+// If it is anticipated that the 2D slice will grow, use the "NewExpand"
+// function below. For full details, read that function's documentation.
 func New(r, c int) [][]float64 {
 	arr := make([][]float64, r)
 	for i := 0; i < r; i++ {
 		arr[i] = make([]float64, c)
+	}
+	return arr
+}
+
+// NewExpand returns a 2D slice of float64s, with the given number of rows
+// and columns. The difference between this function and the "New" function
+// above is that the inner slices are allocated with double the capacity,
+// and hence can grow without the need for reallocation up to column * 2.
+//
+// Note that this extended capacity will waste memory, so the NewExtend
+// should be used with care in situations where the performance gained by
+// avoiding reallocation justifies the extra cost in memory.
+func NewExpand(r, c int) [][]float64 {
+	arr := make([][]float64, r)
+	for i := 0; i < r; i++ {
+		arr[i] = make([]float64, c*2)
 	}
 	return arr
 }
@@ -246,6 +268,33 @@ func AppendCol(m [][]float64, v []float64) [][]float64 {
 		m[i] = append(m[i], v[i])
 	}
 	return m
+}
+
+// Concat concatenates the inner slices of 2 2D slices of float64s.
+//
+// For example, if we have:
+//
+// m := [[1, 2], [3, 4]]
+//
+// n := [[5, 6], [7, 8]]
+//
+// and
+//
+// o := mat64.Concat(m, n)
+//
+// then:
+//
+// o is [[1, 2, 5, 6], [3, 4, 7, 8]]
+func Concat(m, n [][]float64) [][]float64 {
+	if len(m) != len(n) {
+		log.Fatalf(errMismatch, "Concat")
+	}
+	o := make([][]float64, len(m))
+	for i := 0; i < len(m); i++ {
+		o[i] = make([]float64, len(m[i])+len(n[i]))
+		o[i] = append(m[i], n[i]...)
+	}
+	return o
 }
 
 // Print prints a 2D slice of float64s to the std out.
