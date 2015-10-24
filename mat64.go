@@ -64,7 +64,11 @@ func Ones(r, c int) [][]float64 {
 }
 
 // Inc returns a 2D slice, where element [0][0] == 0.0, and each
-// subsequent elemnt is incrmeneted by 1.0
+// subsequent element is incremented by 1.0
+//
+// For example, m := Inc(3, 2) is
+//
+// [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
 func Inc(r, c int) [][]float64 {
 	m := New(r, c)
 	iter := 0
@@ -96,8 +100,8 @@ func Row(r int, m [][]float64) []float64 {
 }
 
 // T returns a copy of a given matrix with the elements
-// mirrored across the diagonal. for example, the element At(i, j) becomes the
-// element At(j, i). This function leaves the original matrix intact.
+// mirrored across the diagonal. For example, the element [i][j] becomes the
+// element [j][i]. This function leaves the original matrix intact.
 func T(m [][]float64) [][]float64 {
 	transpose := New(len(m[0]), len(m))
 	for i := 0; i < len(m); i++ {
@@ -202,7 +206,7 @@ func ToString(m [][]float64) [][]string {
 }
 
 // Dump prints the content of a [][]float64 object to a file, using comma as the
-// delimeter between the elements of a row, and a new line between rows.
+// delimiter between the elements of a row, and a new line between rows.
 func Dump(m [][]float64, fileName string) {
 	f, err := os.Create(fileName)
 	if err != nil {
@@ -232,7 +236,7 @@ func FromString(str [][]string) [][]float64 {
 	return m
 }
 
-// Load generates a 2D slice of floats from a csv file.
+// Load generates a 2D slice of floats from a CSV file.
 func Load(fileName string) [][]float64 {
 	f, err := os.Open(fileName)
 	if err != nil {
@@ -248,7 +252,7 @@ func Load(fileName string) [][]float64 {
 }
 
 // Copy copies the content of a 2D slice of float64s into another with
-// the same shape. This is a deep copy, unlike the builtin copy function
+// the same shape. This is a deep copy, unlike the built in copy function
 // that is shallow for 2D slices.
 func Copy(m [][]float64) [][]float64 {
 	n := make([][]float64, len(m))
@@ -274,9 +278,9 @@ func AppendCol(m [][]float64, v []float64) [][]float64 {
 //
 // For example, if we have:
 //
-// m := [[1, 2], [3, 4]]
+// m := [[1.0, 2.0], [3.0, 4.0]]
 //
-// n := [[5, 6], [7, 8]]
+// n := [[5.0, 6.0], [7.0, 8.0]]
 //
 // and
 //
@@ -284,7 +288,7 @@ func AppendCol(m [][]float64, v []float64) [][]float64 {
 //
 // then:
 //
-// o is [[1, 2, 5, 6], [3, 4, 7, 8]]
+// o is [[1.0, 2.0, 5.0, 6.0], [3.0, 4.0, 7.0, 8.0]]
 func Concat(m, n [][]float64) [][]float64 {
 	if len(m) != len(n) {
 		log.Fatalf(errMismatch, "Concat")
@@ -297,7 +301,7 @@ func Concat(m, n [][]float64) [][]float64 {
 	return o
 }
 
-// Print prints a 2D slice of float64s to the std out.
+// Print prints a 2D slice of float64s to the stdout.
 func Print(m [][]float64) {
 	w := csv.NewWriter(os.Stdout)
 	w.Comma = rune(' ')

@@ -38,9 +38,9 @@ Concat concatenates the inner slices of 2 2D slices of float64s.
 
 For example, if we have:
 
-m := [[1, 2], [3, 4]]
+m := [[1.0, 2.0], [3.0, 4.0]]
 
-n := [[5, 6], [7, 8]]
+n := [[5.0, 6.0], [7.0, 8.0]]
 
 and
 
@@ -48,7 +48,7 @@ o := mat64.Concat(m, n)
 
 then:
 
-o is [[1, 2, 5, 6], [3, 4, 7, 8]]
+o is [[1.0, 2.0, 5.0, 6.0], [3.0, 4.0, 7.0, 8.0]]
 
 #### func  Copy
 
@@ -56,8 +56,8 @@ o is [[1, 2, 5, 6], [3, 4, 7, 8]]
 func Copy(m [][]float64) [][]float64
 ```
 Copy copies the content of a 2D slice of float64s into another with the same
-shape. This is a deep copy, unlike the builtin copy function that is shallow for
-2D slices.
+shape. This is a deep copy, unlike the built in copy function that is shallow
+for 2D slices.
 
 #### func  Dot
 
@@ -72,7 +72,7 @@ Dot is the matrix multiplication of two 2D slices of float64s
 func Dump(m [][]float64, fileName string)
 ```
 Dump prints the content of a [][]float64 object to a file, using comma as the
-delimeter between the elements of a row, and a new line between rows.
+delimiter between the elements of a row, and a new line between rows.
 
 #### func  Equal
 
@@ -101,15 +101,19 @@ I returns an r by r identity matrix for a given r.
 ```go
 func Inc(r, c int) [][]float64
 ```
-Inc returns a 2D slice, where element [0][0] == 0.0, and each subsequent elemnt
-is incrmeneted by 1.0
+Inc returns a 2D slice, where element [0][0] == 0.0, and each subsequent element
+is incremented by 1.0
+
+For example, m := Inc(3, 2) is
+
+[[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
 
 #### func  Load
 
 ```go
 func Load(fileName string) [][]float64
 ```
-Load generates a 2D slice of floats from a csv file.
+Load generates a 2D slice of floats from a CSV file.
 
 #### func  New
 
@@ -149,7 +153,7 @@ Ones returns a new 2D slice where all the elements are equal to 1.0
 ```go
 func Print(m [][]float64)
 ```
-Print prints a 2D slice of float64s to the std out.
+Print prints a 2D slice of float64s to the stdout.
 
 #### func  Reset
 
@@ -171,7 +175,7 @@ Row returns a row of a 2D slice of float64s
 func T(m [][]float64) [][]float64
 ```
 T returns a copy of a given matrix with the elements mirrored across the
-diagonal. for example, the element At(i, j) becomes the element At(j, i). This
+diagonal. For example, the element [i][j] becomes the element [j][i]. This
 function leaves the original matrix intact.
 
 #### func  Times
