@@ -3,6 +3,7 @@ package numgo
 import (
 	"log"
 	"numgo/mat"
+	"numgo/vec"
 	"os"
 	"testing"
 )
@@ -27,7 +28,7 @@ func TestI(t *testing.T) {
 	}
 }
 
-func TestOnes(t *testing.T) {
+func TestMatOnes(t *testing.T) {
 	var (
 		row = 12
 		col = 7
@@ -36,10 +37,20 @@ func TestOnes(t *testing.T) {
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
 			if o[i][j] != 1.0 {
-				t.Errorf("Ones[%v][%v]: expected 1.0, got %v", i, j, o[i][j])
+				t.Errorf("mat.Ones[%v][%v]: expected 1.0, got %v", i, j, o[i][j])
 			}
 		}
 	}
+}
+
+func TestVecOnes(t *testing.T) {
+	o := vec.Ones(13)
+	for i := 0; i < 13; i++ {
+		if o[i] != 1.0 {
+			t.Errorf("vec.Ones[%v]: expected 1.0, got %v", i, o[i])
+		}
+	}
+
 }
 
 func TestCol(t *testing.T) {
@@ -105,7 +116,7 @@ func TestT(t *testing.T) {
 	}
 }
 
-func TestMul(t *testing.T) {
+func TestMatMul(t *testing.T) {
 	var (
 		row = 5
 		col = 7
@@ -132,7 +143,19 @@ func TestMul(t *testing.T) {
 	}
 }
 
-func TestApply(t *testing.T) {
+func TestVecMul(t *testing.T) {
+	v := vec.Ones(12)
+	w := make([]float64, 12)
+	y := vec.Mul(v, w)
+	for i := 0; i < 12; i++ {
+		if y[i] != w[i] {
+			t.Errorf("vec.Mul at index %v: expected 0.0, got %v", i, y[i])
+		}
+	}
+
+}
+
+func TestMatApply(t *testing.T) {
 	var (
 		row = 4
 		col = 4
@@ -148,7 +171,7 @@ func TestApply(t *testing.T) {
 	}
 }
 
-func TestDot(t *testing.T) {
+func TestMatDot(t *testing.T) {
 	var (
 		row = 10
 		col = 4
@@ -169,7 +192,7 @@ func TestDot(t *testing.T) {
 	}
 }
 
-func TestReset(t *testing.T) {
+func TestMatReset(t *testing.T) {
 	var (
 		row = 21
 		col = 13
@@ -219,7 +242,7 @@ func TestAppendCol(t *testing.T) {
 	}
 }
 
-func TestConcat(t *testing.T) {
+func TestMatConcat(t *testing.T) {
 	var (
 		row = 3
 		col = 7
