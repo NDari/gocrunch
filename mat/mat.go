@@ -2,6 +2,10 @@
 Package mat implements function that create or act upon 2D slices of
 `float64`. This is in essence the same concept of a matrix in other
 languages.
+
+The 2D slices acted on or created by the functions below are assumed to
+be non-jagged. This means that for a given [][]float64, the inner slices
+are assumed to be of the same length.
 */
 package mat
 
