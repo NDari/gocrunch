@@ -2,10 +2,10 @@
 --
     import "mat64"
 
-Package mat64 supplies functions that create or act on 2D slices of float64s.
+Package mat64 supplies functions that create or act on 2D slices of `float64`s.
 
 The 2D slices acted on or created by the functions below are assumed to be
-non-jagged. This means that for a given [][]float64, the inner slices are
+non-jagged. This means that for a given `[][]float64`, the inner slices are
 assumed to be of the same length.
 
 All errors encountered in this package, such as shape mismatch between two
