@@ -1,16 +1,9 @@
-// Package mat64 supplies functions that create or act
-// on 2D slices of `float64`.
-//
-// The 2D slices acted on or created by the functions below are assumed
-// to be non-jagged. This means that for a given `[][]float64`, the inner
-// slices are assumed to be of the same length.
-//
-// All errors encountered in this package, such as shape mismatch between
-// two arrays to be multiplied together in an element-wise fashion, are
-// considered fatal. In other words, when encountering an error, the functions
-// in this package will die, instead of returning an error to be handled by
-// the caller.
-package mat64
+/*
+Package mat implements function that create or act upon 2D slices of
+`float64`. This is in essence the same concept of a matrix in other
+languages.
+*/
+package mat
 
 import (
 	"encoding/csv"
@@ -148,7 +141,7 @@ func Equal(m, n [][]float64) bool {
 // of two 2D slices.
 func Mul(m, n [][]float64) [][]float64 {
 	if len(m) != len(n) {
-		msg := "mat64.%v Error: in %v [%v line %v].\n"
+		msg := "numgo.%v Error: in %v [%v line %v].\n"
 		msg += "Number of rows of the first 2D slice is %v, while the number\n"
 		msg += "of rows of the second 2D slice is %v. They must match.\n"
 		p, f, l, _ := runtime.Caller(1)
@@ -157,7 +150,7 @@ func Mul(m, n [][]float64) [][]float64 {
 	o := make([][]float64, len(m))
 	for i := 0; i < len(m); i++ {
 		if len(m[i]) != len(n[i]) {
-			msg := "mat64.%v Error: in %v [%v line %v].\n"
+			msg := "numgo.%v Error: in %v [%v line %v].\n"
 			msg += "In column %v, number of elements for the first 2D slice is %v,\n"
 			msg += "while the number of elements of the second 2D slice is %v.\n"
 			msg += "They must match.\n"
@@ -190,7 +183,7 @@ func Dot(m, n [][]float64) [][]float64 {
 	// each column in n.
 	for i := 0; i < len(n); i++ {
 		if lenm != len(n[i]) {
-			msg := "mat64.%v Error: in %v [%v line %v].\n"
+			msg := "numgo.%v Error: in %v [%v line %v].\n"
 			msg += "Length of column %v on the second matrix\n"
 			msg += "is %v, which does not match the length of the row of the \n"
 			msg += "first matrix, which is %v.\n"
@@ -201,7 +194,7 @@ func Dot(m, n [][]float64) [][]float64 {
 	o := make([][]float64, len(m))
 	for i := 0; i < len(m); i++ {
 		if len(m[i]) != len(n) {
-			msg := "mat64.%v Error: in %v [%v line %v].\n"
+			msg := "numgo.%v Error: in %v [%v line %v].\n"
 			msg += "Length of column %v of the first matrix\n"
 			msg += "is %v, which does not match the length of the row of the \n"
 			msg += "second matrix, which is %v.\n"
@@ -240,7 +233,7 @@ func ToString(m [][]float64) [][]string {
 func Dump(m [][]float64, fileName string) {
 	f, err := os.Create(fileName)
 	if err != nil {
-		msg := "mat64.%v Error: in %v [%v line %v].\n"
+		msg := "numgo.%v Error: in %v [%v line %v].\n"
 		msg += "Cannot open %v: %v.\n"
 		p, f, l, _ := runtime.Caller(1)
 		log.Fatalf(msg, "Dump", f, runtime.FuncForPC(p).Name(), l, fileName, err)
@@ -249,7 +242,7 @@ func Dump(m [][]float64, fileName string) {
 	w := csv.NewWriter(f)
 	w.WriteAll(ToString(m))
 	if err = w.Error(); err != nil {
-		msg := "mat64.%v Error: in %v [%v line %v].\n"
+		msg := "numgo.%v Error: in %v [%v line %v].\n"
 		msg += "Error in CSV writer for file %v: %v.\n"
 		p, f, l, _ := runtime.Caller(1)
 		log.Fatalf(msg, "Dump", f, runtime.FuncForPC(p).Name(), l, fileName, err)
@@ -265,7 +258,7 @@ func FromString(str [][]string) [][]float64 {
 		for j := 0; j < len(str[i]); j++ {
 			m[i][j], err = strconv.ParseFloat(str[i][j], 64)
 			if err != nil {
-				msg := "mat64.%v Error: in %v [%v line %v].\n"
+				msg := "numgo.%v Error: in %v [%v line %v].\n"
 				msg += "Died on string to float conversion at entry [%v][%v]: %v.\n"
 				p, f, l, _ := runtime.Caller(1)
 				log.Fatalf(msg, "FromString", f, runtime.FuncForPC(p).Name(), l, i, j, err)
@@ -279,7 +272,7 @@ func FromString(str [][]string) [][]float64 {
 func Load(fileName string) [][]float64 {
 	f, err := os.Open(fileName)
 	if err != nil {
-		msg := "mat64.%v Error: in %v [%v line %v].\n"
+		msg := "numgo.%v Error: in %v [%v line %v].\n"
 		msg += "Cannot open %v: %v.\n"
 		p, f, l, _ := runtime.Caller(1)
 		log.Fatalf(msg, "Load", f, runtime.FuncForPC(p).Name(), l, fileName, err)
@@ -288,7 +281,7 @@ func Load(fileName string) [][]float64 {
 	r := csv.NewReader(f)
 	str, err := r.ReadAll()
 	if err != nil {
-		msg := "mat64.%v Error: in %v [%v line %v].\n"
+		msg := "numgo.%v Error: in %v [%v line %v].\n"
 		msg += "Error in CSV reader for file %v: %v.\n"
 		p, f, l, _ := runtime.Caller(1)
 		log.Fatalf(msg, "Load", f, runtime.FuncForPC(p).Name(), l, fileName, err)
@@ -311,7 +304,7 @@ func Copy(m [][]float64) [][]float64 {
 // AppendCol appends a column to the right side of a 2D slice of float64s.
 func AppendCol(m [][]float64, v []float64) [][]float64 {
 	if len(m) != len(v) {
-		msg := "mat64.%v Error: in %v [%v line %v].\n"
+		msg := "numgo.%v Error: in %v [%v line %v].\n"
 		msg += "Number of rows of the first 2D slice is %v, while the number\n"
 		msg += "of rows of the second 2D slice is %v. They must match.\n"
 		p, f, l, _ := runtime.Caller(1)
@@ -331,14 +324,14 @@ func AppendCol(m [][]float64, v []float64) [][]float64 {
 //
 // `n := [[5.0, 6.0], [7.0, 8.0]]`
 //
-// `o := mat64.Concat(m, n)`
+// `o := numgo.Concat(m, n)`
 //
 // then:
 //
 // `o == [[1.0, 2.0, 5.0, 6.0], [3.0, 4.0, 7.0, 8.0]]`
 func Concat(m, n [][]float64) [][]float64 {
 	if len(m) != len(n) {
-		msg := "mat64.%v Error: in %v [%v line %v].\n"
+		msg := "numgo.%v Error: in %v [%v line %v].\n"
 		msg += "Number of rows of the first 2D slice is %v, while the number\n"
 		msg += "of rows of the second 2D slice is %v. They must match.\n"
 		p, f, l, _ := runtime.Caller(1)
@@ -358,7 +351,7 @@ func Print(m [][]float64) {
 	w.Comma = rune(' ')
 	w.WriteAll(ToString(m))
 	if err := w.Error(); err != nil {
-		msg := "mat64.%v Error: in %v [%v line %v].\n"
+		msg := "numgo.%v Error: in %v [%v line %v].\n"
 		msg += "Error in CSV writer to stdout: %v.\n"
 		p, f, l, _ := runtime.Caller(1)
 		log.Fatalf(msg, "Print", f, runtime.FuncForPC(p).Name(), l, err)
