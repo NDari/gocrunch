@@ -47,15 +47,15 @@ Concat concatenates the inner slices of two `[][]float64` arguments..
 
 For example, if we have:
 
-```m := [[1.0, 2.0], [3.0, 4.0]]
+`m := [[1.0, 2.0], [3.0, 4.0]]`
 
-n := [[5.0, 6.0], [7.0, 8.0]]
+`n := [[5.0, 6.0], [7.0, 8.0]]`
 
-o := mat64.Concat(m, n)```
+`o := mat64.Concat(m, n)`
 
 then:
 
-o is `[[1.0, 2.0, 5.0, 6.0], [3.0, 4.0, 7.0, 8.0]]`
+`o == [[1.0, 2.0, 5.0, 6.0], [3.0, 4.0, 7.0, 8.0]]`
 
 #### func  Copy
 

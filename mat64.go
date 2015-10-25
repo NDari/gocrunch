@@ -327,15 +327,15 @@ func AppendCol(m [][]float64, v []float64) [][]float64 {
 //
 // For example, if we have:
 //
-// ```m := [[1.0, 2.0], [3.0, 4.0]]
+// `m := [[1.0, 2.0], [3.0, 4.0]]`
 //
-// n := [[5.0, 6.0], [7.0, 8.0]]
+// `n := [[5.0, 6.0], [7.0, 8.0]]`
 //
-// o := mat64.Concat(m, n)```
+// `o := mat64.Concat(m, n)`
 //
 // then:
 //
-// o is `[[1.0, 2.0, 5.0, 6.0], [3.0, 4.0, 7.0, 8.0]]`
+// `o == [[1.0, 2.0, 5.0, 6.0], [3.0, 4.0, 7.0, 8.0]]`
 func Concat(m, n [][]float64) [][]float64 {
 	if len(m) != len(n) {
 		msg := "mat64.%v Error: in %v [%v line %v].\n"
