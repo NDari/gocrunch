@@ -1,8 +1,8 @@
 // Package mat64 supplies functions that create or act
-// on 2D slices of float64s.
+// on 2D slices of `float64`.
 //
 // The 2D slices acted on or created by the functions below are assumed
-// to be non-jagged. This means that for a given [][]float64, the inner
+// to be non-jagged. This means that for a given `[][]float64`, the inner
 // slices are assumed to be of the same length.
 //
 // All errors encountered in this package, such as shape mismatch between
@@ -21,14 +21,14 @@ import (
 )
 
 // ElementalFn is a function that takes a float64 and returns a
-// float64. This function can therefore be applied to each element
-// of a 2D float64 slice, and can be used to construct a new one.
+// `float64`. This function can therefore be applied to each element
+// of a 2D `float64` slice, and can be used to construct a new one.
 type ElementalFn func(float64) float64
 
-// New returns a 2D slice of float64s with the given number of row and columns.
+// New returns a 2D slice of `float64` with the given number of row and columns.
 // This function should be used as a convenience tool, and it is exactly
 // equivalent to the normal method of allocating a uniform (non-jagged)
-// 2D slice of float64s.
+// 2D slice of `float64`.
 //
 // If it is anticipated that the 2D slice will grow, use the "NewExpand"
 // function below. For full details, read that function's documentation.
@@ -40,7 +40,7 @@ func New(r, c int) [][]float64 {
 	return arr
 }
 
-// NewExpand returns a 2D slice of float64s, with the given number of rows
+// NewExpand returns a 2D slice of `float64`, with the given number of rows
 // and columns. The difference between this function and the "New" function
 // above is that the inner slices are allocated with double the capacity,
 // and hence can grow without the need for reallocation up to column * 2.
@@ -56,7 +56,9 @@ func NewExpand(r, c int) [][]float64 {
 	return arr
 }
 
-// I returns an r by r identity matrix for a given r.
+// I returns an r by r 2D slice for a given r, where the elements along
+// the diagonal (where the first and the second index are equal) is set
+// to `1.0`, and all other elements are set to `0.0`.
 func I(r int) [][]float64 {
 	identity := New(r, r)
 	for i := 0; i < r; i++ {
@@ -65,17 +67,17 @@ func I(r int) [][]float64 {
 	return identity
 }
 
-// Ones returns a new 2D slice where all the elements are equal to 1.0
+// Ones returns a new 2D slice where all the elements are equal to `1.0`.
 func Ones(r, c int) [][]float64 {
 	return Apply(func(i float64) float64 { return 1.0 }, New(r, c))
 }
 
-// Inc returns a 2D slice, where element [0][0] == 0.0, and each
-// subsequent element is incremented by 1.0
+// Inc returns a 2D slice, where element `[0][0] == 0.0`, and each
+// subsequent element is incremented by `1.0`.
 //
-// For example, m := Inc(3, 2) is
+// For example, `m := Inc(3, 2)` is
 //
-// [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
+// `[[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]`.
 func Inc(r, c int) [][]float64 {
 	m := New(r, c)
 	iter := 0
@@ -88,7 +90,8 @@ func Inc(r, c int) [][]float64 {
 	return m
 }
 
-// Col returns a column of a 2D slice of float64s.
+// Col returns a column of a 2D slice of `float64`. Col uses a zero index,
+// hence the first column of a 2D slice, m,  is `Col(0, m)`.
 func Col(c int, m [][]float64) []float64 {
 	vec := make([]float64, len(m))
 	for r := 0; r < len(m); r++ {
@@ -97,7 +100,8 @@ func Col(c int, m [][]float64) []float64 {
 	return vec
 }
 
-// Row returns a row of a 2D slice of float64s
+// Row returns a row of a 2D slice of `float64`. Row uses a zero index,
+// hence the first row of a 2D slice, m, is `Row(0, m)`.
 func Row(r int, m [][]float64) []float64 {
 	vec := make([]float64, len(m[r]))
 	for c := 0; c < len(m[r]); c++ {
@@ -106,9 +110,10 @@ func Row(r int, m [][]float64) []float64 {
 	return vec
 }
 
-// T returns a copy of a given matrix with the elements
-// mirrored across the diagonal. For example, the element [i][j] becomes the
-// element [j][i]. This function leaves the original matrix intact.
+// T returns a copy of a given 2D slice with the elements of the 2D slice
+// mirrored across the diagonal. For example, the element `[i][j]` becomes the
+// element `[j][i]` of the returned 2D slice. This function leaves the
+// original matrix intact.
 func T(m [][]float64) [][]float64 {
 	transpose := New(len(m[0]), len(m))
 	for i := 0; i < len(m); i++ {
@@ -119,8 +124,9 @@ func T(m [][]float64) [][]float64 {
 	return transpose
 }
 
-// Equals checks if two mat objects have the same shape and the
-// same entries in each row and column.
+// Equals checks if two 2D slices have the same shape and the same entries in
+// each row and column. If either the shape or the entries of the arguments
+// are different, `false` is returned. Otherwise, the return value is `true`.
 func Equal(m, n [][]float64) bool {
 	if len(m) != len(n) {
 		return false
@@ -138,8 +144,8 @@ func Equal(m, n [][]float64) bool {
 	return true
 }
 
-// Mul returns a new 2D slice that is the result of
-// element-wise multiplication of two 2D slices.
+// Mul returns a new 2D slice that is the result of element-wise multiplication
+// of two 2D slices.
 func Mul(m, n [][]float64) [][]float64 {
 	if len(m) != len(n) {
 		msg := "mat64.%v Error: in %v [%v line %v].\n"
@@ -166,8 +172,8 @@ func Mul(m, n [][]float64) [][]float64 {
 	return o
 }
 
-// Apply calls a given elemental function on each Element
-// of a 2D slice, returning it afterwards.
+// Apply calls a given elemental function on each Element of a 2D slice, returning
+// it afterwards. This function modifies the original 2D slice.
 func Apply(f ElementalFn, m [][]float64) [][]float64 {
 	for i := 0; i < len(m); i++ {
 		for j := 0; j < len(m[i]); j++ {
@@ -177,7 +183,7 @@ func Apply(f ElementalFn, m [][]float64) [][]float64 {
 	return m
 }
 
-// Dot is the matrix multiplication of two 2D slices of float64s
+// Dot is the matrix multiplication of two 2D slices of `float64`.
 func Dot(m, n [][]float64) [][]float64 {
 	lenm := len(m)
 	// make sure that the length of the row of m matches the length of
@@ -212,14 +218,12 @@ func Dot(m, n [][]float64) [][]float64 {
 	return o
 }
 
-// Reset sets the values of all entries in a 2D slice of float64s
-// to 0.0
+// Reset sets the values of all entries in a 2D slice of `float64` to `0.0`.
 func Reset(m [][]float64) [][]float64 {
 	return Apply(func(i float64) float64 { return 0.0 }, m)
 }
 
-// ToString converts a 2D slice of float64s into a 2D slice
-// of strings.
+// ToString converts a `[][]float64` to `[][]string`.
 func ToString(m [][]float64) [][]string {
 	str := make([][]string, len(m))
 	for i := 0; i < len(m); i++ {
@@ -231,7 +235,7 @@ func ToString(m [][]float64) [][]string {
 	return str
 }
 
-// Dump prints the content of a [][]float64 object to a file, using comma as the
+// Dump prints the content of a `[][]float64` slice to a file, using comma as the
 // delimiter between the elements of a row, and a new line between rows.
 func Dump(m [][]float64, fileName string) {
 	f, err := os.Create(fileName)
@@ -252,7 +256,7 @@ func Dump(m [][]float64, fileName string) {
 	}
 }
 
-// FromString converts a 2D slice of strings into a 2D slice of float64s.
+// FromString converts a `[][]string` to `[][]float64`.
 func FromString(str [][]string) [][]float64 {
 	var err error
 	m := make([][]float64, len(str))
@@ -292,7 +296,7 @@ func Load(fileName string) [][]float64 {
 	return FromString(str)
 }
 
-// Copy copies the content of a 2D slice of float64s into another with
+// Copy copies the content of a 2D slice of float64 into another with
 // the same shape. This is a deep copy, unlike the built in copy function
 // that is shallow for 2D slices.
 func Copy(m [][]float64) [][]float64 {
@@ -319,21 +323,19 @@ func AppendCol(m [][]float64, v []float64) [][]float64 {
 	return m
 }
 
-// Concat concatenates the inner slices of 2 2D slices of float64s.
+// Concat concatenates the inner slices of two `[][]float64` arguments..
 //
 // For example, if we have:
 //
-// m := [[1.0, 2.0], [3.0, 4.0]]
+// ```m := [[1.0, 2.0], [3.0, 4.0]]
 //
 // n := [[5.0, 6.0], [7.0, 8.0]]
 //
-// and
-//
-// o := mat64.Concat(m, n)
+// o := mat64.Concat(m, n)```
 //
 // then:
 //
-// o is [[1.0, 2.0, 5.0, 6.0], [3.0, 4.0, 7.0, 8.0]]
+// o is `[[1.0, 2.0, 5.0, 6.0], [3.0, 4.0, 7.0, 8.0]]`
 func Concat(m, n [][]float64) [][]float64 {
 	if len(m) != len(n) {
 		msg := "mat64.%v Error: in %v [%v line %v].\n"
@@ -350,7 +352,7 @@ func Concat(m, n [][]float64) [][]float64 {
 	return o
 }
 
-// Print prints a 2D slice of float64s to the stdout.
+// Print prints a `[][]float64` to the stdout.
 func Print(m [][]float64) {
 	w := csv.NewWriter(os.Stdout)
 	w.Comma = rune(' ')
