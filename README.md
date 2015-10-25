@@ -123,6 +123,14 @@ func Load(fileName string) [][]float64
 ```
 Load generates a 2D slice of floats from a CSV file.
 
+#### func  Mul
+
+```go
+func Mul(m, n [][]float64) [][]float64
+```
+Mul returns a new 2D slice that is the result of element-wise multiplication of
+two 2D slices.
+
 #### func  New
 
 ```go
@@ -185,14 +193,6 @@ func T(m [][]float64) [][]float64
 T returns a copy of a given matrix with the elements mirrored across the
 diagonal. For example, the element [i][j] becomes the element [j][i]. This
 function leaves the original matrix intact.
-
-#### func  Times
-
-```go
-func Times(m, n [][]float64) [][]float64
-```
-Times returns a new 2D slice that is the result of element-wise multiplication
-of two 2D slices.
 
 #### func  ToString
 

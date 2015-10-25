@@ -104,19 +104,19 @@ func TestT(t *testing.T) {
 	}
 }
 
-func TestTimes(t *testing.T) {
+func TestMul(t *testing.T) {
 	var (
 		row = 5
 		col = 7
 	)
 	m := New(row, row)
 	q := I(row)
-	if !Equal(Times(m, q), m) {
-		t.Errorf("A Square matrix times the identity matrix should be equal to itself")
+	if !Equal(Mul(m, q), m) {
+		t.Errorf("A Square matrix Mul the identity matrix should be equal to itself")
 	}
 	m = Inc(row, col)
 	n := New(row, col)
-	o := Times(m, n)
+	o := Mul(m, n)
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
 			if o[i][j] != 0.0 {
@@ -124,10 +124,10 @@ func TestTimes(t *testing.T) {
 			}
 		}
 	}
-	o = Times(m, m)
+	o = Mul(m, m)
 	m = Apply(func(i float64) float64 { return i * i }, m)
 	if !Equal(o, m) {
-		t.Errorf("m times m != m.Apply( i * i for each element i in m)")
+		t.Errorf("m Mul m != m.Apply( i * i for each element i in m)")
 	}
 }
 
