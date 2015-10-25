@@ -16,6 +16,7 @@ import (
 	"encoding/csv"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 )
 
@@ -141,12 +142,21 @@ func Equal(m, n [][]float64) bool {
 // element-wise multiplication of two 2D slices.
 func Times(m, n [][]float64) [][]float64 {
 	if len(m) != len(n) {
-		log.Fatalf("mat64.%v Error: Row mismatch of the slices", "Times")
+		msg := "mat64.%v Error: in %v [%v line %v].\n"
+		msg += "Number of rows of the first 2D slice is %v, while the number\n"
+		msg += "of rows of the second 2D slice is %v. They must match.\n"
+		p, f, l, _ := runtime.Caller(1)
+		log.Fatalf(msg, "Times", f, runtime.FuncForPC(p).Name(), l, len(m), len(n))
 	}
 	o := make([][]float64, len(m))
 	for i := 0; i < len(m); i++ {
 		if len(m[i]) != len(n[i]) {
-			log.Fatalf("mat64.%v Error: Col mismatch of the slices at col %v", "Times", i)
+			msg := "mat64.%v Error: in %v [%v line %v].\n"
+			msg += "In column %v, number of elements for the first 2D slice is %v,\n"
+			msg += "while the number of elements of the second 2D slice is %v.\n"
+			msg += "They must match.\n"
+			p, f, l, _ := runtime.Caller(1)
+			log.Fatalf(msg, "Times", f, runtime.FuncForPC(p).Name(), l, i, len(m[i]), len(n[i]))
 		}
 		o[i] = make([]float64, len(m[i]))
 		for j := 0; j < len(m[i]); j++ {
@@ -174,19 +184,23 @@ func Dot(m, n [][]float64) [][]float64 {
 	// each column in n.
 	for i := 0; i < len(n); i++ {
 		if lenm != len(n[i]) {
-			msg := "mat64.Dot Error: length of column %v on the second matrix\n"
+			msg := "mat64.%v Error: in %v [%v line %v].\n"
+			msg += "Length of column %v on the second matrix\n"
 			msg += "is %v, which does not match the length of the row of the \n"
-			msg += "first matrix, which is %v"
-			log.Fatalf(msg, i, len(n[i]), len(m))
+			msg += "first matrix, which is %v.\n"
+			p, f, l, _ := runtime.Caller(1)
+			log.Fatalf(msg, "Dot", f, runtime.FuncForPC(p).Name(), l, i, len(n[i]), lenm)
 		}
 	}
 	o := make([][]float64, len(m))
 	for i := 0; i < len(m); i++ {
 		if len(m[i]) != len(n) {
-			msg := "mat64.Dot Error: length of column %v on the first matrix\n"
+			msg := "mat64.%v Error: in %v [%v line %v].\n"
+			msg += "Length of column %v of the first matrix\n"
 			msg += "is %v, which does not match the length of the row of the \n"
-			msg += "second matrix, which is %v"
-			log.Fatalf(msg, i, len(m[i]), len(n))
+			msg += "second matrix, which is %v.\n"
+			p, f, l, _ := runtime.Caller(1)
+			log.Fatalf(msg, "Dot", f, runtime.FuncForPC(p).Name(), l, i, len(m[i]), len(n))
 		}
 		o[i] = make([]float64, len(n[0]))
 		for j := 0; j < len(m[i]); j++ {
@@ -222,13 +236,19 @@ func ToString(m [][]float64) [][]string {
 func Dump(m [][]float64, fileName string) {
 	f, err := os.Create(fileName)
 	if err != nil {
-		log.Fatalf("Cannot open %v: %v", fileName, err)
+		msg := "mat64.%v Error: in %v [%v line %v].\n"
+		msg += "Cannot open %v: %v.\n"
+		p, f, l, _ := runtime.Caller(1)
+		log.Fatalf(msg, "Dump", f, runtime.FuncForPC(p).Name(), l, fileName, err)
 	}
 	defer f.Close()
 	w := csv.NewWriter(f)
 	w.WriteAll(ToString(m))
 	if err = w.Error(); err != nil {
-		log.Fatalf("Error in csv writer for file %v: %v", fileName, err)
+		msg := "mat64.%v Error: in %v [%v line %v].\n"
+		msg += "Error in CSV writer for file %v: %v.\n"
+		p, f, l, _ := runtime.Caller(1)
+		log.Fatalf(msg, "Dump", f, runtime.FuncForPC(p).Name(), l, fileName, err)
 	}
 }
 
@@ -241,7 +261,10 @@ func FromString(str [][]string) [][]float64 {
 		for j := 0; j < len(str[i]); j++ {
 			m[i][j], err = strconv.ParseFloat(str[i][j], 64)
 			if err != nil {
-				log.Fatalf("Died on string to float conversion: %v", err)
+				msg := "mat64.%v Error: in %v [%v line %v].\n"
+				msg += "Died on string to float conversion at entry [%v][%v]: %v.\n"
+				p, f, l, _ := runtime.Caller(1)
+				log.Fatalf(msg, "FromString", f, runtime.FuncForPC(p).Name(), l, i, j, err)
 			}
 		}
 	}
@@ -252,13 +275,19 @@ func FromString(str [][]string) [][]float64 {
 func Load(fileName string) [][]float64 {
 	f, err := os.Open(fileName)
 	if err != nil {
-		log.Fatalf("Cannot open %v: %v", fileName, err)
+		msg := "mat64.%v Error: in %v [%v line %v].\n"
+		msg += "Cannot open %v: %v.\n"
+		p, f, l, _ := runtime.Caller(1)
+		log.Fatalf(msg, "Load", f, runtime.FuncForPC(p).Name(), l, fileName, err)
 	}
 	defer f.Close()
 	r := csv.NewReader(f)
 	str, err := r.ReadAll()
 	if err != nil {
-		log.Fatalf("Error in csv reader for file %v: %v", fileName, err)
+		msg := "mat64.%v Error: in %v [%v line %v].\n"
+		msg += "Error in CSV reader for file %v: %v.\n"
+		p, f, l, _ := runtime.Caller(1)
+		log.Fatalf(msg, "Load", f, runtime.FuncForPC(p).Name(), l, fileName, err)
 	}
 	return FromString(str)
 }
@@ -278,7 +307,11 @@ func Copy(m [][]float64) [][]float64 {
 // AppendCol appends a column to the right side of a 2D slice of float64s.
 func AppendCol(m [][]float64, v []float64) [][]float64 {
 	if len(m) != len(v) {
-		log.Fatalf("mat64.%v Error: Row mismatch of the slices", "AppendCol")
+		msg := "mat64.%v Error: in %v [%v line %v].\n"
+		msg += "Number of rows of the first 2D slice is %v, while the number\n"
+		msg += "of rows of the second 2D slice is %v. They must match.\n"
+		p, f, l, _ := runtime.Caller(1)
+		log.Fatalf(msg, "AppendCol", f, runtime.FuncForPC(p).Name(), l, len(m), len(v))
 	}
 	for i := 0; i < len(v); i++ {
 		m[i] = append(m[i], v[i])
@@ -303,7 +336,11 @@ func AppendCol(m [][]float64, v []float64) [][]float64 {
 // o is [[1.0, 2.0, 5.0, 6.0], [3.0, 4.0, 7.0, 8.0]]
 func Concat(m, n [][]float64) [][]float64 {
 	if len(m) != len(n) {
-		log.Fatalf("mat64.%v Error: Row mismatch of the slices", "Concat")
+		msg := "mat64.%v Error: in %v [%v line %v].\n"
+		msg += "Number of rows of the first 2D slice is %v, while the number\n"
+		msg += "of rows of the second 2D slice is %v. They must match.\n"
+		p, f, l, _ := runtime.Caller(1)
+		log.Fatalf(msg, "Concat", f, runtime.FuncForPC(p).Name(), l, len(m), len(n))
 	}
 	o := make([][]float64, len(m))
 	for i := 0; i < len(m); i++ {
@@ -319,6 +356,9 @@ func Print(m [][]float64) {
 	w.Comma = rune(' ')
 	w.WriteAll(ToString(m))
 	if err := w.Error(); err != nil {
-		log.Fatalf("Error in csv writer to std out:", err)
+		msg := "mat64.%v Error: in %v [%v line %v].\n"
+		msg += "Error in CSV writer to stdout: %v.\n"
+		p, f, l, _ := runtime.Caller(1)
+		log.Fatalf(msg, "Print", f, runtime.FuncForPC(p).Name(), l, err)
 	}
 }
