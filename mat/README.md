@@ -18,14 +18,6 @@ func AppendCol(m [][]float64, v []float64) [][]float64
 ```
 AppendCol appends a column to the right side of a 2D slice of float64s.
 
-#### func  Apply
-
-```go
-func Apply(f ElementalFn, m [][]float64) [][]float64
-```
-Apply calls a given elemental function on each Element of a 2D slice, returning
-it afterwards. This function modifies the original 2D slice.
-
 #### func  Col
 
 ```go
@@ -47,7 +39,7 @@ For example, if we have:
 
 `n := [[5.0, 6.0], [7.0, 8.0]]`
 
-`o := numgo.Concat(m, n)`
+`o := mat.Concat(m, n)`
 
 then:
 
@@ -120,6 +112,14 @@ For example, `m := Inc(3, 2)` is
 func Load(fileName string) [][]float64
 ```
 Load generates a 2D slice of floats from a CSV file.
+
+#### func  Map
+
+```go
+func Map(f func(float64) float64, m [][]float64) [][]float64
+```
+Map calls a given elemental function on each Element of a 2D slice, returning it
+afterwards. This function modifies the original 2D slice.
 
 #### func  Mul
 
@@ -200,13 +200,3 @@ intact.
 func ToString(m [][]float64) [][]string
 ```
 ToString converts a `[][]float64` to `[][]string`.
-
-#### type ElementalFn
-
-```go
-type ElementalFn func(float64) float64
-```
-
-ElementalFn is a function that takes a float64 and returns a `float64`. This
-function can therefore be applied to each element of a 2D `float64` slice, and
-can be used to construct a new one.

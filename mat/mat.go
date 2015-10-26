@@ -62,7 +62,10 @@ func I(r int) [][]float64 {
 
 // Ones returns a new 2D slice where all the elements are equal to `1.0`.
 func Ones(r, c int) [][]float64 {
-	return Apply(func(i float64) float64 { return 1.0 }, New(r, c))
+	f := func(i float64) float64 {
+		return 1.0
+	}
+	return Map(f, New(r, c))
 }
 
 // Inc returns a 2D slice, where element `[0][0] == 0.0`, and each
@@ -163,11 +166,11 @@ func Mul(m, n [][]float64) [][]float64 {
 	return o
 }
 
-// Apply calls a given elemental function on each Element of a 2D slice, returning
+// Map calls a given elemental function on each Element of a 2D slice, returning
 // it afterwards. This function modifies the original 2D slice.
-func Apply(f func(float64) float64, m [][]float64) [][]float64 {
+func Map(f func(float64) float64, m [][]float64) [][]float64 {
 	for i := 0; i < len(m); i++ {
-		vec.ApplyInPlace(f, m[i])
+		vec.MapInPlace(f, m[i])
 	}
 	return m
 }
@@ -209,7 +212,10 @@ func Dot(m, n [][]float64) [][]float64 {
 
 // Reset sets the values of all entries in a 2D slice of `float64` to `0.0`.
 func Reset(m [][]float64) [][]float64 {
-	return Apply(func(i float64) float64 { return 0.0 }, m)
+	f := func(i float64) float64 {
+		return 0.0
+	}
+	return Map(f, m)
 }
 
 // ToString converts a `[][]float64` to `[][]string`.

@@ -13,7 +13,10 @@ import (
 // Ones returns a new 1D slice where all the elements are equal to `1.0`.
 func Ones(l int) []float64 {
 	o := make([]float64, l)
-	ApplyInPlace(func(i float64) float64 { return 1.0 }, o)
+	f := func(i float64) float64 {
+		return 1.0
+	}
+	MapInPlace(f, o)
 	return o
 }
 
@@ -122,21 +125,21 @@ func Div(v1, v2 []float64) []float64 {
 	return o
 }
 
-// ApplyInPlace calls a given elemental function on each Element of a 1D slice,
+// MapInPlace calls a given elemental function on each Element of a 1D slice,
 // returning it afterwards. This function modifies the original 1D slice. If
-// a non-mutating operation is desired, use the "Apply" function instead.
-func ApplyInPlace(f func(float64) float64, v []float64) {
+// a non-mutating operation is desired, use the "Map" function instead.
+func MapInPlace(f func(float64) float64, v []float64) {
 	for i := 0; i < len(v); i++ {
 		v[i] = f(v[i])
 	}
 }
 
-// Apply created a new 1D slice which is populated throw applying the given
+// Map created a new 1D slice which is populated throw Maping the given
 // function to the corresponding entries of a given 1D slice. This function
 // does not modify its arguments, instead allocating a new 1D slice to
 // contain the result. This is a performance hit. If you are OK with mutating
 // the original vector, then use the "ApllyInPlace" function instead.
-func Apply(f func(float64) float64, v []float64) []float64 {
+func Map(f func(float64) float64, v []float64) []float64 {
 	o := make([]float64, len(v))
 	for i := 0; i < len(v); i++ {
 		o[i] = f(v[i])
@@ -162,7 +165,10 @@ func Dot(v1, v2 []float64) float64 {
 
 // Reset sets the values of all entries in a 2D slice of `float64` to `0.0`.
 func Reset(v []float64) {
-	ApplyInPlace(func(i float64) float64 { return 0.0 }, v)
+	f := func(i float64) float64 {
+		return 0.0
+	}
+	MapInPlace(f, v)
 	return
 }
 
@@ -178,5 +184,8 @@ func Sum(v []float64) float64 {
 // Norm calculated the norm of a given 1D slice. This is the Euclidean length
 // of the slice.
 func Norm(v []float64) float64 {
-	return math.Sqrt(Sum(Apply(func(i float64) float64 { return i * i }, v)))
+	square := func(i float64) float64 {
+		return i * i
+	}
+	return math.Sqrt(Sum(Map(square, v)))
 }

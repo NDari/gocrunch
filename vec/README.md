@@ -14,26 +14,6 @@ func Add(v1, v2 []float64) []float64
 Add returns a new 1D slice that is the result of element-wise addition of two 1D
 slices.
 
-#### func  Apply
-
-```go
-func Apply(f ElementalFn, v []float64) []float64
-```
-Apply created a new 1D slice which is populated throw applying the given
-function to the corresponding entries of a given 1D slice. This function does
-not modify its arguments, instead allocating a new 1D slice to contain the
-result. This is a performance hit. If you are OK with mutating the original
-vector, then use the "ApllyInPlace" function instead.
-
-#### func  ApplyInPlace
-
-```go
-func ApplyInPlace(f ElementalFn, v []float64)
-```
-ApplyInPlace calls a given elemental function on each Element of a 1D slice,
-returning it afterwards. This function modifies the original 1D slice. If a
-non-mutating operation is desired, use the "Apply" function instead.
-
 #### func  Div
 
 ```go
@@ -69,6 +49,26 @@ is incremented by `1.0`.
 For example, `m := Inc(3)` is
 
 `[1.0, 2.0 3.0]`.
+
+#### func  Map
+
+```go
+func Map(f func(float64) float64, v []float64) []float64
+```
+Map created a new 1D slice which is populated throw Maping the given function to
+the corresponding entries of a given 1D slice. This function does not modify its
+arguments, instead allocating a new 1D slice to contain the result. This is a
+performance hit. If you are OK with mutating the original vector, then use the
+"ApllyInPlace" function instead.
+
+#### func  MapInPlace
+
+```go
+func MapInPlace(f func(float64) float64, v []float64)
+```
+MapInPlace calls a given elemental function on each Element of a 1D slice,
+returning it afterwards. This function modifies the original 1D slice. If a
+non-mutating operation is desired, use the "Map" function instead.
 
 #### func  Mul
 
@@ -114,13 +114,3 @@ Sub returns a new 1D slice that is the result of element-wise subtraction of two
 func Sum(v []float64) float64
 ```
 Sum returns the sum of the elements of a 1D slice of `float64`.
-
-#### type ElementalFn
-
-```go
-type ElementalFn func(float64) float64
-```
-
-ElementalFn is a function that takes a float64 and returns a `float64`. This
-function can therefore be applied to each element of a 2D `float64` slice, and
-can be used to construct a new one.

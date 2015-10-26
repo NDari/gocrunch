@@ -137,9 +137,9 @@ func TestMatMul(t *testing.T) {
 		}
 	}
 	o = mat.Mul(m, m)
-	m = mat.Apply(func(i float64) float64 { return i * i }, m)
+	m = mat.Map(func(i float64) float64 { return i * i }, m)
 	if !mat.Equal(o, m) {
-		t.Errorf("m Mul m != m.Apply( i * i for each element i in m)")
+		t.Errorf("m Mul m != m.Map( i * i for each element i in m)")
 	}
 }
 
@@ -212,13 +212,13 @@ func TestVecDiv(t *testing.T) {
 	}
 }
 
-func TestMatApply(t *testing.T) {
+func TestMatMap(t *testing.T) {
 	var (
 		row = 4
 		col = 4
 	)
 	m := mat.New(row, col)
-	n := mat.Apply(func(i float64) float64 { return i + 1.0 }, m)
+	n := mat.Map(func(i float64) float64 { return i + 1.0 }, m)
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
 			if n[i][j] != 1.0 {
@@ -228,12 +228,12 @@ func TestMatApply(t *testing.T) {
 	}
 }
 
-func TestVecApply(t *testing.T) {
+func TestVecMap(t *testing.T) {
 	v := make([]float64, 17)
-	y := vec.Apply(func(i float64) float64 { return 1.0 }, v)
+	y := vec.Map(func(i float64) float64 { return 1.0 }, v)
 	for i := 0; i < 17; i++ {
 		if y[i] != 1.0 {
-			t.Errorf("vec.Apply at index %v: xpected 1.0, got %v", y[i])
+			t.Errorf("vec.Map at index %v: xpected 1.0, got %v", y[i])
 		}
 	}
 }
