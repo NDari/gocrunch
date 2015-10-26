@@ -12,15 +12,11 @@ package mat
 import (
 	"encoding/csv"
 	"log"
+	"numgo/vec"
 	"os"
 	"runtime"
 	"strconv"
 )
-
-// ElementalFn is a function that takes a float64 and returns a
-// `float64`. This function can therefore be applied to each element
-// of a 2D `float64` slice, and can be used to construct a new one.
-type ElementalFn func(float64) float64
 
 // New returns a 2D slice of `float64` with the given number of row and columns.
 // This function should be used as a convenience tool, and it is exactly
@@ -162,20 +158,16 @@ func Mul(m, n [][]float64) [][]float64 {
 			log.Fatalf(msg, "Mul", f, runtime.FuncForPC(p).Name(), l, i, len(m[i]), len(n[i]))
 		}
 		o[i] = make([]float64, len(m[i]))
-		for j := 0; j < len(m[i]); j++ {
-			o[i][j] = m[i][j] * n[i][j]
-		}
+		o[i] = vec.Mul(m[i], n[i])
 	}
 	return o
 }
 
 // Apply calls a given elemental function on each Element of a 2D slice, returning
 // it afterwards. This function modifies the original 2D slice.
-func Apply(f ElementalFn, m [][]float64) [][]float64 {
+func Apply(f func(float64) float64, m [][]float64) [][]float64 {
 	for i := 0; i < len(m); i++ {
-		for j := 0; j < len(m[i]); j++ {
-			m[i][j] = f(m[i][j])
-		}
+		vec.ApplyInPlace(f, m[i])
 	}
 	return m
 }
