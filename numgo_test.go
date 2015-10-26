@@ -17,11 +17,11 @@ func TestI(t *testing.T) {
 		for j := 0; j < row; j++ {
 			if i == j {
 				if m[i][j] != 1.0 {
-					t.Errorf("I[%v,%v] == %v, want 1.0", i, j, m[i][j])
+					t.Errorf("mat.I[%v,%v] == %v, want 1.0", i, j, m[i][j])
 				}
 			} else {
 				if m[i][j] != 0.0 {
-					t.Errorf("I[%v,%v] == %v, want 0.0", i, j, m[i][j])
+					t.Errorf("mat.I[%v,%v] == %v, want 0.0", i, j, m[i][j])
 				}
 			}
 		}
@@ -61,12 +61,12 @@ func TestCol(t *testing.T) {
 	m := mat.Inc(row, col)
 	got := mat.Col(2, m)
 	if len(got) != row {
-		t.Errorf("got.NumRows == %v, want %v", len(got), row)
+		t.Errorf("mat.Col: got.NumRows == %v, want %v", len(got), row)
 	}
 	want := []float64{2.0, 6.0, 10.0}
 	for i := 0; i < row; i++ {
 		if want[i] != got[i] {
-			t.Errorf("m[%v][2] == %v, want %v", i, got[i], want[i])
+			t.Errorf("mat.Col: m[%v][2] == %v, want %v", i, got[i], want[i])
 		}
 	}
 }
@@ -79,12 +79,12 @@ func TestRow(t *testing.T) {
 	m := mat.Inc(row, col)
 	got := mat.Row(1, m)
 	if len(got) != col {
-		t.Errorf("len(got) == %v, want %v", len(got), col)
+		t.Errorf("mat.Row: len(got) == %v, want %v", len(got), col)
 	}
 	want := []float64{4.0, 5.0, 6.0, 7.0}
 	for i := 0; i < col; i++ {
 		if want[i] != got[i] {
-			t.Errorf("m[1][%v] is %v, want %v", i, got[i], want[i])
+			t.Errorf("mat.Row: m[1][%v] is %v, want %v", i, got[i], want[i])
 		}
 	}
 }
@@ -99,17 +99,17 @@ func TestT(t *testing.T) {
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
 			if n[j][i] != m[i][j] {
-				t.Errorf("T[%v][%v] is %v, but expecting %v", i, j, n[j][i], m[i][j])
+				t.Errorf("mat.T: [%v][%v] is %v, want %v", i, j, n[j][i], m[i][j])
 			}
 		}
 	}
-	ttm := mat.T(mat.T(m))
-	if !mat.Equal(m, ttm) {
+	s := mat.T(mat.T(m))
+	if !mat.Equal(m, s) {
 		t.Errorf("mat.T.T != mat")
 		for i := 0; i < row; i++ {
 			for j := 0; j < col; j++ {
-				if ttm[i][j] != m[i][j] {
-					t.Errorf("At [%v][%v]: expected %v, got %v", i, j, m[i][j], ttm[i][j])
+				if s[i][j] != m[i][j] {
+					t.Errorf("At [%v][%v]: want %v, got %v", i, j, m[i][j], s[i][j])
 				}
 			}
 		}
@@ -152,7 +152,64 @@ func TestVecMul(t *testing.T) {
 			t.Errorf("vec.Mul at index %v: expected 0.0, got %v", i, y[i])
 		}
 	}
+	w = vec.Ones(12)
+	y = vec.Mul(v, w)
+	for i := 0; i < 12; i++ {
+		if y[i] != (v[i] * w[i]) {
+			t.Errorf("vec.Mul at index %v: expected %v, got %v", i, v[i]*w[i], y[i])
+		}
+	}
+}
 
+func TestVecAdd(t *testing.T) {
+	v := vec.Ones(12)
+	w := make([]float64, 12)
+	y := vec.Add(v, w)
+	for i := 0; i < 12; i++ {
+		if y[i] != v[i] {
+			t.Errorf("vec.Mul at index %v: expected %v, got %v", v[i], y[i])
+		}
+	}
+	y = vec.Add(v, v)
+	for i := 0; i < 12; i++ {
+		if y[i] != (v[i] * 2.0) {
+			t.Errorf("vec.Mul at index %v: expected %v, got %v", v[i]*2.0, y[i])
+		}
+	}
+}
+
+func TestVecSub(t *testing.T) {
+	v := vec.Ones(12)
+	w := make([]float64, 12)
+	y := vec.Sub(v, w)
+	for i := 0; i < 12; i++ {
+		if y[i] != v[i] {
+			t.Errorf("vec.Mul at index %v: expected %v, got %v", v[i], y[i])
+		}
+	}
+	y = vec.Sub(v, v)
+	for i := 0; i < 12; i++ {
+		if y[i] != 0.0 {
+			t.Errorf("vec.Mul at index %v: expected 0.0, got %v", y[i])
+		}
+	}
+}
+
+func TestVecDiv(t *testing.T) {
+	v := vec.Ones(12)
+	y := vec.Div(v, v)
+	for i := 0; i < 12; i++ {
+		if y[i] != 1.0 {
+			t.Errorf("vec.Mul at index %v: expected 1.0, got %v", y[i])
+		}
+	}
+	w := vec.Inc(12)
+	y = vec.Div(w, v)
+	for i := 0; i < 12; i++ {
+		if y[i] != (w[i]) {
+			t.Errorf("vec.Mul at index %v: expected %v, got %v", w[i], y[i])
+		}
+	}
 }
 
 func TestMatApply(t *testing.T) {
@@ -171,6 +228,16 @@ func TestMatApply(t *testing.T) {
 	}
 }
 
+func TestVecApply(t *testing.T) {
+	v := make([]float64, 17)
+	y := vec.Apply(func(i float64) float64 { return 1.0 }, v)
+	for i := 0; i < 17; i++ {
+		if y[i] != 1.0 {
+			t.Errorf("vec.Apply at index %v: xpected 1.0, got %v", y[i])
+		}
+	}
+}
+
 func TestMatDot(t *testing.T) {
 	var (
 		row = 10
@@ -180,15 +247,24 @@ func TestMatDot(t *testing.T) {
 	n := mat.New(col, row)
 	o := mat.Dot(m, n)
 	if len(o) != row {
-		t.Errorf("Dot(m, n)'s numRows expected %v, got %v", row, len(o))
+		t.Errorf("mat.Dot(m, n)'s numRows expected %v, got %v", row, len(o))
 	}
 	if len(o[0]) != row {
-		t.Errorf("Dot(m, n)'s numCols expected %v, got %v", row, len(o[0]))
+		t.Errorf("mat.Dot(m, n)'s numCols expected %v, got %v", row, len(o[0]))
 	}
 	o = mat.Inc(row, row)
 	p := mat.Dot(mat.I(row), o)
 	if !mat.Equal(p, o) {
 		t.Errorf("o x I != o...")
+	}
+}
+
+func TestVecDot(t *testing.T) {
+	v := vec.Ones(13)
+	w := make([]float64, 13)
+	r := vec.Dot(v, w)
+	if r != 0.0 {
+		t.Errorf("vec.Dot: expected 0.0, got %v", r)
 	}
 }
 
@@ -205,6 +281,27 @@ func TestMatReset(t *testing.T) {
 				t.Errorf("Reset(m) at m[%v][%v] is equal %v", i, j, m[i][j])
 			}
 		}
+	}
+}
+
+func TestVecReset(t *testing.T) {
+	v := vec.Ones(22)
+	vec.Reset(v)
+	for i := 0; i < 22; i++ {
+		if v[i] != 0.0 {
+			t.Errorf("vec.Reset at index %v: expected 0.0, got %v", v[i])
+		}
+	}
+}
+
+func TestVecSum(t *testing.T) {
+	v := vec.Ones(22)
+	if vec.Sum(v) != 22.0 {
+		t.Errorf("vec.Sum expected 22.0, got %v", vec.Sum(v))
+	}
+	vec.Reset(v)
+	if vec.Sum(v) != 0.0 {
+		t.Errorf("vec.Sum expected 0.0, got %v", vec.Sum(v))
 	}
 }
 
@@ -251,22 +348,22 @@ func TestMatConcat(t *testing.T) {
 	n := mat.I(row)
 	o := mat.Concat(m, n)
 	if len(o) != row {
-		t.Errorf("len of concatinated 2Dslice is %v, expected %v", len(o), row)
+		t.Errorf("len of concatinated 2Dslice is %v, want %v", len(o), row)
 	}
 	for i := 0; i < len(o); i++ {
 		if len(o[i]) != (row + col) {
-			t.Errorf("length of concatinated slice o[%v] == %v, expected %v", i, len(o[i]), row+col)
+			t.Errorf("len(o[%v]) is %v, want %v", i, len(o[i]), row+col)
 		}
 	}
 	for i := 0; i < row; i++ {
 		for j := 0; j < row+col; j++ {
 			if j < col {
 				if o[i][j] != m[i][j] {
-					t.Errorf("concinated array at [%v][%v] is %v, expected %v", i, j, o[i][j], m[i][j])
+					t.Errorf("[%v][%v] got %v, want %v", i, j, o[i][j], m[i][j])
 				}
 			} else {
 				if o[i][j] != n[i][j-col] {
-					t.Errorf("concinated array at [%v][%v] is %v, expected %v", i, j, o[i][j], n[i][j-col])
+					t.Errorf("[%v][%v] got %v, want %v", i, j, o[i][j], n[i][j-col])
 				}
 			}
 		}
