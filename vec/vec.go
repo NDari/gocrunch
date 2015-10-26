@@ -10,11 +10,6 @@ import (
 	"runtime"
 )
 
-// ElementalFn is a function that takes a float64 and returns a
-// `float64`. This function can therefore be applied to each element
-// of a 2D `float64` slice, and can be used to construct a new one.
-type ElementalFn func(float64) float64
-
 // Ones returns a new 1D slice where all the elements are equal to `1.0`.
 func Ones(l int) []float64 {
 	o := make([]float64, l)
@@ -130,7 +125,7 @@ func Div(v1, v2 []float64) []float64 {
 // ApplyInPlace calls a given elemental function on each Element of a 1D slice,
 // returning it afterwards. This function modifies the original 1D slice. If
 // a non-mutating operation is desired, use the "Apply" function instead.
-func ApplyInPlace(f ElementalFn, v []float64) {
+func ApplyInPlace(f func(float64) float64, v []float64) {
 	for i := 0; i < len(v); i++ {
 		v[i] = f(v[i])
 	}
@@ -141,7 +136,7 @@ func ApplyInPlace(f ElementalFn, v []float64) {
 // does not modify its arguments, instead allocating a new 1D slice to
 // contain the result. This is a performance hit. If you are OK with mutating
 // the original vector, then use the "ApllyInPlace" function instead.
-func Apply(f ElementalFn, v []float64) []float64 {
+func Apply(f func(float64) float64, v []float64) []float64 {
 	o := make([]float64, len(v))
 	for i := 0; i < len(v); i++ {
 		o[i] = f(v[i])
