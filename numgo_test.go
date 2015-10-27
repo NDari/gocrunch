@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestI(t *testing.T) {
+func TestMatI(t *testing.T) {
 	var (
 		row = 4
 	)
@@ -53,7 +53,7 @@ func TestVecOnes(t *testing.T) {
 
 }
 
-func TestCol(t *testing.T) {
+func TestMatCol(t *testing.T) {
 	var (
 		row = 3
 		col = 4
@@ -71,7 +71,7 @@ func TestCol(t *testing.T) {
 	}
 }
 
-func TestRow(t *testing.T) {
+func TestMatRow(t *testing.T) {
 	var (
 		row = 3
 		col = 4
@@ -89,7 +89,7 @@ func TestRow(t *testing.T) {
 	}
 }
 
-func TestT(t *testing.T) {
+func TestMatT(t *testing.T) {
 	var (
 		row = 5
 		col = 7
@@ -305,7 +305,7 @@ func TestVecSum(t *testing.T) {
 	}
 }
 
-func TestDump(t *testing.T) {
+func TestMatDump(t *testing.T) {
 	fileName := "output"
 	m := mat.Inc(20, 30)
 	mat.Dump(m, fileName)
@@ -319,7 +319,7 @@ func TestDump(t *testing.T) {
 	}
 }
 
-func TestCopy(t *testing.T) {
+func TestMatCopy(t *testing.T) {
 	m := mat.Inc(3, 4)
 	n := mat.Copy(m)
 	if !mat.Equal(m, n) {
@@ -327,7 +327,7 @@ func TestCopy(t *testing.T) {
 	}
 }
 
-func TestAppendCol(t *testing.T) {
+func TestMatAppendCol(t *testing.T) {
 	m := mat.Inc(5, 7)
 	v := []float64{12, 13, 17, 19, 21}
 	m = mat.AppendCol(m, v)
