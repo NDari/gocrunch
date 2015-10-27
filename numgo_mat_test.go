@@ -105,6 +105,14 @@ func TestMatT(t *testing.T) {
 	}
 }
 
+func BenchmarkMatT(b *testing.B) {
+	m := mat.Inc(2000, 1333)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = mat.T(m)
+	}
+}
+
 func TestMatMul(t *testing.T) {
 	var (
 		row = 5
@@ -129,6 +137,15 @@ func TestMatMul(t *testing.T) {
 	m = mat.Map(func(i float64) float64 { return i * i }, m)
 	if !mat.Equal(o, m) {
 		t.Errorf("m Mul m != m.Map( i * i for each element i in m)")
+	}
+}
+
+func BenchmarkMatMul(b *testing.B) {
+	n := mat.Inc(1000, 1000)
+	m := mat.Inc(1000, 1000)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = mat.Mul(m, n)
 	}
 }
 
@@ -166,6 +183,15 @@ func TestMatDot(t *testing.T) {
 	p := mat.Dot(mat.I(row), o)
 	if !mat.Equal(p, o) {
 		t.Errorf("o x I != o...")
+	}
+}
+
+func BenchmarkMatDot(b *testing.B) {
+	m := mat.Inc(1500, 1300)
+	n := mat.Inc(1300, 1500)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = mat.Dot(m, n)
 	}
 }
 
