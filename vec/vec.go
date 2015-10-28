@@ -28,10 +28,8 @@ func Ones(l int) []float64 {
 // `[1.0, 2.0 3.0]`.
 func Inc(l int) []float64 {
 	v := make([]float64, l)
-	iter := 0
 	for i := 0; i < l; i++ {
-		v[i] = float64(iter)
-		iter++
+		v[i] = float64(i)
 	}
 	return v
 }

@@ -12,7 +12,36 @@ func TestVecOnes(t *testing.T) {
 			t.Errorf("vec.Ones[%v]: expected 1.0, got %v", i, o[i])
 		}
 	}
+}
 
+func TestVecInc(t *testing.T) {
+	v := vec.Inc(10)
+	for i := 0; i < 10; i++ {
+		if v[i] != float64(i) {
+			t.Errorf("vec.Inc at indec %v: expected %v got %v", i, float64(i), v[i])
+		}
+	}
+}
+
+func TestVecEqual(t *testing.T) {
+	v := vec.Inc(20)
+	if !vec.Equal(v, v) {
+		t.Errorf("vec.Equal: v != v")
+	}
+	q := vec.Inc(10)
+	if vec.Equal(v, q) {
+		t.Errorf("expected false, but got true for %v == %v", v, q)
+	}
+	if vec.Equal(q, v) {
+		t.Errorf("expected false, but got true for %v == %v", q, v)
+	}
+	g := vec.Ones(10)
+	if vec.Equal(g, q) {
+		t.Errorf("expected false, but got true for %v == %v", t, g)
+	}
+	if vec.Equal(q, g) {
+		t.Errorf("expected false, but got true for %v == %v", q, g)
+	}
 }
 
 func TestVecMul(t *testing.T) {
@@ -25,10 +54,16 @@ func TestVecMul(t *testing.T) {
 		}
 	}
 	w = vec.Ones(12)
-	y = vec.Mul(v, w)
+	g := vec.Mul(v, w)
 	for i := 0; i < 12; i++ {
-		if y[i] != (v[i] * w[i]) {
-			t.Errorf("vec.Mul at index %v: expected %v, got %v", i, v[i]*w[i], y[i])
+		if g[i] != (v[i] * w[i]) {
+			t.Errorf("vec.Mul at index %v: expected %v, got %v", i, v[i]*w[i], g[i])
+		}
+	}
+	o := vec.Mul(w, w)
+	for i := 0; i < 12; i++ {
+		if o[i] != 1.0 {
+			t.Errorf("vec.Mul at index %v: expected 1.0, got %v", i, o[i])
 		}
 	}
 }
@@ -100,6 +135,13 @@ func TestVecDot(t *testing.T) {
 	r := vec.Dot(v, w)
 	if r != 0.0 {
 		t.Errorf("vec.Dot: expected 0.0, got %v", r)
+	}
+	q := vec.Inc(13)
+	if vec.Dot(q, v) != vec.Sum(q) {
+		t.Errorf("vec.Dot: Inc * ones is %v, expected %v", vec.Dot(q, v), vec.Sum(q))
+	}
+	if vec.Dot(q, v) != vec.Dot(v, q) {
+		t.Errorf("Vec.Dot: v dot q != q dot v")
 	}
 }
 
