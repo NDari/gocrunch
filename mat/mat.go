@@ -96,16 +96,6 @@ func Col(c int, m [][]float64) []float64 {
 	return vec
 }
 
-// Row returns a row of a 2D slice of `float64`. Row uses a zero index,
-// hence the first row of a 2D slice, m, is `Row(0, m)`.
-func Row(r int, m [][]float64) []float64 {
-	vec := make([]float64, len(m[r]))
-	for c := 0; c < len(m[r]); c++ {
-		vec[c] = m[r][c]
-	}
-	return vec
-}
-
 // T returns a copy of a given 2D slice with the elements of the 2D slice
 // mirrored across the diagonal. For example, the element `[i][j]` becomes the
 // element `[j][i]` of the returned 2D slice. This function leaves the

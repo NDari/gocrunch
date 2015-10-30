@@ -60,21 +60,11 @@ func TestMatCol(t *testing.T) {
 	}
 }
 
-func TestMatRow(t *testing.T) {
-	var (
-		row = 3
-		col = 4
-	)
-	m := mat.Inc(row, col)
-	got := mat.Row(1, m)
-	if len(got) != col {
-		t.Errorf("mat.Row: len(got) == %v, want %v", len(got), col)
-	}
-	want := []float64{4.0, 5.0, 6.0, 7.0}
-	for i := 0; i < col; i++ {
-		if want[i] != got[i] {
-			t.Errorf("mat.Row: m[1][%v] is %v, want %v", i, got[i], want[i])
-		}
+func BenchmarkMatCol(b *testing.B) {
+	n := mat.Inc(1721, 311)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = mat.Col(211, n)
 	}
 }
 
@@ -106,7 +96,7 @@ func TestMatT(t *testing.T) {
 }
 
 func BenchmarkMatT(b *testing.B) {
-	m := mat.Inc(2000, 1333)
+	m := mat.Inc(1000, 251)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = mat.T(m)
@@ -187,8 +177,8 @@ func TestMatDot(t *testing.T) {
 }
 
 func BenchmarkMatDot(b *testing.B) {
-	m := mat.Inc(1500, 1300)
-	n := mat.Inc(1300, 1500)
+	m := mat.Inc(150, 130)
+	n := mat.Inc(130, 150)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = mat.Dot(m, n)
