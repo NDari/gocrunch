@@ -1,0 +1,7 @@
+10/29/2015
+PASS
+BenchmarkMatT  	    1000	   1437001 ns/op
+BenchmarkMatMul	     500	   3698055 ns/op
+BenchmarkMatDot	     200	   8255194 ns/op
+ok  	numgo	6.341s
+============================================
