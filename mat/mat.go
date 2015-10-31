@@ -12,6 +12,7 @@ package mat
 import (
 	"encoding/csv"
 	"log"
+	"math"
 	"numgo/vec"
 	"os"
 	"runtime"
@@ -88,10 +89,27 @@ func Inc(r, c int) [][]float64 {
 
 // Col returns a column of a 2D slice of `float64`. Col uses a zero index,
 // hence the first column of a 2D slice, m,  is `Col(0, m)`.
+//
+// This function also allows for negative indexing. For example, `Col(-1, m)`
+// is the last column of the 2D slice m, and `Col(-2, m)` is the second to
+// last column of m, and so on.
 func Col(c int, m [][]float64) []float64 {
+	if math.Abs(float64(c)) > float64(len(m[0])-1) {
+		msg := "mat.%v Error: in %v [%v line %v].\n"
+		msg += "The requested column, %v, is outside the range of %v to %v.\n"
+		p, f, l, _ := runtime.Caller(1)
+		log.Fatalf(msg, "Col", f, runtime.FuncForPC(p).Name(), l, c, -len(m[0]), len(m[0]))
+	}
 	vec := make([]float64, len(m))
-	for r := 0; r < len(m); r++ {
-		vec[r] = m[r][c]
+	if c >= 0 {
+		for r := 0; r < len(m); r++ {
+			vec[r] = m[r][c]
+		}
+	} else {
+		lenColM := len(m[0])
+		for r := 0; r < len(m); r++ {
+			vec[r] = m[r][lenColM+c]
+		}
 	}
 	return vec
 }

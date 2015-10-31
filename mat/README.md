@@ -26,6 +26,10 @@ func Col(c int, m [][]float64) []float64
 Col returns a column of a 2D slice of `float64`. Col uses a zero index, hence
 the first column of a 2D slice, m, is `Col(0, m)`.
 
+This function also allows for negative indexing. For example, `Col(-1, m)` is
+the last column of the 2D slice m, and `Col(-2, m)` is the second to last column
+of m, and so on.
+
 #### func  Concat
 
 ```go

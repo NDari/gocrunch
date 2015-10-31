@@ -58,6 +58,14 @@ func TestMatCol(t *testing.T) {
 			t.Errorf("mat.Col: m[%v][2] == %v, want %v", i, got[i], want[i])
 		}
 	}
+	a1 := mat.Col(-1, m)
+	a2 := mat.Col(3, m)
+	for i := 0; i < len(a1); i++ {
+		if a1[i] != a2[i] {
+			t.Errorf("mat.Col: at index %v, Col(-1, m) is %v, expected %v", i, a1[i], a2[i])
+		}
+	}
+
 }
 
 func BenchmarkMatCol(b *testing.B) {
