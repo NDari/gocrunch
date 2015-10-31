@@ -134,21 +134,22 @@ func Equal(m, n [][]float64) bool {
 // of two 2D slices.
 func Mul(m, n [][]float64) [][]float64 {
 	if len(m) != len(n) {
-		msg := "mat.%v Error: in %v [%v line %v].\n"
+		msg := "mat.Mul Error: in %v [%v line %v].\n"
 		msg += "Number of rows of the first 2D slice is %v, while the number\n"
 		msg += "of rows of the second 2D slice is %v. They must match.\n"
 		p, f, l, _ := runtime.Caller(1)
-		log.Fatalf(msg, "Mul", f, runtime.FuncForPC(p).Name(), l, len(m), len(n))
+		log.Fatalf(msg, f, runtime.FuncForPC(p).Name(), l, len(m), len(n))
 	}
 	o := make([][]float64, len(m))
 	for i := 0; i < len(m); i++ {
 		if len(m[i]) != len(n[i]) {
-			msg := "mat.%v Error: in %v [%v line %v].\n"
+			msg := "mat.Mul Error: in %v [%v line %v].\n"
 			msg += "In column %v, number of elements for the first 2D slice is %v,\n"
 			msg += "while the number of elements of the second 2D slice is %v.\n"
 			msg += "They must match.\n"
 			p, f, l, _ := runtime.Caller(1)
-			log.Fatalf(msg, "Mul", f, runtime.FuncForPC(p).Name(), l, i, len(m[i]), len(n[i]))
+			log.Fatalf(msg, f, runtime.FuncForPC(p).Name(), l, i,
+				len(m[i]), len(n[i]))
 		}
 		o[i] = make([]float64, len(m[i]))
 		o[i] = vec.Mul(m[i], n[i])
