@@ -97,6 +97,14 @@ func TestMatRow(t *testing.T) {
 	}
 }
 
+func BenchmarkMatRow(b *testing.B) {
+	n := mat.Inc(1721, 311)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = mat.Row(511, n)
+	}
+}
+
 func TestMatT(t *testing.T) {
 	var (
 		row = 5
