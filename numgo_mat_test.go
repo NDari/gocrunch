@@ -16,11 +16,11 @@ func TestMatI(t *testing.T) {
 		for j := 0; j < row; j++ {
 			if i == j {
 				if m[i][j] != 1.0 {
-					t.Errorf("mat.I[%v,%v] == %v, want 1.0", i, j, m[i][j])
+					t.Errorf("mat.I[%d,%d] == %f, want 1.0", i, j, m[i][j])
 				}
 			} else {
 				if m[i][j] != 0.0 {
-					t.Errorf("mat.I[%v,%v] == %v, want 0.0", i, j, m[i][j])
+					t.Errorf("mat.I[%d,%d] == %f, want 0.0", i, j, m[i][j])
 				}
 			}
 		}
@@ -36,7 +36,7 @@ func TestMatOnes(t *testing.T) {
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
 			if o[i][j] != 1.0 {
-				t.Errorf("mat.Ones[%v][%v]: expected 1.0, got %v", i, j, o[i][j])
+				t.Errorf("mat.Ones[%d][%d]: expected 1.0, got %f", i, j, o[i][j])
 			}
 		}
 	}
@@ -50,22 +50,21 @@ func TestMatCol(t *testing.T) {
 	m := mat.Inc(row, col)
 	got := mat.Col(2, m)
 	if len(got) != row {
-		t.Errorf("mat.Col: got.NumRows == %v, want %v", len(got), row)
+		t.Errorf("mat.Col: got.NumRows == %f, want %f", len(got), row)
 	}
 	want := []float64{2.0, 6.0, 10.0}
 	for i := 0; i < row; i++ {
 		if want[i] != got[i] {
-			t.Errorf("mat.Col: m[%v][2] == %v, want %v", i, got[i], want[i])
+			t.Errorf("mat.Col: m[%d][2] == %f, want %f", i, got[i], want[i])
 		}
 	}
 	a1 := mat.Col(-1, m)
 	a2 := mat.Col(3, m)
 	for i := 0; i < len(a1); i++ {
 		if a1[i] != a2[i] {
-			t.Errorf("mat.Col: at index %v, Col(-1, m) is %v, expected %v", i, a1[i], a2[i])
+			t.Errorf("mat.Col: at index %d, Col(-1, m) is %f, expected %f", i, a1[i], a2[i])
 		}
 	}
-
 }
 
 func BenchmarkMatCol(b *testing.B) {
@@ -73,6 +72,28 @@ func BenchmarkMatCol(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = mat.Col(211, n)
+	}
+}
+
+func TestMatRow(t *testing.T) {
+	var (
+		row = 3
+		col = 4
+	)
+	m := mat.Inc(row, col)
+	got := mat.Row(2, m)
+	want := []float64{8.0, 9.0, 10.0, 11.0}
+	for i := 0; i < col; i++ {
+		if got[i] != want[i] {
+			t.Errorf("Mat.Row at index %d: want %f, got %f", i, want[i], got[i])
+		}
+	}
+	a1 := mat.Row(-1, m)
+	a2 := mat.Row(2, m)
+	for i := 0; i < len(a1); i++ {
+		if a1[i] != a2[i] {
+			t.Errorf("mat.Col: at index %d, Col(-1, m) is %f, expected %f", i, a1[i], a2[i])
+		}
 	}
 }
 
@@ -86,7 +107,7 @@ func TestMatT(t *testing.T) {
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
 			if n[j][i] != m[i][j] {
-				t.Errorf("mat.T: [%v][%v] is %v, want %v", i, j, n[j][i], m[i][j])
+				t.Errorf("mat.T: [%d][%d] is %f, want %f", i, j, n[j][i], m[i][j])
 			}
 		}
 	}
@@ -96,7 +117,7 @@ func TestMatT(t *testing.T) {
 		for i := 0; i < row; i++ {
 			for j := 0; j < col; j++ {
 				if s[i][j] != m[i][j] {
-					t.Errorf("At [%v][%v]: want %v, got %v", i, j, m[i][j], s[i][j])
+					t.Errorf("At [%d][%d]: want %f, got %f", i, j, m[i][j], s[i][j])
 				}
 			}
 		}

@@ -180,6 +180,17 @@ func Reset(m [][]float64) [][]float64
 ```
 Reset sets the values of all entries in a 2D slice of `float64` to `0.0`.
 
+#### func  Row
+
+```go
+func Row(r int, m [][]float64) []float64
+```
+Row returns a row of a 2D slice of `float64`. Row uses a zero index, hence the
+first row of a 2D slice, m, is Row(0, m).
+
+This function also allows for negative indexing. For example, Row(-1, m) is the
+last row of m.
+
 #### func  T
 
 ```go
