@@ -141,7 +141,7 @@ func Row(r int, m [][]float64) []float64 {
 		p, f, l, _ := runtime.Caller(1)
 		log.Fatalf(msg, "Col", f, runtime.FuncForPC(p).Name(), l, r, -len(m), len(m))
 	}
-	if r > 0 {
+	if r >= 0 {
 		return m[r]
 	} else {
 		return m[len(m)+r]

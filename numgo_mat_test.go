@@ -206,8 +206,8 @@ func TestMatDot(t *testing.T) {
 	if len(o[0]) != row {
 		t.Errorf("mat.Dot(m, n)'s numCols expected %v, got %v", row, len(o[0]))
 	}
-	o = mat.Inc(row, row)
-	p := mat.Dot(mat.I(row), o)
+	o = mat.Inc(col, col)
+	p := mat.Dot(o, mat.I(col))
 	if !mat.Equal(p, o) {
 		t.Errorf("o x I != o...")
 	}
