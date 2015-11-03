@@ -48,14 +48,15 @@ func TestMatCol(t *testing.T) {
 		col = 4
 	)
 	m := mat.Inc(row, col)
-	got := mat.Col(2, m)
-	if len(got) != row {
-		t.Errorf("mat.Col: got.NumRows == %f, want %f", len(got), row)
-	}
-	want := []float64{2.0, 6.0, 10.0}
-	for i := 0; i < row; i++ {
-		if want[i] != got[i] {
-			t.Errorf("mat.Col: m[%d][2] == %f, want %f", i, got[i], want[i])
+	for i := 0; i < col; i++ {
+		got := mat.Col(i, m)
+		if len(got) != row {
+			t.Errorf("mat.Col: got.NumRows == %f, want %f", len(got), row)
+		}
+		for j := 0; j < row; j++ {
+			if got[j] != m[j][i] {
+				t.Errorf("At index %v Col(%v, m), got %f, want %f", j, i, got[j], m[j][i])
+			}
 		}
 	}
 	a1 := mat.Col(-1, m)
