@@ -104,6 +104,8 @@ hence the first column of a 2D slice, m,  is `Col(1, m)`.
 This function also allows for negative indexing. For example, `Col(-1, m)`
 is the last column of the 2D slice m, and `Col(-2, m)` is the second to
 last column of m, and so on.
+
+Requesting the 0th column is fatal.
 */
 func Col(c int, m [][]float64) []float64 {
 	if math.Abs(float64(c)) > float64(len(m[0])) {
@@ -139,6 +141,8 @@ the first row of a 2D slice, m, is Row(1, m).
 
 This function also allows for negative indexing. For example, Row(-1, m) is
 the last row of m.
+
+Requesting the 0th row is fatal.
 */
 func Row(r int, m [][]float64) []float64 {
 	if math.Abs(float64(r)) > float64(len(m)) {
