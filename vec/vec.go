@@ -118,7 +118,7 @@ func Div(v1, v2 []float64) []float64 {
 			p, f, l, _ := runtime.Caller(1)
 			log.Fatalf(msg, "Div", f, runtime.FuncForPC(p).Name(), l, i)
 		}
-		o[i] = v1[i] * v2[i]
+		o[i] = v1[i] / v2[i]
 	}
 	return o
 }
