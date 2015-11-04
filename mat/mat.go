@@ -98,15 +98,15 @@ func Inc(r, c int) [][]float64 {
 }
 
 /*
-Col returns a column of a 2D slice of `float64`. Col uses a zero index,
-hence the first column of a 2D slice, m,  is `Col(0, m)`.
+Col returns a column of a 2D slice of `float64`. Col uses a 1-based index,
+hence the first column of a 2D slice, m,  is `Col(1, m)`.
 
 This function also allows for negative indexing. For example, `Col(-1, m)`
 is the last column of the 2D slice m, and `Col(-2, m)` is the second to
 last column of m, and so on.
 */
 func Col(c int, m [][]float64) []float64 {
-	if math.Abs(float64(c)) > float64(len(m[0])-1) {
+	if math.Abs(float64(c)) > float64(len(m[0])) {
 		msg := "mat.%v Error: in %v [%v line %v].\n"
 		msg += "The requested column, %v, is outside the range of %v to %v.\n"
 		p, f, l, _ := runtime.Caller(1)
@@ -114,37 +114,50 @@ func Col(c int, m [][]float64) []float64 {
 		log.Fatalf(msg, "Col", f, runtime.FuncForPC(p).Name(), l, c, -lenm, lenm)
 	}
 	vec := make([]float64, len(m))
-	if c >= 0 {
+	if c > 0 {
 		for r := 0; r < len(m); r++ {
-			vec[r] = m[r][c]
+			vec[r] = m[r][c-1]
 		}
-	} else {
+	} else if c < 0 {
 		lenColM := len(m[0])
 		for r := 0; r < len(m); r++ {
 			vec[r] = m[r][lenColM+c]
 		}
+	} else {
+		msg := "mat.%v Error: in %v [%v line %v].\n"
+		msg += "The mat.%v function uses a 1-based index. Hence, the 0th column\n"
+		msg += "is not defined.\n"
+		p, f, l, _ := runtime.Caller(1)
+		log.Fatalf(msg, "Col", f, runtime.FuncForPC(p).Name(), l, "col")
 	}
 	return vec
 }
 
 /*
-Row returns a row of a 2D slice of `float64`. Row uses a zero index, hence the
-first row of a 2D slice, m, is Row(0, m).
+Row returns a row of a 2D slice of `float64`. Row uses a 1-based index, hence
+the first row of a 2D slice, m, is Row(1, m).
 
 This function also allows for negative indexing. For example, Row(-1, m) is
 the last row of m.
 */
 func Row(r int, m [][]float64) []float64 {
-	if math.Abs(float64(r)) > float64(len(m)-1) {
+	if math.Abs(float64(r)) > float64(len(m)) {
 		msg := "mat.%v Error: in %v [%v line %v].\n"
 		msg += "The requested row, %v, is outside the range of %v to %v.\n"
 		p, f, l, _ := runtime.Caller(1)
 		log.Fatalf(msg, "Col", f, runtime.FuncForPC(p).Name(), l, r, -len(m), len(m))
 	}
-	if r >= 0 {
+	if r > 0 {
 		return m[r]
-	} else {
+	} else if r < 0 {
 		return m[len(m)+r]
+	} else {
+		msg := "mat.%v Error: in %v [%v line %v].\n"
+		msg += "The mat.%v function uses a 1-based index. Hence, the 0th row\n"
+		msg += "is not defined.\n"
+		p, f, l, _ := runtime.Caller(1)
+		log.Fatalf(msg, "Row", f, runtime.FuncForPC(p).Name(), l, "Row")
+		return make([]float64, 0) // This is ugly....
 	}
 }
 

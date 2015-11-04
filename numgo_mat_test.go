@@ -48,19 +48,26 @@ func TestMatCol(t *testing.T) {
 		col = 4
 	)
 	m := mat.Inc(row, col)
-	for i := 0; i < col; i++ {
+	for i := 1; i <= col; i++ {
 		got := mat.Col(i, m)
 		if len(got) != row {
-			t.Errorf("mat.Col: got.NumRows == %f, want %f", len(got), row)
+			t.Errorf("mat.Col: got.NumRows == %d, want %d", len(got), row)
 		}
 		for j := 0; j < row; j++ {
-			if got[j] != m[j][i] {
-				t.Errorf("At index %v Col(%v, m), got %f, want %f", j, i, got[j], m[j][i])
+			if got[j] != m[j][i-1] {
+				t.Errorf("At index %v Col(%v, m), got %f, want %f", j, i, got[j], m[j][i-1])
+			}
+		}
+		got = mat.Col(-i, m)
+		want := mat.Col(col-i+1, m)
+		for j := 0; j < row; j++ {
+			if got[j] != want[j] {
+				t.Errorf("At index %v Col(%v, m), got %f, want %f", j, i-col, got[j], want[j])
 			}
 		}
 	}
 	a1 := mat.Col(-1, m)
-	a2 := mat.Col(3, m)
+	a2 := mat.Col(4, m)
 	for i := 0; i < len(a1); i++ {
 		if a1[i] != a2[i] {
 			t.Errorf("mat.Col: at index %d, Col(-1, m) is %f, expected %f", i, a1[i], a2[i])
@@ -167,7 +174,7 @@ func TestMatMul(t *testing.T) {
 		for i := 0; i < row; i++ {
 			for j := 0; j < col; j++ {
 				if o[i][j] != 0.0 {
-					t.Errorf("At [%v][%v]: got %v, want 0.0", i, j, o[i][j])
+					t.Errorf("At [%d][%d]: got %f, want 0.0", i, j, o[i][j])
 				}
 			}
 		}
@@ -179,7 +186,7 @@ func TestMatMul(t *testing.T) {
 		for i := 0; i < row; i++ {
 			for j := 0; j < col; j++ {
 				if o[i][j] != m[i][j] {
-					t.Errorf("At [%v][%v]: got %v, want %f", i, j, o[i][j], m[i][j])
+					t.Errorf("At [%d][%d]: got %f, want %f", i, j, o[i][j], m[i][j])
 				}
 			}
 		}
@@ -205,7 +212,7 @@ func TestMatMap(t *testing.T) {
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
 			if n[i][j] != 1.0 {
-				t.Errorf("expected 1.0, got %v", n[i][j])
+				t.Errorf("expected 1.0, got %f", n[i][j])
 			}
 		}
 	}
@@ -220,10 +227,10 @@ func TestMatDot(t *testing.T) {
 	n := mat.New(col, row)
 	o := mat.Dot(m, n)
 	if len(o) != row {
-		t.Errorf("mat.Dot(m, n)'s numRows expected %v, got %v", row, len(o))
+		t.Errorf("mat.Dot(m, n)'s numRows expected %d, got %d", row, len(o))
 	}
 	if len(o[0]) != row {
-		t.Errorf("mat.Dot(m, n)'s numCols expected %v, got %v", row, len(o[0]))
+		t.Errorf("mat.Dot(m, n)'s numCols expected %d, got %d", row, len(o[0]))
 	}
 	o = mat.Inc(col, col)
 	p := mat.Dot(o, mat.I(col))
@@ -251,7 +258,7 @@ func TestMatReset(t *testing.T) {
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
 			if m[i][j] != 0.0 {
-				t.Errorf("Reset(m) at m[%v][%v] is equal %v", i, j, m[i][j])
+				t.Errorf("Reset(m) at m[%d][%d] is equal %f", i, j, m[i][j])
 			}
 		}
 	}
@@ -283,10 +290,10 @@ func TestMatAppendCol(t *testing.T) {
 	m := mat.Inc(5, 7)
 	v := []float64{12, 13, 17, 19, 21}
 	m = mat.AppendCol(m, v)
-	p := mat.Col(7, m)
+	p := mat.Col(8, m)
 	for i := 0; i < len(v); i++ {
 		if v[i] != p[i] {
-			t.Errorf("In AppendCol, expected %v, got %v", v[i], p[i])
+			t.Errorf("In AppendCol, expected %f, got %f", v[i], p[i])
 		}
 	}
 }
@@ -300,22 +307,22 @@ func TestMatConcat(t *testing.T) {
 	n := mat.I(row)
 	o := mat.Concat(m, n)
 	if len(o) != row {
-		t.Errorf("len of concatinated 2Dslice is %v, want %v", len(o), row)
+		t.Errorf("len of concatinated 2Dslice is %d, want %d", len(o), row)
 	}
 	for i := 0; i < len(o); i++ {
 		if len(o[i]) != (row + col) {
-			t.Errorf("len(o[%v]) is %v, want %v", i, len(o[i]), row+col)
+			t.Errorf("len(o[%d]) is %d, want %d", i, len(o[i]), row+col)
 		}
 	}
 	for i := 0; i < row; i++ {
 		for j := 0; j < row+col; j++ {
 			if j < col {
 				if o[i][j] != m[i][j] {
-					t.Errorf("[%v][%v] got %v, want %v", i, j, o[i][j], m[i][j])
+					t.Errorf("[%d][%d] got %f, want %f", i, j, o[i][j], m[i][j])
 				}
 			} else {
 				if o[i][j] != n[i][j-col] {
-					t.Errorf("[%v][%v] got %v, want %v", i, j, o[i][j], n[i][j-col])
+					t.Errorf("[%d][%d] got %f, want %f", i, j, o[i][j], n[i][j-col])
 				}
 			}
 		}
