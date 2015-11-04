@@ -116,13 +116,13 @@ func TestMatT(t *testing.T) {
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
 			if n[j][i] != m[i][j] {
-				t.Errorf("mat.T: [%d][%d] is %f, want %f", i, j, n[j][i], m[i][j])
+				t.Errorf("mat.T: [%d][%d] got %f, want %f", i, j, n[j][i], m[i][j])
 			}
 		}
 	}
 	s := mat.T(mat.T(m))
 	if !mat.Equal(m, s) {
-		t.Errorf("mat.T.T != mat")
+		t.Errorf("T(T(m)) must equal m.")
 		for i := 0; i < row; i++ {
 			for j := 0; j < col; j++ {
 				if s[i][j] != m[i][j] {
@@ -148,23 +148,41 @@ func TestMatMul(t *testing.T) {
 	)
 	m := mat.New(row, row)
 	q := mat.I(row)
-	if !mat.Equal(mat.Mul(m, q), m) {
+	mq := mat.Mul(m, q)
+	if !mat.Equal(mq, m) {
 		t.Errorf("A Square matrix Mul the identity matrix should be equal to itself")
+		for i := 0; i < row; i++ {
+			for j := 0; j < row; j++ {
+				if mq[i][j] != m[i][j] {
+					t.Errorf("At [%d][%d]: got %f, want %f", i, j, mq[i][j], m[i][j])
+				}
+			}
+		}
 	}
 	m = mat.Inc(row, col)
 	n := mat.New(row, col)
 	o := mat.Mul(m, n)
-	for i := 0; i < row; i++ {
-		for j := 0; j < col; j++ {
-			if o[i][j] != 0.0 {
-				t.Errorf("o[%v][%v] == %v, expected 0.0", i, j, o[i][j])
+	if !mat.Equal(o, n) {
+		t.Errorf("mat.Mul(m, I) must equal m.")
+		for i := 0; i < row; i++ {
+			for j := 0; j < col; j++ {
+				if o[i][j] != 0.0 {
+					t.Errorf("At [%v][%v]: got %v, want 0.0", i, j, o[i][j])
+				}
 			}
 		}
 	}
 	o = mat.Mul(m, m)
 	m = mat.Map(func(i float64) float64 { return i * i }, m)
 	if !mat.Equal(o, m) {
-		t.Errorf("m Mul m != m.Map( i * i for each element i in m)")
+		t.Errorf("mat.Mul(m, m) must equal to m[i][j]**2 for all i and j.")
+		for i := 0; i < row; i++ {
+			for j := 0; j < col; j++ {
+				if o[i][j] != m[i][j] {
+					t.Errorf("At [%v][%v]: got %v, want %f", i, j, o[i][j], m[i][j])
+				}
+			}
+		}
 	}
 }
 

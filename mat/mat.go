@@ -208,7 +208,6 @@ func Mul(m, n [][]float64) [][]float64 {
 			p, f, l, _ := runtime.Caller(1)
 			log.Fatalf(msg, "Mul", f, runtime.FuncForPC(p).Name(), l, i, len(m[i]), len(n[i]))
 		}
-		o[i] = make([]float64, len(n[i]))
 		o[i] = vec.Mul(m[i], n[i])
 	}
 	return o

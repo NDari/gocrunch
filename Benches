@@ -30,6 +30,8 @@ BenchmarkMatT  	    1000	   1419628 ns/op
 BenchmarkMatMul	     500	   2374854 ns/op
 BenchmarkMatDot	     200	   8262585 ns/op
 ok  	numgo	10.418s
+===========================================
+11/01/2015
 PASS
 BenchmarkMatCol	  200000	      9210 ns/op
 BenchmarkMatRow	200000000	         9.77 ns/op
@@ -37,3 +39,12 @@ BenchmarkMatT  	    1000	   1346428 ns/op
 BenchmarkMatMul	     500	   3577946 ns/op
 BenchmarkMatDot	     200	   8155075 ns/op
 ok  	numgo	11.034s
+===========================================
+11/03/2015
+PASS
+BenchmarkMatCol	  200000	     10163 ns/op
+BenchmarkMatRow	100000000	        10.5 ns/op
+BenchmarkMatT  	    1000	   1649199 ns/op
+BenchmarkMatMul	     500	   2562884 ns/op
+BenchmarkMatDot	     200	   8659222 ns/op
+ok  	numgo	9.267s
