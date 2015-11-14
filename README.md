@@ -11,9 +11,7 @@ arrays to be multiplied together in an element-wise fashion, are considered
 fatal. In other words, when encountering an error, the functions in this package
 will die, instead of returning an error to be handled by the caller.
 
-Packages within numgo are listed below.
-
-
+## Usage
 # vec
 --
     import "numgo/vec"
@@ -193,12 +191,14 @@ AppendCol appends a column to the right side of a 2D slice of float64s.
 ```go
 func Col(c int, m [][]float64) []float64
 ```
-Col returns a column of a 2D slice of `float64`. Col uses a zero index, hence
-the first column of a 2D slice, m, is `Col(0, m)`.
+Col returns a column of a 2D slice of `float64`. Col uses a 1-based index, hence
+the first column of a 2D slice, m, is `Col(1, m)`.
 
 This function also allows for negative indexing. For example, `Col(-1, m)` is
 the last column of the 2D slice m, and `Col(-2, m)` is the second to last column
 of m, and so on.
+
+Requesting the 0th column is fatal.
 
 #### func  Concat
 
@@ -209,15 +209,15 @@ Concat concatenates the inner slices of two `[][]float64` arguments..
 
 For example, if we have:
 
-`m := [[1.0, 2.0], [3.0, 4.0]]`
+```go 
+m := [[1.0, 2.0], [3.0, 4.0]] 
+n := [[5.0, 6.0], [7.0, 8.0]] 
+o := mat.Concat(m, n)
 
-`n := [[5.0, 6.0], [7.0, 8.0]]`
+mat.Print(o) // 1.0, 2.0, 5.0, 6.0
+             // 3.0, 4.0, 7.0, 8.0
 
-`o := mat.Concat(m, n)`
-
-then:
-
-`o == [[1.0, 2.0, 5.0, 6.0], [3.0, 4.0, 7.0, 8.0]]`
+```
 
 #### func  Copy
 
@@ -276,9 +276,16 @@ func Inc(r, c int) [][]float64
 Inc returns a 2D slice, where element `[0][0] == 0.0`, and each subsequent
 element is incremented by `1.0`.
 
-For example, `m := Inc(3, 2)` is
+For example:
 
-`[[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]`.
+``` 
+m := Inc(3, 2)
+
+mat.Print(m) // 1.0, 2.0
+             // 3.0, 4.0
+    	     // 5.0, 6.0
+
+```
 
 #### func  Load
 
@@ -355,11 +362,13 @@ Reset sets the values of all entries in a 2D slice of `float64` to `0.0`.
 ```go
 func Row(r int, m [][]float64) []float64
 ```
-Row returns a row of a 2D slice of `float64`. Row uses a zero index, hence the
-first row of a 2D slice, m, is Row(0, m).
+Row returns a row of a 2D slice of `float64`. Row uses a 1-based index, hence
+the first row of a 2D slice, m, is Row(1, m).
 
 This function also allows for negative indexing. For example, Row(-1, m) is the
 last row of m.
+
+Requesting the 0th row is fatal.
 
 #### func  T
 
