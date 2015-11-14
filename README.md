@@ -11,6 +11,9 @@ arrays to be multiplied together in an element-wise fashion, are considered
 fatal. In other words, when encountering an error, the functions in this package
 will die, instead of returning an error to be handled by the caller.
 
+Packages within numgo are listed below.
+
+
 # vec
 --
     import "numgo/vec"
