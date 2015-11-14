@@ -23,14 +23,15 @@ All checks that every item in given 1D slice returns true for a given function.
 The passed function must accept a single float64, and return a boolean. For
 example, consider:
 
-```go f := func(i float64) bool {
-
+```go 
+f := func(i float64) bool {
     if i > 0.0 { return true}
     return false
-
 }
 
-m := vec.Ones(10) t := vec.All(f, m) // t == true ```
+m := vec.Ones(10) 
+t := vec.All(f, m) // t == true 
+```
 
 #### func  Any
 
@@ -41,14 +42,15 @@ Any checks if there is a single item in a 1D slice returns true for a given
 function. The passed function must accept a single float64, and return a
 boolean. For example, consider:
 
-```go f := func(i float64) bool {
-
+```go
+f := func(i float64) bool {
     if i < 0.0 { return true}
     return false
-
 }
 
-m := vec.Ones(10) t := vec.All(f, m) // t == false ```
+m := vec.Ones(10) 
+t := vec.All(f, m) // t == false 
+```
 
 #### func  Div
 
