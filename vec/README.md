@@ -14,6 +14,42 @@ func Add(v1, v2 []float64) []float64
 Add returns a new 1D slice that is the result of element-wise addition of two 1D
 slices.
 
+#### func  All
+
+```go
+func All(f func(float64) bool, v []float64) bool
+```
+All checks that every item in given 1D slice returns true for a given function.
+The passed function must accept a single float64, and return a boolean. For
+example, consider:
+
+```go f := func(i float64) bool {
+
+    if i > 0.0 { return true}
+    return false
+
+}
+
+m := vec.Ones(10) t := vec.All(f, m) // t == true ```
+
+#### func  Any
+
+```go
+func Any(f func(float64) bool, v []float64) bool
+```
+Any checks if there is a single item in a 1D slice returns true for a given
+function. The passed function must accept a single float64, and return a
+boolean. For example, consider:
+
+```go f := func(i float64) bool {
+
+    if i < 0.0 { return true}
+    return false
+
+}
+
+m := vec.Ones(10) t := vec.All(f, m) // t == false ```
+
 #### func  Div
 
 ```go

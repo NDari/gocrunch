@@ -187,3 +187,51 @@ func Norm(v []float64) float64 {
 	}
 	return math.Sqrt(Sum(Map(square, v)))
 }
+
+/*
+All checks that every item in given 1D slice returns true for a given function.
+The passed function must accept a single float64, and return a boolean. For
+example, consider:
+
+```go
+f := func(i float64) bool {
+	if i > 0.0 { return true}
+	return false
+}
+
+m := vec.Ones(10)
+t := vec.All(f, m) // t == true
+```
+*/
+func All(f func(float64) bool, v []float64) bool {
+	for i := 0; i < len(v); i++ {
+		if !f(v[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+/*
+Any checks if there is a single item in a 1D slice returns true for a given
+function. The passed function must accept a single float64, and return a
+boolean. For example, consider:
+
+```go
+f := func(i float64) bool {
+	if i < 0.0 { return true}
+	return false
+}
+
+m := vec.Ones(10)
+t := vec.All(f, m) // t == false
+```
+*/
+func Any(f func(float64) bool, v []float64) bool {
+	for i := 0; i < len(v); i++ {
+		if !f(v[i]) {
+			return true
+		}
+	}
+	return false
+}
