@@ -188,7 +188,7 @@ func T(m [][]float64) [][]float64 {
 }
 
 /*
-Equals checks if two 2D slices have the same shape and the same entries in
+Equal checks if two 2D slices have the same shape and the same entries in
 each row and column. If either the shape or the entries of the arguments
 are different, `false` is returned. Otherwise, the return value is `true`.
 */
