@@ -13,10 +13,11 @@ import (
 	"encoding/csv"
 	"log"
 	"math"
-	"numgo/vec"
 	"os"
 	"runtime"
 	"strconv"
+
+	"github.com/NDari/numgo/vec"
 )
 
 /*
