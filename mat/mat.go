@@ -11,6 +11,7 @@ package mat
 
 import (
 	"encoding/csv"
+	"fmt"
 	"log"
 	"math"
 	"os"
@@ -117,8 +118,14 @@ Requesting the 0th column is fatal.
 */
 func Col(c int, m [][]float64) []float64 {
 	if math.Abs(float64(c)) > float64(len(m[0])) {
+		msg := "mat.%v Error: in %v [%v line %v].\n"
+		msg += "The mat.%v function uses a 1-based index. Hence, the 0th column\n"
+		msg += "is not defined.\n"
+		p, f, l, _ := runtime.Caller(1)
+		s := fmt.Sprintf(msg, "Col", f, runtime.FuncForPC(p).Name(), l, "col")
+		fmt.Println(s)
 		debug.PrintStack()
-		log.Fatalf("died")
+		os.Exit(1)
 	}
 	vec := make([]float64, len(m))
 	if c > 0 {
