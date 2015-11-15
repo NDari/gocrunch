@@ -15,6 +15,7 @@ import (
 	"math"
 	"os"
 	"runtime"
+	"runtime/debug"
 	"strconv"
 
 	"github.com/NDari/numgo/vec"
@@ -116,11 +117,8 @@ Requesting the 0th column is fatal.
 */
 func Col(c int, m [][]float64) []float64 {
 	if math.Abs(float64(c)) > float64(len(m[0])) {
-		msg := "mat.%v Error: in %v [%v line %v].\n"
-		msg += "The requested column, %v, is outside the range of %v to %v.\n"
-		p, f, l, _ := runtime.Caller(1)
-		lenm := len(m[0])
-		log.Fatalf(msg, "Col", f, runtime.FuncForPC(p).Name(), l, c, -lenm, lenm)
+		debug.PrintStack()
+		log.Fatalf("died")
 	}
 	vec := make([]float64, len(m))
 	if c > 0 {
