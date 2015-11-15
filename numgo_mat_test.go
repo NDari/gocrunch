@@ -48,18 +48,18 @@ func TestMatCol(t *testing.T) {
 		col = 4
 	)
 	m := mat.Inc(row, col)
-	for i := 1; i <= col; i++ {
+	for i := 1; i < col; i++ {
 		got := mat.Col(i, m)
 		if len(got) != row {
 			t.Errorf("mat.Col: got.NumRows == %d, want %d", len(got), row)
 		}
 		for j := 0; j < row; j++ {
-			if got[j] != m[j][i-1] {
+			if got[j] != m[j][i] {
 				t.Errorf("At index %v Col(%v, m), got %f, want %f", j, i, got[j], m[j][i-1])
 			}
 		}
 		got = mat.Col(-i, m)
-		want := mat.Col(col-i+1, m)
+		want := mat.Col(col-i, m)
 		for j := 0; j < row; j++ {
 			if got[j] != want[j] {
 				t.Errorf("At index %v Col(%v, m), got %f, want %f", j, i-col, got[j], want[j])
@@ -67,7 +67,7 @@ func TestMatCol(t *testing.T) {
 		}
 	}
 	a1 := mat.Col(-1, m)
-	a2 := mat.Col(4, m)
+	a2 := mat.Col(3, m)
 	for i := 0; i < len(a1); i++ {
 		if a1[i] != a2[i] {
 			t.Errorf("mat.Col: at index %d, Col(-1, m) is %f, expected %f", i, a1[i], a2[i])
@@ -290,7 +290,7 @@ func TestMatAppendCol(t *testing.T) {
 	m := mat.Inc(5, 7)
 	v := []float64{12, 13, 17, 19, 21}
 	m = mat.AppendCol(m, v)
-	p := mat.Col(8, m)
+	p := mat.Col(7, m)
 	for i := 0; i < len(v); i++ {
 		if v[i] != p[i] {
 			t.Errorf("In AppendCol, expected %f, got %f", v[i], p[i])

@@ -23,14 +23,12 @@ AppendCol appends a column to the right side of a 2D slice of float64s.
 ```go
 func Col(c int, m [][]float64) []float64
 ```
-Col returns a column of a 2D slice of `float64`. Col uses a 1-based index, hence
-the first column of a 2D slice, m, is `Col(1, m)`.
+Col returns a column of a 2D slice of `float64`. Col uses a 0-based index, hence
+the first column of a 2D slice, m, is `Col(0, m)`.
 
 This function also allows for negative indexing. For example, `Col(-1, m)` is
 the last column of the 2D slice m, and `Col(-2, m)` is the second to last column
 of m, and so on.
-
-Requesting the 0th column is fatal.
 
 #### func  Concat
 
@@ -41,13 +39,12 @@ Concat concatenates the inner slices of two `[][]float64` arguments..
 
 For example, if we have:
 
-```go 
-m := [[1.0, 2.0], [3.0, 4.0]] 
-n := [[5.0, 6.0], [7.0, 8.0]] 
-o := mat.Concat(m, n)
+``` m := [[1.0, 2.0], [3.0, 4.0]]` n := [[5.0, 6.0], [7.0, 8.0]]` o :=
+mat.Concat(m, n)`
 
 mat.Print(o) // 1.0, 2.0, 5.0, 6.0
-             // 3.0, 4.0, 7.0, 8.0
+
+    // 3.0, 4.0, 7.0, 8.0
 
 ```
 
@@ -110,12 +107,12 @@ element is incremented by `1.0`.
 
 For example:
 
-``` 
-m := Inc(3, 2)
+``` m := Inc(3, 2)
 
 mat.Print(m) // 1.0, 2.0
-             // 3.0, 4.0
-    	     // 5.0, 6.0
+
+                 // 3.0, 4.0
+    			 // 5.0, 6.0
 
 ```
 
@@ -194,13 +191,11 @@ Reset sets the values of all entries in a 2D slice of `float64` to `0.0`.
 ```go
 func Row(r int, m [][]float64) []float64
 ```
-Row returns a row of a 2D slice of `float64`. Row uses a 1-based index, hence
-the first row of a 2D slice, m, is Row(1, m).
+Row returns a row of a 2D slice of `float64`. Row uses a 0-based index, hence
+the first row of a 2D slice, m, is Row(0, m).
 
 This function also allows for negative indexing. For example, Row(-1, m) is the
 last row of m.
-
-Requesting the 0th row is fatal.
 
 #### func  T
 
