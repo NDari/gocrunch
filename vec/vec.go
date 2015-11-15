@@ -34,7 +34,7 @@ func Inc(l int) []float64 {
 	return v
 }
 
-// Equals checks if two 1D slices have the same length, and contain the same
+// Equal checks if two 1D slices have the same length, and contain the same
 // entries at each slot.
 func Equal(v1, v2 []float64) bool {
 	if len(v1) != len(v2) {
