@@ -108,12 +108,11 @@ element is incremented by `1.0`.
 
 For example:
 
-``` m := Inc(3, 2)
-
+```go 
+m := Inc(3, 2)
 mat.Print(m) // 1.0, 2.0
-
-                 // 3.0, 4.0
-    			 // 5.0, 6.0
+             // 3.0, 4.0
+    	     // 5.0, 6.0
 
 ```
 
