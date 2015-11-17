@@ -5,9 +5,10 @@ Package vec implements functions that create or act upon 1D slices of
 package vec
 
 import (
-	"log"
+	"fmt"
 	"math"
-	"runtime"
+	"os"
+	"runtime/debug"
 )
 
 // Ones returns a new 1D slice where all the elements are equal to `1.0`.
@@ -52,11 +53,14 @@ func Equal(v1, v2 []float64) bool {
 // of two 1D slices.
 func Mul(v1, v2 []float64) []float64 {
 	if len(v1) != len(v2) {
-		msg := "vec.%v Error: in %v [%v line %v].\n"
-		msg += "Length of the first 1D slice is %v, length of the second 1D slice\n"
-		msg += "is %v. They must match.\n"
-		p, f, l, _ := runtime.Caller(1)
-		log.Fatalf(msg, "Mul", f, runtime.FuncForPC(p).Name(), l, len(v1), len(v2))
+		fmt.Println("\nnumgo/vec error.")
+		s := "In vec.%s the length of the first 1D slice is %d, while\n"
+		s += "the length of the second 1D slice is %d. They must be equal\n"
+		s = fmt.Sprintf(s, "Mul", len(v1), len(v2))
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
 	}
 	o := make([]float64, len(v1))
 	for i := 0; i < len(v1); i++ {
@@ -69,11 +73,14 @@ func Mul(v1, v2 []float64) []float64 {
 // of two 1D slices.
 func Add(v1, v2 []float64) []float64 {
 	if len(v1) != len(v2) {
-		msg := "vec.%v Error: in %v [%v line %v].\n"
-		msg += "Length of the first 1D slice is %v, length of the second 1D slice\n"
-		msg += "is %v. They must match.\n"
-		p, f, l, _ := runtime.Caller(1)
-		log.Fatalf(msg, "Add", f, runtime.FuncForPC(p).Name(), l, len(v1), len(v2))
+		fmt.Println("\nnumgo/vec error.")
+		s := "In vec.%s the length of the first 1D slice is %d, while\n"
+		s += "the length of the second 1D slice is %d. They must be equal\n"
+		s = fmt.Sprintf(s, "Add", len(v1), len(v2))
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
 	}
 	o := make([]float64, len(v1))
 	for i := 0; i < len(v1); i++ {
@@ -86,11 +93,14 @@ func Add(v1, v2 []float64) []float64 {
 // of two 1D slices.
 func Sub(v1, v2 []float64) []float64 {
 	if len(v1) != len(v2) {
-		msg := "vec.%v Error: in %v [%v line %v].\n"
-		msg += "Length of the first 1D slice is %v, length of the second 1D slice\n"
-		msg += "is %v. They must match.\n"
-		p, f, l, _ := runtime.Caller(1)
-		log.Fatalf(msg, "Sub", f, runtime.FuncForPC(p).Name(), l, len(v1), len(v2))
+		fmt.Println("\nnumgo/vec error.")
+		s := "In vec.%s the length of the first 1D slice is %d, while\n"
+		s += "the length of the second 1D slice is %d. They must be equal\n"
+		s = fmt.Sprintf(s, "Sub", len(v1), len(v2))
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
 	}
 	o := make([]float64, len(v1))
 	for i := 0; i < len(v1); i++ {
@@ -104,19 +114,26 @@ func Sub(v1, v2 []float64) []float64 {
 // function call aborts.
 func Div(v1, v2 []float64) []float64 {
 	if len(v1) != len(v2) {
-		msg := "vec.%v Error: in %v [%v line %v].\n"
-		msg += "Length of the first 1D slice is %v, length of the second 1D slice\n"
-		msg += "is %v. They must match.\n"
-		p, f, l, _ := runtime.Caller(1)
-		log.Fatalf(msg, "Div", f, runtime.FuncForPC(p).Name(), l, len(v1), len(v2))
+		fmt.Println("\nnumgo/vec error.")
+		s := "In vec.%s the length of the first 1D slice is %d, while\n"
+		s += "the length of the second 1D slice is %d. They must be equal\n"
+		s = fmt.Sprintf(s, "Div", len(v1), len(v2))
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
 	}
 	o := make([]float64, len(v1))
 	for i := 0; i < len(v1); i++ {
 		if v2[i] == 0.0 {
-			msg := "vec.%v Error: in %v [%v line %v].\n"
-			msg += "Entry %v in the second slice is 0.0. Cannot devide by 0.0\n"
-			p, f, l, _ := runtime.Caller(1)
-			log.Fatalf(msg, "Div", f, runtime.FuncForPC(p).Name(), l, i)
+			fmt.Println("\nnumgo/vec error.")
+			s := "In vec.%s, the entry at the index %d of the second vector is 0.0.\n"
+			s += "Division by zero is not defined."
+			s = fmt.Sprintf(s, "Div", i)
+			fmt.Println(s)
+			fmt.Println("Stack trace for this error:\n")
+			debug.PrintStack()
+			os.Exit(1)
 		}
 		o[i] = v1[i] / v2[i]
 	}
@@ -148,11 +165,14 @@ func Map(f func(float64) float64, v []float64) []float64 {
 // Dot is the inner product of two 1D slices of `float64`.
 func Dot(v1, v2 []float64) float64 {
 	if len(v1) != len(v2) {
-		msg := "vec.%v Error: in %v [%v line %v].\n"
-		msg += "Length of the first 1D slice is %v, length of the second 1D slice\n"
-		msg += "is %v. They must match.\n"
-		p, f, l, _ := runtime.Caller(1)
-		log.Fatalf(msg, "Dot", f, runtime.FuncForPC(p).Name(), l, len(v1), len(v2))
+		fmt.Println("\nnumgo/vec error.")
+		s := "In vec.%s the length of the first 1D slice is %d, while\n"
+		s += "the length of the second 1D slice is %d. They must be equal\n"
+		s = fmt.Sprintf(s, "Dot", len(v1), len(v2))
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
 	}
 	var o float64
 	for i := 0; i < len(v1); i++ {
