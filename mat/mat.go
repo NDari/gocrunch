@@ -241,23 +241,29 @@ func Dot(m, n [][]float64) [][]float64 {
 	// each column in n.
 	for i := 0; i < len(n); i++ {
 		if lenm != len(n[i]) {
-			msg := "mat.%v Error: in %v [%v line %v].\n"
-			msg += "Length of column %v on the second matrix\n"
-			msg += "is %v, which does not match the length of the row of the\n"
-			msg += "first matrix, which is %v.\n"
-			p, f, l, _ := runtime.Caller(1)
-			log.Fatalf(msg, "Dot", f, runtime.FuncForPC(p).Name(), l, i, len(n[i]), lenm)
+			fmt.Println("\nNumgo/mat error.")
+			s := "In mat.%s the length of column %d os the second 2D slice is %d\n"
+			s += "which is not equal to the number of rows of the first 2D slice,\n"
+			s += "which is %d. They must be equal.\n"
+			s = fmt.Sprintf(s, "Mul", i, len(n[i]), lenm)
+			fmt.Println(s)
+			fmt.Println("Stack trace for this error:\n")
+			debug.PrintStack()
+			os.Exit(1)
 		}
 	}
 	o := make([][]float64, len(m))
 	for i := 0; i < len(m); i++ {
 		if len(m[i]) != len(n) {
-			msg := "mat.%v Error: in %v [%v line %v].\n"
-			msg += "Length of column %v of the first matrix\n"
-			msg += "is %v, which does not match the length of the row of the \n"
-			msg += "second matrix, which is %v.\n"
-			p, f, l, _ := runtime.Caller(1)
-			log.Fatalf(msg, "Dot", f, runtime.FuncForPC(p).Name(), l, i, len(m[i]), len(n))
+			fmt.Println("\nNumgo/mat error.")
+			s := "In mat.%s the length of column %d os the first 2D slice is %d\n"
+			s += "which is not equal to the number of rows of the 2nd 2D slice,\n"
+			s += "which is %d. They must be equal.\n"
+			s = fmt.Sprintf(s, "Mul", i, len(m[i]), len(n))
+			fmt.Println(s)
+			fmt.Println("Stack trace for this error:\n")
+			debug.PrintStack()
+			os.Exit(1)
 		}
 		o[i] = make([]float64, len(n[0]))
 		for j := 0; j < len(m[i]); j++ {
@@ -300,19 +306,25 @@ delimiter between the elements of a row, and a new line between rows.
 func Dump(m [][]float64, fileName string) {
 	f, err := os.Create(fileName)
 	if err != nil {
-		msg := "mat.%v Error: in %v [%v line %v].\n"
-		msg += "Cannot open %v: %v.\n"
-		p, f, l, _ := runtime.Caller(1)
-		log.Fatalf(msg, "Dump", f, runtime.FuncForPC(p).Name(), l, fileName, err)
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, cannot open %s due to error: %v.\n"
+		s = fmt.Sprintf(s, "Dump", fileName, err)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
 	}
 	defer f.Close()
 	w := csv.NewWriter(f)
 	w.WriteAll(ToString(m))
 	if err = w.Error(); err != nil {
-		msg := "mat.%v Error: in %v [%v line %v].\n"
-		msg += "Error in CSV writer for file %v: %v.\n"
-		p, f, l, _ := runtime.Caller(1)
-		log.Fatalf(msg, "Dump", f, runtime.FuncForPC(p).Name(), l, fileName, err)
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, cannot write to %s due to error: %v.\n"
+		s = fmt.Sprintf(s, "Dump", fileName, err)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
 	}
 }
 
@@ -327,10 +339,13 @@ func FromString(str [][]string) [][]float64 {
 		for j := 0; j < len(str[i]); j++ {
 			m[i][j], err = strconv.ParseFloat(str[i][j], 64)
 			if err != nil {
-				msg := "mat.%v Error: in %v [%v line %v].\n"
-				msg += "Died on string to float conversion at entry [%v][%v]: %v.\n"
-				p, f, l, _ := runtime.Caller(1)
-				log.Fatalf(msg, "FromString", f, runtime.FuncForPC(p).Name(), l, i, j, err)
+				fmt.Println("\nNumgo/mat error.")
+				s := "In mat.%v, item %d in line %d (0-indices) due to: %v.\n"
+				s = fmt.Sprintf(s, "FromString", i, j, err)
+				fmt.Println(s)
+				fmt.Println("Stack trace for this error:\n")
+				debug.PrintStack()
+				os.Exit(1)
 			}
 		}
 	}
