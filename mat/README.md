@@ -39,12 +39,13 @@ Concat concatenates the inner slices of two `[][]float64` arguments..
 
 For example, if we have:
 
-``` m := [[1.0, 2.0], [3.0, 4.0]]` n := [[5.0, 6.0], [7.0, 8.0]]` o :=
-mat.Concat(m, n)`
+```go 
+m := [[1.0, 2.0], [3.0, 4.0]] 
+n := [[5.0, 6.0], [7.0, 8.0]] 
+o := mat.Concat(m, n)
 
 mat.Print(o) // 1.0, 2.0, 5.0, 6.0
-
-    // 3.0, 4.0, 7.0, 8.0
+             // 3.0, 4.0, 7.0, 8.0
 
 ```
 
