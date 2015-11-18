@@ -30,17 +30,17 @@ func TestVecEqual(t *testing.T) {
 	}
 	q := vec.Inc(10)
 	if vec.Equal(v, q) {
-		t.Errorf("expected false, but got true for %f == %f", v, q)
+		t.Errorf("expected false, but got true for %v == %v", v, q)
 	}
 	if vec.Equal(q, v) {
-		t.Errorf("expected false, but got true for %f == %f", q, v)
+		t.Errorf("expected false, but got true for %v == %v", q, v)
 	}
 	g := vec.Ones(10)
 	if vec.Equal(g, q) {
-		t.Errorf("expected false, but got true for %f == %f", t, g)
+		t.Errorf("expected false, but got true for %v == %v", g, q)
 	}
 	if vec.Equal(q, g) {
-		t.Errorf("expected false, but got true for %f == %f", q, g)
+		t.Errorf("expected false, but got true for %v == %v", q, g)
 	}
 }
 
@@ -74,13 +74,13 @@ func TestVecAdd(t *testing.T) {
 	y := vec.Add(v, w)
 	for i := 0; i < 12; i++ {
 		if y[i] != v[i] {
-			t.Errorf("vec.Mul at index %d: expected %f, got %f", v[i], y[i])
+			t.Errorf("vec.Mul at index %d: expected %f, got %f", i, v[i], y[i])
 		}
 	}
 	y = vec.Add(v, v)
 	for i := 0; i < 12; i++ {
 		if y[i] != (v[i] * 2.0) {
-			t.Errorf("vec.Mul at index %d: expected %f, got %f", v[i]*2.0, y[i])
+			t.Errorf("vec.Mul at index %d: expected %f, got %f", i, v[i]*2.0, y[i])
 		}
 	}
 }
@@ -91,13 +91,13 @@ func TestVecSub(t *testing.T) {
 	y := vec.Sub(v, w)
 	for i := 0; i < 12; i++ {
 		if y[i] != v[i] {
-			t.Errorf("vec.Mul at index %d: expected %f, got %f", v[i], y[i])
+			t.Errorf("vec.Mul at index %d: expected %f, got %f", i, v[i], y[i])
 		}
 	}
 	y = vec.Sub(v, v)
 	for i := 0; i < 12; i++ {
 		if y[i] != 0.0 {
-			t.Errorf("vec.Mul at index %d: expected 0.0, got %f", y[i])
+			t.Errorf("vec.Mul at index %d: expected 0.0, got %f", i, y[i])
 		}
 	}
 }
@@ -107,14 +107,14 @@ func TestVecDiv(t *testing.T) {
 	y := vec.Div(v, v)
 	for i := 0; i < 12; i++ {
 		if y[i] != 1.0 {
-			t.Errorf("vec.Mul at index %d: expected 1.0, got %f", y[i])
+			t.Errorf("vec.Mul at index %d: expected 1.0, got %f", i, y[i])
 		}
 	}
 	w := vec.Inc(12)
 	y = vec.Div(w, v)
 	for i := 0; i < 12; i++ {
 		if y[i] != (w[i]) {
-			t.Errorf("vec.Mul at index %d: expected %f, got %f", w[i], y[i])
+			t.Errorf("vec.Mul at index %d: expected %f, got %f", i, w[i], y[i])
 		}
 	}
 }
@@ -124,7 +124,7 @@ func TestVecMap(t *testing.T) {
 	y := vec.Map(func(i float64) float64 { return 1.0 }, v)
 	for i := 0; i < 17; i++ {
 		if y[i] != 1.0 {
-			t.Errorf("vec.Map at index %d: xpected 1.0, got %f", y[i])
+			t.Errorf("vec.Map at index %d: xpected 1.0, got %f", i, y[i])
 		}
 	}
 }
@@ -150,7 +150,7 @@ func TestVecReset(t *testing.T) {
 	vec.Reset(v)
 	for i := 0; i < 22; i++ {
 		if v[i] != 0.0 {
-			t.Errorf("vec.Reset at index %d: expected 0.0, got %f", v[i])
+			t.Errorf("vec.Reset at index %d: expected 0.0, got %f", i, v[i])
 		}
 	}
 }
