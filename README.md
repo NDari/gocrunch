@@ -1,3 +1,5 @@
+## Note: Alpha package. The API may change at any time! Be warned.
+
 # numgo
 --
     import "numgo"
