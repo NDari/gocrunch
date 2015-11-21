@@ -41,7 +41,7 @@ func Equal(v1, v2 []float64) bool {
 	if len(v1) != len(v2) {
 		return false
 	}
-	for i := 0; i < len(v1); i++ {
+	for i := range v1 {
 		if v1[i] != v2[i] {
 			return false
 		}
@@ -63,7 +63,7 @@ func Mul(v1, v2 []float64) []float64 {
 		os.Exit(1)
 	}
 	o := make([]float64, len(v1))
-	for i := 0; i < len(v1); i++ {
+	for i := range v1 {
 		o[i] = v1[i] * v2[i]
 	}
 	return o
@@ -83,7 +83,7 @@ func Add(v1, v2 []float64) []float64 {
 		os.Exit(1)
 	}
 	o := make([]float64, len(v1))
-	for i := 0; i < len(v1); i++ {
+	for i := range v1 {
 		o[i] = v1[i] + v2[i]
 	}
 	return o
@@ -103,7 +103,7 @@ func Sub(v1, v2 []float64) []float64 {
 		os.Exit(1)
 	}
 	o := make([]float64, len(v1))
-	for i := 0; i < len(v1); i++ {
+	for i := range v1 {
 		o[i] = v1[i] - v2[i]
 	}
 	return o
@@ -124,7 +124,7 @@ func Div(v1, v2 []float64) []float64 {
 		os.Exit(1)
 	}
 	o := make([]float64, len(v1))
-	for i := 0; i < len(v1); i++ {
+	for i := range v1 {
 		if v2[i] == 0.0 {
 			fmt.Println("\nnumgo/vec error.")
 			s := "In vec.%s, the entry at the index %d of the second vector is 0.0.\n"
@@ -144,7 +144,7 @@ func Div(v1, v2 []float64) []float64 {
 // returning it afterwards. This function modifies the original 1D slice. If
 // a non-mutating operation is desired, use the "Map" function instead.
 func MapInPlace(f func(float64) float64, v []float64) {
-	for i := 0; i < len(v); i++ {
+	for i := range v {
 		v[i] = f(v[i])
 	}
 }
@@ -156,7 +156,7 @@ func MapInPlace(f func(float64) float64, v []float64) {
 // the original vector, then use the "ApllyInPlace" function instead.
 func Map(f func(float64) float64, v []float64) []float64 {
 	o := make([]float64, len(v))
-	for i := 0; i < len(v); i++ {
+	for i := range v {
 		o[i] = f(v[i])
 	}
 	return o
@@ -175,7 +175,7 @@ func Dot(v1, v2 []float64) float64 {
 		os.Exit(1)
 	}
 	var o float64
-	for i := 0; i < len(v1); i++ {
+	for i := range v1 {
 		o += v1[i] * v2[i]
 	}
 	return o
@@ -193,7 +193,7 @@ func Reset(v []float64) {
 // Sum returns the sum of the elements of a 1D slice of `float64`.
 func Sum(v []float64) float64 {
 	var o float64
-	for i := 0; i < len(v); i++ {
+	for i := range v {
 		o += v[i]
 	}
 	return o
@@ -224,7 +224,7 @@ t := vec.All(f, m) // t == true
 ```
 */
 func All(f func(float64) bool, v []float64) bool {
-	for i := 0; i < len(v); i++ {
+	for i := range v {
 		if !f(v[i]) {
 			return false
 		}
@@ -248,7 +248,7 @@ t := vec.All(f, m) // t == false
 ```
 */
 func Any(f func(float64) bool, v []float64) bool {
-	for i := 0; i < len(v); i++ {
+	for i := range v {
 		if !f(v[i]) {
 			return true
 		}

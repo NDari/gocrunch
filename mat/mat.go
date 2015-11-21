@@ -128,7 +128,7 @@ func Col(c int, m [][]float64) []float64 {
 		}
 	} else if c < 0 {
 		lenColM := len(m[0])
-		for r := 0; r < len(m); r++ {
+		for r := range m {
 			vec[r] = m[r][lenColM+c]
 		}
 	}
@@ -168,7 +168,7 @@ original matrix intact.
 func T(m [][]float64) [][]float64 {
 	transpose := New(len(m[0]), len(m))
 	for i := 0; i < len(m); i++ {
-		for j := 0; j < len(m[i]); j++ {
+		for j := range m[i] {
 			transpose[j][i] = m[i][j]
 		}
 	}
@@ -184,11 +184,11 @@ func Equal(m, n [][]float64) bool {
 	if len(m) != len(n) {
 		return false
 	}
-	for i := 0; i < len(m); i++ {
+	for i := range m {
 		if len(m[i]) != len(n[i]) {
 			return false
 		}
-		for j := 0; j < len(m[i]); j++ {
+		for j := range m[i] {
 			if m[i][j] != n[i][j] {
 				return false
 			}
@@ -213,7 +213,7 @@ func Mul(m, n [][]float64) [][]float64 {
 		os.Exit(1)
 	}
 	o := make([][]float64, len(m))
-	for i := 0; i < len(m); i++ {
+	for i := range m {
 		o[i] = vec.Mul(m[i], n[i])
 	}
 	return o
@@ -224,7 +224,7 @@ Map calls a given elemental function on each Element of a 2D slice, returning
 it afterwards. This function modifies the original 2D slice.
 */
 func Map(f func(float64) float64, m [][]float64) [][]float64 {
-	for i := 0; i < len(m); i++ {
+	for i := range m {
 		vec.MapInPlace(f, m[i])
 	}
 	return m
@@ -237,7 +237,7 @@ func Dot(m, n [][]float64) [][]float64 {
 	lenm := len(m)
 	// make sure that the length of the row of m matches the length of
 	// each column in n.
-	for i := 0; i < len(n); i++ {
+	for i := range n {
 		if lenm != len(n[i]) {
 			fmt.Println("\nNumgo/mat error.")
 			s := "In mat.%s the length of column %d os the second 2D slice is %d\n"
@@ -251,7 +251,7 @@ func Dot(m, n [][]float64) [][]float64 {
 		}
 	}
 	o := make([][]float64, len(m))
-	for i := 0; i < len(m); i++ {
+	for i := range m {
 		if len(m[i]) != len(n) {
 			fmt.Println("\nNumgo/mat error.")
 			s := "In mat.%s the length of column %d os the first 2D slice is %d\n"
@@ -264,8 +264,8 @@ func Dot(m, n [][]float64) [][]float64 {
 			os.Exit(1)
 		}
 		o[i] = make([]float64, len(n[0]))
-		for j := 0; j < len(m[i]); j++ {
-			for k := 0; k < len(n); k++ {
+		for j := range m[i] {
+			for k := range n {
 				o[i][j] += m[i][k] * n[k][j]
 			}
 		}
@@ -288,9 +288,9 @@ ToString converts a `[][]float64` to `[][]string`.
 */
 func ToString(m [][]float64) [][]string {
 	str := make([][]string, len(m))
-	for i := 0; i < len(m); i++ {
+	for i := range m {
 		str[i] = make([]string, len(m[i]))
-		for j := 0; j < len(m[i]); j++ {
+		for j := range m[i] {
 			str[i][j] = strconv.FormatFloat(m[i][j], 'e', 14, 64)
 		}
 	}
@@ -332,7 +332,7 @@ FromString converts a `[][]string` to `[][]float64`.
 func FromString(str [][]string) [][]float64 {
 	var err error
 	m := make([][]float64, len(str))
-	for i := 0; i < len(str); i++ {
+	for i := range str {
 		m[i] = make([]float64, len(str[i]))
 		for j := 0; j < len(str[i]); j++ {
 			m[i][j], err = strconv.ParseFloat(str[i][j], 64)
@@ -386,7 +386,7 @@ that is shallow for 2D slices.
 */
 func Copy(m [][]float64) [][]float64 {
 	n := make([][]float64, len(m))
-	for i := 0; i < len(m); i++ {
+	for i := range m {
 		n[i] = make([]float64, len(m[i]))
 		copy(n[i], m[i])
 	}
@@ -407,7 +407,7 @@ func AppendCol(m [][]float64, v []float64) [][]float64 {
 		debug.PrintStack()
 		os.Exit(1)
 	}
-	for i := 0; i < len(v); i++ {
+	for i := range v {
 		m[i] = append(m[i], v[i])
 	}
 	return m
@@ -439,7 +439,7 @@ func Concat(m, n [][]float64) [][]float64 {
 		os.Exit(1)
 	}
 	o := make([][]float64, len(m))
-	for i := 0; i < len(m); i++ {
+	for i := range m {
 		o[i] = make([]float64, len(m[i])+len(n[i]))
 		o[i] = append(m[i], n[i]...)
 	}
