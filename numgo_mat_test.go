@@ -254,7 +254,7 @@ func TestMatReset(t *testing.T) {
 		col = 13
 	)
 	m := mat.Inc(row, col)
-	m = mat.Reset(m)
+	mat.Reset(m)
 	for i := 0; i < row; i++ {
 		for j := 0; j < col; j++ {
 			if m[i][j] != 0.0 {
