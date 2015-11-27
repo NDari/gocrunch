@@ -83,13 +83,11 @@ subsequent element is incremented by `1.0`.
 
 For example:
 
-```
 m := Inc(3, 2)
 
 mat.Print(m) // 1.0, 2.0
              // 3.0, 4.0
 			 // 5.0, 6.0
-```
 */
 func Inc(r, c int) [][]float64 {
 	m := New(r, c)
@@ -431,14 +429,13 @@ Concat concatenates the inner slices of two `[][]float64` arguments..
 
 For example, if we have:
 
-```
-m := [[1.0, 2.0], [3.0, 4.0]]`
-n := [[5.0, 6.0], [7.0, 8.0]]`
-o := mat.Concat(m, n)`
+m := [[1.0, 2.0], [3.0, 4.0]]
+n := [[5.0, 6.0], [7.0, 8.0]]
+o := mat.Concat(m, n)
 
 mat.Print(o) // 1.0, 2.0, 5.0, 6.0
              // 3.0, 4.0, 7.0, 8.0
-```
+
 */
 func Concat(m, n [][]float64) [][]float64 {
 	if len(m) != len(n) {
