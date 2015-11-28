@@ -66,13 +66,6 @@ func TestMatCol(t *testing.T) {
 			}
 		}
 	}
-	a1 := mat.Col(-1, m)
-	a2 := mat.Col(3, m)
-	for i := 0; i < len(a1); i++ {
-		if a1[i] != a2[i] {
-			t.Errorf("mat.Col: at index %d, Col(-1, m) is %f, expected %f", i, a1[i], a2[i])
-		}
-	}
 }
 
 func BenchmarkMatCol(b *testing.B) {
@@ -89,18 +82,13 @@ func TestMatRow(t *testing.T) {
 		col = 4
 	)
 	m := mat.Inc(row, col)
-	got := mat.Row(2, m)
-	want := []float64{8.0, 9.0, 10.0, 11.0}
-	for i := 0; i < col; i++ {
-		if got[i] != want[i] {
-			t.Errorf("Mat.Row at index %d: want %f, got %f", i, want[i], got[i])
-		}
-	}
-	a1 := mat.Row(-1, m)
-	a2 := mat.Row(2, m)
-	for i := 0; i < len(a1); i++ {
-		if a1[i] != a2[i] {
-			t.Errorf("mat.Col: at index %d, Col(-1, m) is %f, expected %f", i, a1[i], a2[i])
+	for i := 1; i < row; i++ {
+		got := mat.Row(-i, m)
+		want := mat.Row(row-i, m)
+		for j := 0; j < col; j++ {
+			if got[j] != want[j] {
+				t.Errorf("At index %v Row(%v, m), got %f, want %f", j, i-col, got[j], want[j])
+			}
 		}
 	}
 }
