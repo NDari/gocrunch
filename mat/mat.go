@@ -10,9 +10,12 @@ are assumed to be of the same length.
 package mat
 
 import (
+	"encoding/csv"
 	"fmt"
+	"io"
 	"os"
 	"runtime/debug"
+	"strconv"
 )
 
 type mat struct {
@@ -84,7 +87,7 @@ func Bare(r, c int) *mat {
 }
 
 func FromSlice(s [][]float64, bare bool) *mat {
-	if jagged(s) {
+	if isJagged(s) {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s, a 'jagged' 2D slice was recieved, where the rows\n"
 		s += "(the inner slice of the 2D slice) have different lengths. The"
@@ -95,23 +98,112 @@ func FromSlice(s [][]float64, bare bool) *mat {
 		debug.PrintStack()
 		os.Exit(1)
 	}
-	if bare {
-		return Bare(len(s), len(s[0]))
+	// We start with a Bare mat. if the "bare" parameter is "false", then we
+	// will manually allocate the mat.work slice.
+	m := Bare(len(s), len(s[0]))
+	if !bare {
+		m.work = make([]float64, len(s)*len(s[0]))
 	}
-	return New(len(s), len(s[0]))
+	for i := range s {
+		for j := range s[i] {
+			m.vals[i*len(s[0])+j] = s[i][j]
+		}
+	}
+	return m
 }
 
-func jagged(s [][]float64) bool {
+func isJagged(s [][]float64) bool {
 	c := len(s[0])
 	for i := range s {
 		if len(s[i]) != c {
-			return false
+			return true
 		}
 	}
-	return true
+	return false
 }
 
-func ToSlice(m *mat) [][]float64 {
+func FromCSV(filename string) *mat {
+	f, err := os.Open(filename)
+	if err != nil {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, cannot open %s due to error: %v.\n"
+		s = fmt.Sprintf(s, "FromCSV", filename, err)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	defer f.Close()
+	r := csv.NewReader(f)
+	// I am going with the assumption that a mat loaded from a CSV is going to
+	// be large. So, we are going to read one line, and determine the number
+	// of coloumns based on the number of comma separated strings in that line.
+	// Then we will read the rest of the lines one at a time, checking that the
+	// number of entries in each line is the same as the first line, and
+	// incrementing the number of rows each time.
+	//
+	// Another thing to note is that since we are assuming that the file is
+	// large, I am going to create a Bare mat.
+	str, err := r.Read()
+	if err != nil {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, cannot read from %s due to error: %v.\n"
+		s = fmt.Sprintf(s, "FromCSV", filename, err)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	line := 1
+	m := Bare(1, len(str))
+	row := make([]float64, len(str))
+	for {
+		for i := range str {
+			row[i], err = strconv.ParseFloat(str[i], 64)
+			if err != nil {
+				fmt.Println("\nNumgo/mat error.")
+				s := "In mat.%v, item %d in line %d is %s, which cannot\n"
+				s += "be converted to a float64 due to: %v"
+				s = fmt.Sprintf(s, "FromCSV", i, line, str[i], err)
+				fmt.Println(s)
+				fmt.Println("Stack trace for this error:\n")
+				debug.PrintStack()
+				os.Exit(1)
+			}
+		}
+		// Read the next line. If there is one, increment the number of rows
+		str, err := r.Read()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			fmt.Println("\nNumgo/mat error.")
+			s := "In mat.%v, cannot read from %s due to error: %v.\n"
+			s = fmt.Sprintf(s, "FromCSV", filename, err)
+			fmt.Println(s)
+			fmt.Println("Stack trace for this error:\n")
+			debug.PrintStack()
+			os.Exit(1)
+		}
+		line += 1
+		if len(str) != len(row) {
+			fmt.Println("\nNumgo/mat error.")
+			s := "In mat.%v, line %d in %s has %d entries. The first line\n"
+			s += "(line 1) has %d entries.\n"
+			s += "Creation of a *mat from jagged slices is not supported.\n"
+			s = fmt.Sprintf(s, "Load", filename, err)
+			fmt.Println(s)
+			fmt.Println("Stack trace for this error:\n")
+			debug.PrintStack()
+			os.Exit(1)
+		}
+		m.vals = append(m.vals, row...)
+		m.r += 1
+	}
+	return m
+}
+
+func (m *mat) ToSlice() [][]float64 {
 	s := make([][]float64, m.r)
 	for i := 0; i < m.r; i++ {
 		s[i] = make([]float64, m.c)
@@ -122,8 +214,11 @@ func ToSlice(m *mat) [][]float64 {
 	return s
 }
 
-func Map(f elementFunc, src, dst *mat) {
-
+func (m *mat) Map(f elementFunc) {
+	for i := 0; i < m.r*m.c; i++ {
+		m.vals[i] = f(m.vals[i])
+	}
+	return
 }
 
 // /*

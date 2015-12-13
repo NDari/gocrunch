@@ -49,3 +49,101 @@ func TestBare(t *testing.T) {
 		t.Errorf("len(mat.work) is %d, expected 0", len(m.work))
 	}
 }
+
+func TestIsJagged(t *testing.T) {
+	s := make([][]float64, 10)
+	for i := range s {
+		s[i] = make([]float64, i+1)
+	}
+	if !isJagged(s) {
+		t.Errorf("Jagged 2D slice passed the jagged test...")
+	}
+	q := make([][]float64, 11)
+	for i := range q {
+		q[i] = make([]float64, 5)
+	}
+	if isJagged(q) {
+		t.Errorf("Non-jagged 2D slice failed the jagged test...")
+	}
+}
+
+func TestFromSlice(t *testing.T) {
+	s := make([][]float64, 11)
+	for i := range s {
+		s[i] = make([]float64, 5)
+	}
+	for i := range s {
+		for j := range s[i] {
+			s[i][j] = float64(i + j)
+		}
+	}
+	m := FromSlice(s, true)
+	if m.work != nil {
+		t.Errorf("FromSlice not bare when bare is true")
+	}
+	idx := 0
+	for i := range s {
+		for j := range s[i] {
+			if s[i][j] != m.vals[idx] {
+				t.Errorf("slice[%d][%d]: %f, mat: %f", i, j,
+					s[i][j], m.vals[idx])
+			}
+			idx += 1
+		}
+	}
+	n := FromSlice(s, false)
+	if n.work == nil {
+		t.Errorf("FromSlice is bare when bare is false")
+	}
+	idx = 0
+	for i := range s {
+		for j := range s[i] {
+			if s[i][j] != n.vals[idx] {
+				t.Errorf("slice[%d][%d]: %f, mat: %f", i, j,
+					s[i][j], n.vals[idx])
+			}
+			idx += 1
+		}
+	}
+}
+
+func TestToSlice(t *testing.T) {
+	rows := 13
+	cols := 21
+	m := New(rows, cols)
+	for i := 0; i < m.r*m.c; i++ {
+		m.vals[i] = float64(i)
+	}
+	s := m.ToSlice()
+	if m.r != len(s) {
+		t.Errorf("mat.r: %d and len(s): %d must match", m.r, len(s))
+	}
+	if m.c != len(s[0]) {
+		t.Errorf("mat.c: %d and len(s[0]): %d must match", m.c, len(s[0]))
+	}
+	idx := 0
+	for i := range s {
+		for j := range s[i] {
+			if s[i][j] != m.vals[idx] {
+				t.Errorf("slice[%d][%d]: %f, mat: %f", i, j,
+					s[i][j], m.vals[idx])
+			}
+			idx += 1
+		}
+	}
+}
+
+func TestMap(t *testing.T) {
+	rows := 132
+	cols := 24
+	f := func(float64) float64 {
+		return 1.0
+	}
+	m := New(rows, cols)
+	m.Map(f)
+	for i := 0; i < rows*cols; i++ {
+		if m.vals[i] != 1.0 {
+			t.Errorf("At %d, expected 1.0, got %d")
+		}
+	}
+}
