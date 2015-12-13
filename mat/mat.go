@@ -220,77 +220,29 @@ func (m *mat) ToSlice() [][]float64 {
 	return s
 }
 
-func (m *mat) Map(f elementFunc) {
+func (m *mat) Map(f elementFunc) *mat {
 	for i := 0; i < m.r*m.c; i++ {
 		m.vals[i] = f(m.vals[i])
 	}
-	return
+	return m
 }
 
-// /*
-// NewExpand returns a 2D slice of `float64`, with the given number of rows
-// and columns. The difference between this function and the "New" function
-// above is that the inner slices are allocated with double the capacity,
-// and hence can grow without the need for reallocation up to column * 2.
+func (m *mat) Ones() *mat {
+	f := func(float64) float64 {
+		return 1.0
+	}
+	for i := 0; i < m.r*m.c; i++ {
+		m.vals[i] = f(m.vals[i])
+	}
+	return m
+}
 
-// Note that this extended capacity will waste memory, so the NewExtend
-// should be used with care in situations where the performance gained by
-// avoiding reallocation justifies the extra cost in memory.
-// */
-// func NewExpand(r, c int) [][]float64 {
-// 	arr := make([][]float64, r)
-// 	for i := 0; i < r; i++ {
-// 		arr[i] = make([]float64, c*2)
-// 	}
-// 	return arr
-// }
-
-// /*
-// I returns an r by r 2D slice for a given r, where the elements along
-// the diagonal (where the first and the second index are equal) is set
-// to `1.0`, and all other elements are set to `0.0`.
-// */
-// func I(r int) [][]float64 {
-// 	identity := New(r, r)
-// 	for i := 0; i < r; i++ {
-// 		identity[i][i] = 1.0
-// 	}
-// 	return identity
-// }
-
-// /*
-// Ones returns a new 2D slice where all the elements are equal to `1.0`.
-// */
-// func Ones(r, c int) [][]float64 {
-// 	f := func(i float64) float64 {
-// 		return 1.0
-// 	}
-// 	return Map(f, New(r, c))
-// }
-
-// /*
-// Inc returns a 2D slice, where element `[0][0] == 0.0`, and each
-// subsequent element is incremented by `1.0`.
-
-// For example:
-
-// m := Inc(3, 2)
-
-// mat.Print(m) // 1.0, 2.0
-//              // 3.0, 4.0
-// 			 // 5.0, 6.0
-// */
-// func Inc(r, c int) [][]float64 {
-// 	m := New(r, c)
-// 	iter := 0
-// 	for i := 0; i < r; i++ {
-// 		for j := 0; j < c; j++ {
-// 			m[i][j] = float64(iter)
-// 			iter++
-// 		}
-// 	}
-// 	return m
-// }
+func (m *mat) Inc() *mat {
+	for i := 0; i < m.r*m.c; i++ {
+		m.vals[i] = float64(i)
+	}
+	return m
+}
 
 // /*
 // Col returns a column of a 2D slice of `float64`. Col uses a 0-based index,

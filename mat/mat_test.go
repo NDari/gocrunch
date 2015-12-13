@@ -184,3 +184,25 @@ func TestFromCSV(t *testing.T) {
 	}
 	os.Remove(filename)
 }
+
+func TestOnes(t *testing.T) {
+	rows := 13
+	cols := 7
+	m := New(rows, cols).Ones()
+	for i := 0; i < rows*cols; i++ {
+		if m.vals[i] != 1.0 {
+			t.Errorf("At %d, expected 1.0, got %d", i, m.vals[i])
+		}
+	}
+}
+
+func TestInc(t *testing.T) {
+	rows := 17
+	cols := 3
+	m := New(rows, cols).Inc()
+	for i := 0; i < rows*cols; i++ {
+		if m.vals[i] != float64(i) {
+			t.Errorf("At %d, expected %f, got %f", i, float64(i), m.vals[i])
+		}
+	}
+}
