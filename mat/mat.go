@@ -155,8 +155,14 @@ func FromCSV(filename string) *mat {
 		os.Exit(1)
 	}
 	line := 1
+	// In order to use "append", we must allocate an empty slice ( [] ).
+	// However this is not allowed in Bare and New by design, as you
+	// cannot pass zeros for mat.r nor mat.c. So here we allocate and
+	// then set it equal to nil for the desired effect.
 	m := Bare(1, len(str))
+	m.vals = nil
 	row := make([]float64, len(str))
+
 	for {
 		for i := range str {
 			row[i], err = strconv.ParseFloat(str[i], 64)
@@ -171,8 +177,9 @@ func FromCSV(filename string) *mat {
 				os.Exit(1)
 			}
 		}
+		m.vals = append(m.vals, row...)
 		// Read the next line. If there is one, increment the number of rows
-		str, err := r.Read()
+		str, err = r.Read()
 		if err != nil {
 			if err == io.EOF {
 				break
@@ -197,7 +204,6 @@ func FromCSV(filename string) *mat {
 			debug.PrintStack()
 			os.Exit(1)
 		}
-		m.vals = append(m.vals, row...)
 		m.r += 1
 	}
 	return m

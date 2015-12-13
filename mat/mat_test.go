@@ -1,6 +1,10 @@
 package mat
 
-import "testing"
+import (
+	"log"
+	"os"
+	"testing"
+)
 
 func TestNew(t *testing.T) {
 	rows := 13
@@ -146,4 +150,37 @@ func TestMap(t *testing.T) {
 			t.Errorf("At %d, expected 1.0, got %d")
 		}
 	}
+}
+
+func TestFromCSV(t *testing.T) {
+	filename := "test.csv"
+	str := "1.0,1.0,2.0,3.0\n"
+	str += "5.0,8.0,13.0,21.0\n"
+	str += "34.0,55.0,89.0,144.0\n"
+	str += "233.0,377.0,610.0,987.0\n"
+	if _, err := os.Stat(filename); err == nil {
+		err = os.Remove(filename)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	f, err := os.Create(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = f.Write([]byte(str))
+	if err != nil {
+		log.Fatal(err)
+	}
+	f.Close()
+	m := FromCSV(filename)
+	if m.vals[0] != 1.0 || m.vals[1] != 1.0 {
+		t.Errorf("The first two entries are not 1.0: %f, %f", m.vals[0], m.vals[1])
+	}
+	for i := 2; i < m.r*m.c; i++ {
+		if m.vals[i] != (m.vals[i-1] + m.vals[i-2]) {
+			t.Errorf("expected %f, got %f", m.vals[i-1]+m.vals[i-2], m.vals[i])
+		}
+	}
+	os.Remove(filename)
 }
