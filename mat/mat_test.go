@@ -88,6 +88,17 @@ func TestFromSlice(t *testing.T) {
 	}
 }
 
+func TestDims(t *testing.T) {
+	m := New(11, 10)
+	r, c := m.Dims()
+	if m.r != r {
+		t.Errorf("m.r expected 11, got %d", m.r)
+	}
+	if m.c != c {
+		t.Errorf("m.r expected 10, got %d", m.c)
+	}
+}
+
 func TestToSlice(t *testing.T) {
 	rows := 13
 	cols := 21

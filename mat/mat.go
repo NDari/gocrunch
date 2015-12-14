@@ -201,6 +201,10 @@ func FromCSV(filename string) *mat {
 	return m
 }
 
+func (m *mat) Dims() (int, int) {
+	return m.r, m.c
+}
+
 func (m *mat) ToSlice() [][]float64 {
 	s := make([][]float64, m.r)
 	for i := 0; i < m.r; i++ {
