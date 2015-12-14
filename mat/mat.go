@@ -21,7 +21,6 @@ import (
 type mat struct {
 	r, c int
 	vals []float64
-	work []float64
 }
 
 type elementFunc func(float64) float64
@@ -53,40 +52,39 @@ func New(r, c int) *mat {
 		r,
 		c,
 		make([]float64, r*c),
-		make([]float64, r*c),
 	}
 }
 
-func Bare(r, c int) *mat {
-	if r <= 0 {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s, the number of rows must be greater than '0', but\n"
-		s += "recieved %d. "
-		s = fmt.Sprintf(s, "Bare", r)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	if c <= 0 {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s, the number of columns must be greater than '0', but\n"
-		s += "recieved %d. "
-		s = fmt.Sprintf(s, "Bare", c)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	return &mat{
-		r,
-		c,
-		make([]float64, r*c),
-		nil,
-	}
-}
+// func Bare(r, c int) *mat {
+// 	if r <= 0 {
+// 		fmt.Println("\nNumgo/mat error.")
+// 		s := "In mat.%s, the number of rows must be greater than '0', but\n"
+// 		s += "recieved %d. "
+// 		s = fmt.Sprintf(s, "Bare", r)
+// 		fmt.Println(s)
+// 		fmt.Println("Stack trace for this error:\n")
+// 		debug.PrintStack()
+// 		os.Exit(1)
+// 	}
+// 	if c <= 0 {
+// 		fmt.Println("\nNumgo/mat error.")
+// 		s := "In mat.%s, the number of columns must be greater than '0', but\n"
+// 		s += "recieved %d. "
+// 		s = fmt.Sprintf(s, "Bare", c)
+// 		fmt.Println(s)
+// 		fmt.Println("Stack trace for this error:\n")
+// 		debug.PrintStack()
+// 		os.Exit(1)
+// 	}
+// 	return &mat{
+// 		r,
+// 		c,
+// 		make([]float64, r*c),
+// 		nil,
+// 	}
+// }
 
-func FromSlice(s [][]float64, bare bool) *mat {
+func FromSlice(s [][]float64) *mat {
 	if isJagged(s) {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s, a 'jagged' 2D slice was recieved, where the rows\n"
@@ -98,12 +96,7 @@ func FromSlice(s [][]float64, bare bool) *mat {
 		debug.PrintStack()
 		os.Exit(1)
 	}
-	// We start with a Bare mat. if the "bare" parameter is "false", then we
-	// will manually allocate the mat.work slice.
-	m := Bare(len(s), len(s[0]))
-	if !bare {
-		m.work = make([]float64, len(s)*len(s[0]))
-	}
+	m := New(len(s), len(s[0]))
 	for i := range s {
 		for j := range s[i] {
 			m.vals[i*len(s[0])+j] = s[i][j]
@@ -156,13 +149,12 @@ func FromCSV(filename string) *mat {
 	}
 	line := 1
 	// In order to use "append", we must allocate an empty slice ( [] ).
-	// However this is not allowed in Bare and New by design, as you
+	// However this is not allowed in mat.New by design, as you
 	// cannot pass zeros for mat.r nor mat.c. So here we allocate and
 	// then set it equal to nil for the desired effect.
-	m := Bare(1, len(str))
+	m := New(1, len(str))
 	m.vals = nil
 	row := make([]float64, len(str))
-
 	for {
 		for i := range str {
 			row[i], err = strconv.ParseFloat(str[i], 64)
@@ -244,37 +236,22 @@ func (m *mat) Inc() *mat {
 	return m
 }
 
-// /*
-// Col returns a column of a 2D slice of `float64`. Col uses a 0-based index,
-// hence the first column of a 2D slice, m,  is `Col(0, m)`.
-
-// This function also allows for negative indexing. For example, `Col(-1, m)`
-// is the last column of the 2D slice m, and `Col(-2, m)` is the second to
-// last column of m, and so on.
-// */
-// func Col(c int, m [][]float64) []float64 {
-// 	if (c >= len(m[0])) || (-c > len(m[0])) {
-// 		fmt.Println("\nNumgo/mat error.")
-// 		s := "In mat.%s the requested column %d is outside of the bounds [-%d, %d]\n"
-// 		s = fmt.Sprintf(s, "Col", c, len(m[0]), len(m[0])-1)
-// 		fmt.Println(s)
-// 		fmt.Println("Stack trace for this error:\n")
-// 		debug.PrintStack()
-// 		os.Exit(1)
-// 	}
-// 	vec := make([]float64, len(m))
-// 	if c >= 0 {
-// 		for r := 0; r < len(m); r++ {
-// 			vec[r] = m[r][c]
-// 		}
-// 	} else if c < 0 {
-// 		lenColM := len(m[0])
-// 		for r := range m {
-// 			vec[r] = m[r][lenColM+c]
-// 		}
-// 	}
-// 	return vec
-// }
+func (m *mat) Col(x int) *mat {
+	if (x >= m.c) || (x < 0) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the requested column %d is outside of the bounds [0, %d]\n"
+		s = fmt.Sprintf(s, "Col", x, m.c)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	v := New(m.r, 1)
+	for r := 0; r < m.r; r++ {
+		v.vals[r] = m.vals[r*m.r+x]
+	}
+	return v
+}
 
 // /*
 // Row returns a row of a 2D slice of `float64`. Row uses a 0-based index, hence

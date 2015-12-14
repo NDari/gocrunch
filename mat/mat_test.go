@@ -19,40 +19,34 @@ func TestNew(t *testing.T) {
 	if m.vals == nil {
 		t.Errorf("New mat.vals not initilized")
 	}
-	if m.work == nil {
-		t.Errorf("New mat.work not initilized")
-	}
 	if len(m.vals) != rows*cols {
 		t.Errorf("len(mat.vals) is %d, expected %d", len(m.vals), rows*cols)
-	}
-	if len(m.work) != rows*cols {
-		t.Errorf("len(mat.work) is %d, expected %d", len(m.work), rows*cols)
 	}
 }
 
-func TestBare(t *testing.T) {
-	rows := 13
-	cols := 7
-	m := Bare(rows, cols)
-	if m.r != rows {
-		t.Errorf("New mat.r is %d, expected %d", m.r, rows)
-	}
-	if m.c != cols {
-		t.Errorf("New mat.c is %d, expected %d", m.c, cols)
-	}
-	if m.vals == nil {
-		t.Errorf("Bare mat.vals not initilized")
-	}
-	if m.work != nil {
-		t.Errorf("Bare mat.work is initilized")
-	}
-	if len(m.vals) != rows*cols {
-		t.Errorf("len(mat.vals) is %d, expected %d", len(m.vals), rows*cols)
-	}
-	if len(m.work) != 0 {
-		t.Errorf("len(mat.work) is %d, expected 0", len(m.work))
-	}
-}
+// func TestBare(t *testing.T) {
+// 	rows := 13
+// 	cols := 7
+// 	m := Bare(rows, cols)
+// 	if m.r != rows {
+// 		t.Errorf("New mat.r is %d, expected %d", m.r, rows)
+// 	}
+// 	if m.c != cols {
+// 		t.Errorf("New mat.c is %d, expected %d", m.c, cols)
+// 	}
+// 	if m.vals == nil {
+// 		t.Errorf("Bare mat.vals not initilized")
+// 	}
+// 	if m.work != nil {
+// 		t.Errorf("Bare mat.work is initilized")
+// 	}
+// 	if len(m.vals) != rows*cols {
+// 		t.Errorf("len(mat.vals) is %d, expected %d", len(m.vals), rows*cols)
+// 	}
+// 	if len(m.work) != 0 {
+// 		t.Errorf("len(mat.work) is %d, expected 0", len(m.work))
+// 	}
+// }
 
 func TestIsJagged(t *testing.T) {
 	s := make([][]float64, 10)
@@ -81,30 +75,13 @@ func TestFromSlice(t *testing.T) {
 			s[i][j] = float64(i + j)
 		}
 	}
-	m := FromSlice(s, true)
-	if m.work != nil {
-		t.Errorf("FromSlice not bare when bare is true")
-	}
+	m := FromSlice(s)
 	idx := 0
 	for i := range s {
 		for j := range s[i] {
 			if s[i][j] != m.vals[idx] {
 				t.Errorf("slice[%d][%d]: %f, mat: %f", i, j,
 					s[i][j], m.vals[idx])
-			}
-			idx += 1
-		}
-	}
-	n := FromSlice(s, false)
-	if n.work == nil {
-		t.Errorf("FromSlice is bare when bare is false")
-	}
-	idx = 0
-	for i := range s {
-		for j := range s[i] {
-			if s[i][j] != n.vals[idx] {
-				t.Errorf("slice[%d][%d]: %f, mat: %f", i, j,
-					s[i][j], n.vals[idx])
 			}
 			idx += 1
 		}
@@ -203,6 +180,21 @@ func TestInc(t *testing.T) {
 	for i := 0; i < rows*cols; i++ {
 		if m.vals[i] != float64(i) {
 			t.Errorf("At %d, expected %f, got %f", i, float64(i), m.vals[i])
+		}
+	}
+}
+
+func TestCol(t *testing.T) {
+	row := 3
+	col := 4
+	m := New(row, col).Inc()
+	for i := 0; i < col; i++ {
+		got := m.Col(i)
+		for j := 0; j < row; j++ {
+			if got.vals[j] != m.vals[j*m.r+i] {
+				t.Errorf("At index %v Col(%v), got %f, want %f", j, i,
+					got.vals[j], m.vals[j*m.r+i])
+			}
 		}
 	}
 }
