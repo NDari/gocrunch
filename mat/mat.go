@@ -257,29 +257,55 @@ func (m *mat) Col(x int) *mat {
 	return v
 }
 
-// /*
-// Row returns a row of a 2D slice of `float64`. Row uses a 0-based index, hence
-// the first row of a 2D slice, m, is Row(0, m).
+func (m *mat) Row(x int) *mat {
+	if (x >= m.r) || (x < 0) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the requested row %d is outside of the bounds [0, %d]\n"
+		s = fmt.Sprintf(s, "Row", x, m.r)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	v := New(1, m.c)
+	for r := 0; r < m.c; r++ {
+		v.vals[r] = m.vals[x*m.c+r]
+	}
+	return v
+}
 
-// This function also allows for negative indexing. For example, Row(-1, m) is
-// the last row of m.
-// */
-// func Row(r int, m [][]float64) []float64 {
-// 	if (r >= len(m)) || (-r > len(m)) {
-// 		fmt.Println("\nNumgo/mat error.")
-// 		s := "In mat.%s the requested column %d is outside of the bounds [-%d, %d]\n"
-// 		s = fmt.Sprintf(s, "Row", r, len(m[0]), len(m[0])-1)
-// 		fmt.Println(s)
-// 		fmt.Println("Stack trace for this error:\n")
-// 		debug.PrintStack()
-// 		os.Exit(1)
-// 	}
-// 	if r >= 0 {
-// 		return m[r]
-// 	} else {
-// 		return m[len(m)+r]
-// 	}
-// }
+func (m *mat) Equals(n *mat) bool {
+	if m.r != n.r {
+		return false
+	}
+	if m.c != n.c {
+		return false
+	}
+	for i := 0; i < m.r*m.c; i++ {
+		if m.vals[i] != n.vals[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func (m *mat) Copy() *mat {
+	n := New(m.r, m.c)
+	copy(n.vals, m.vals)
+	return n
+}
+
+func (m *mat) T() *mat {
+	n := New(m.c, m.r)
+	idx := 0
+	for i := 0; i < m.r; i++ {
+		for j := 0; j < m.c; j++ {
+			n.vals[idx] = m.vals[j*m.r+i]
+			idx += 1
+		}
+	}
+	return n
+}
 
 // /*
 // T returns a copy of a given 2D slice with the elements of the 2D slice

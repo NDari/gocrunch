@@ -1,6 +1,7 @@
 package mat
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -206,6 +207,44 @@ func TestCol(t *testing.T) {
 				t.Errorf("At index %v Col(%v), got %f, want %f", j, i,
 					got.vals[j], m.vals[j*m.r+i])
 			}
+		}
+	}
+}
+
+func TestRow(t *testing.T) {
+	row := 3
+	col := 4
+	m := New(row, col).Inc()
+	idx := 0
+	for i := 0; i < row; i++ {
+		got := m.Row(i)
+		for j := 0; j < col; j++ {
+			if got.vals[j] != m.vals[idx] {
+				t.Errorf("At index %v Col(%v), got %f, want %f", j, i,
+					got.vals[j], m.vals[j*m.r+i])
+			}
+			idx += 1
+		}
+	}
+}
+
+func TestCopy(t *testing.T) {
+	m := New(13, 13).Inc()
+	n := m.Copy()
+	for i := 0; i < 13*13; i++ {
+		if m.vals[i] != n.vals[i] {
+			t.Errorf("at %d, expected %f, got %f", i, m.vals[i], n.vals[i])
+		}
+	}
+}
+
+func TestT(t *testing.T) {
+	m := New(12, 3).Inc()
+	n := m.T()
+	fmt.Println(m, n)
+	for i := 0; i < m.r; i++ {
+		if !m.Row(i).Equals(n.Col(i)) {
+			t.Errorf("m.row: %v, n.col: %v at %d", m.Row(i), n.Col(i), i)
 		}
 	}
 }
