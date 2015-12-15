@@ -1,7 +1,6 @@
 package mat
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -203,11 +202,19 @@ func TestCol(t *testing.T) {
 	for i := 0; i < col; i++ {
 		got := m.Col(i)
 		for j := 0; j < row; j++ {
-			if got.vals[j] != m.vals[j*m.r+i] {
+			if got.vals[j] != m.vals[j*m.c+i] {
 				t.Errorf("At index %v Col(%v), got %f, want %f", j, i,
-					got.vals[j], m.vals[j*m.r+i])
+					got.vals[j], m.vals[j*m.c+i])
 			}
 		}
+	}
+}
+
+func BenchmarkCol(b *testing.B) {
+	m := New(1721, 311).Inc()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = m.Col(211)
 	}
 }
 
@@ -228,6 +235,14 @@ func TestRow(t *testing.T) {
 	}
 }
 
+func BenchmarkRow(b *testing.B) {
+	m := New(1721, 311).Inc()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = m.Row(211)
+	}
+}
+
 func TestCopy(t *testing.T) {
 	m := New(13, 13).Inc()
 	n := m.Copy()
@@ -241,10 +256,23 @@ func TestCopy(t *testing.T) {
 func TestT(t *testing.T) {
 	m := New(12, 3).Inc()
 	n := m.T()
-	fmt.Println(m, n)
+
+	p := m.ToSlice()
+	q := n.ToSlice()
+
 	for i := 0; i < m.r; i++ {
-		if !m.Row(i).Equals(n.Col(i)) {
-			t.Errorf("m.row: %v, n.col: %v at %d", m.Row(i), n.Col(i), i)
+		for j := 0; j < m.c; j++ {
+			if p[i][j] != q[j][i] {
+				t.Errorf("at %d, %d, expected %f, got %f", i, j, p[i][j], q[j][i])
+			}
 		}
+	}
+}
+
+func BenchmarkMatT(b *testing.B) {
+	m := New(1000, 251).Inc()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = m.T()
 	}
 }

@@ -252,7 +252,7 @@ func (m *mat) Col(x int) *mat {
 	}
 	v := New(m.r, 1)
 	for r := 0; r < m.r; r++ {
-		v.vals[r] = m.vals[r*m.r+x]
+		v.vals[r] = m.vals[r*m.c+x]
 	}
 	return v
 }
@@ -298,52 +298,14 @@ func (m *mat) Copy() *mat {
 func (m *mat) T() *mat {
 	n := New(m.c, m.r)
 	idx := 0
-	for i := 0; i < m.r; i++ {
-		for j := 0; j < m.c; j++ {
-			n.vals[idx] = m.vals[j*m.r+i]
+	for i := 0; i < m.c; i++ {
+		for j := 0; j < m.r; j++ {
+			n.vals[idx] = m.vals[j*m.c+i]
 			idx += 1
 		}
 	}
 	return n
 }
-
-// /*
-// T returns a copy of a given 2D slice with the elements of the 2D slice
-// mirrored across the diagonal. For example, the element `[i][j]` becomes the
-// element `[j][i]` of the returned 2D slice. This function leaves the
-// original matrix intact.
-// */
-// func T(m [][]float64) [][]float64 {
-// 	transpose := New(len(m[0]), len(m))
-// 	for i := 0; i < len(m); i++ {
-// 		for j := range m[i] {
-// 			transpose[j][i] = m[i][j]
-// 		}
-// 	}
-// 	return transpose
-// }
-
-// /*
-// Equal checks if two 2D slices have the same shape and the same entries in
-// each row and column. If either the shape or the entries of the arguments
-// are different, `false` is returned. Otherwise, the return value is `true`.
-// */
-// func Equal(m, n [][]float64) bool {
-// 	if len(m) != len(n) {
-// 		return false
-// 	}
-// 	for i := range m {
-// 		if len(m[i]) != len(n[i]) {
-// 			return false
-// 		}
-// 		for j := range m[i] {
-// 			if m[i][j] != n[i][j] {
-// 				return false
-// 			}
-// 		}
-// 	}
-// 	return true
-// }
 
 // /*
 // Mul returns a new 2D slice that is the result of element-wise multiplication
