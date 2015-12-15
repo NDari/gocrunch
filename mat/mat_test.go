@@ -256,10 +256,8 @@ func TestCopy(t *testing.T) {
 func TestT(t *testing.T) {
 	m := New(12, 3).Inc()
 	n := m.T()
-
 	p := m.ToSlice()
 	q := n.ToSlice()
-
 	for i := 0; i < m.r; i++ {
 		for j := 0; j < m.c; j++ {
 			if p[i][j] != q[j][i] {
@@ -274,5 +272,21 @@ func BenchmarkMatT(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = m.T()
+	}
+}
+
+func TestCombine(t *testing.T) {
+	m := New(13, 21).Inc()
+	n := m.Copy()
+	square := func(i float64) float64 {
+		return i * i
+	}
+	multiply := func(i, j float64) float64 {
+		return i * j
+	}
+	m.Combine(n, multiply)
+	n.Map(square)
+	if !m.Equals(n) {
+		t.Errorf("m and n are not equal")
 	}
 }

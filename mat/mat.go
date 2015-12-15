@@ -55,35 +55,6 @@ func New(r, c int) *mat {
 	}
 }
 
-// func Bare(r, c int) *mat {
-// 	if r <= 0 {
-// 		fmt.Println("\nNumgo/mat error.")
-// 		s := "In mat.%s, the number of rows must be greater than '0', but\n"
-// 		s += "recieved %d. "
-// 		s = fmt.Sprintf(s, "Bare", r)
-// 		fmt.Println(s)
-// 		fmt.Println("Stack trace for this error:\n")
-// 		debug.PrintStack()
-// 		os.Exit(1)
-// 	}
-// 	if c <= 0 {
-// 		fmt.Println("\nNumgo/mat error.")
-// 		s := "In mat.%s, the number of columns must be greater than '0', but\n"
-// 		s += "recieved %d. "
-// 		s = fmt.Sprintf(s, "Bare", c)
-// 		fmt.Println(s)
-// 		fmt.Println("Stack trace for this error:\n")
-// 		debug.PrintStack()
-// 		os.Exit(1)
-// 	}
-// 	return &mat{
-// 		r,
-// 		c,
-// 		make([]float64, r*c),
-// 		nil,
-// 	}
-// }
-
 func FromSlice(s [][]float64) *mat {
 	if isJagged(s) {
 		fmt.Println("\nNumgo/mat error.")
@@ -305,6 +276,35 @@ func (m *mat) T() *mat {
 		}
 	}
 	return n
+}
+
+func (m *mat) Combine(n *mat, how reducerFunc) *mat {
+	if m.r != n.r {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, the number of the rows of the first mat is %d\n"
+		s += "but the number of rows of the second mat is %d. They must\n"
+		s += "match for combination.\n"
+		s = fmt.Sprintf(s, "Combine", m.r, n.r)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	if m.c != n.c {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, the number of the columns of the first mat is %d\n"
+		s += "but the number of columns of the second mat is %d. They must\n"
+		s += "match for combination.\n"
+		s = fmt.Sprintf(s, "Combine", m.c, n.c)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	for i := 0; i < m.r*m.c; i++ {
+		m.vals[i] = how(m.vals[i], n.vals[i])
+	}
+	return m
 }
 
 // /*
