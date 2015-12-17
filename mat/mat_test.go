@@ -24,23 +24,6 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestIsJagged(t *testing.T) {
-	s := make([][]float64, 10)
-	for i := range s {
-		s[i] = make([]float64, i+1)
-	}
-	if !isJagged(s) {
-		t.Errorf("Jagged 2D slice passed the jagged test...")
-	}
-	q := make([][]float64, 11)
-	for i := range q {
-		q[i] = make([]float64, 5)
-	}
-	if isJagged(q) {
-		t.Errorf("Non-jagged 2D slice failed the jagged test...")
-	}
-}
-
 func TestFromSlice(t *testing.T) {
 	s := make([][]float64, 11)
 	for i := range s {
@@ -62,6 +45,56 @@ func TestFromSlice(t *testing.T) {
 			idx += 1
 		}
 	}
+}
+
+func TestIsJagged(t *testing.T) {
+	s := make([][]float64, 10)
+	for i := range s {
+		s[i] = make([]float64, i+1)
+	}
+	if !isJagged(s) {
+		t.Errorf("Jagged 2D slice passed the jagged test...")
+	}
+	q := make([][]float64, 11)
+	for i := range q {
+		q[i] = make([]float64, 5)
+	}
+	if isJagged(q) {
+		t.Errorf("Non-jagged 2D slice failed the jagged test...")
+	}
+}
+
+func TestFromCSV(t *testing.T) {
+	filename := "test.csv"
+	str := "1.0,1.0,2.0,3.0\n"
+	str += "5.0,8.0,13.0,21.0\n"
+	str += "34.0,55.0,89.0,144.0\n"
+	str += "233.0,377.0,610.0,987.0\n"
+	if _, err := os.Stat(filename); err == nil {
+		err = os.Remove(filename)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	f, err := os.Create(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = f.Write([]byte(str))
+	if err != nil {
+		log.Fatal(err)
+	}
+	f.Close()
+	m := FromCSV(filename)
+	if m.vals[0] != 1.0 || m.vals[1] != 1.0 {
+		t.Errorf("The first two entries are not 1.0: %f, %f", m.vals[0], m.vals[1])
+	}
+	for i := 2; i < m.r*m.c; i++ {
+		if m.vals[i] != (m.vals[i-1] + m.vals[i-2]) {
+			t.Errorf("expected %f, got %f", m.vals[i-1]+m.vals[i-2], m.vals[i])
+		}
+	}
+	os.Remove(filename)
 }
 
 func TestDims(t *testing.T) {
@@ -117,39 +150,6 @@ func TestMap(t *testing.T) {
 	}
 }
 
-func TestFromCSV(t *testing.T) {
-	filename := "test.csv"
-	str := "1.0,1.0,2.0,3.0\n"
-	str += "5.0,8.0,13.0,21.0\n"
-	str += "34.0,55.0,89.0,144.0\n"
-	str += "233.0,377.0,610.0,987.0\n"
-	if _, err := os.Stat(filename); err == nil {
-		err = os.Remove(filename)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	f, err := os.Create(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	_, err = f.Write([]byte(str))
-	if err != nil {
-		log.Fatal(err)
-	}
-	f.Close()
-	m := FromCSV(filename)
-	if m.vals[0] != 1.0 || m.vals[1] != 1.0 {
-		t.Errorf("The first two entries are not 1.0: %f, %f", m.vals[0], m.vals[1])
-	}
-	for i := 2; i < m.r*m.c; i++ {
-		if m.vals[i] != (m.vals[i-1] + m.vals[i-2]) {
-			t.Errorf("expected %f, got %f", m.vals[i-1]+m.vals[i-2], m.vals[i])
-		}
-	}
-	os.Remove(filename)
-}
-
 func TestOnes(t *testing.T) {
 	rows := 13
 	cols := 7
@@ -168,6 +168,18 @@ func TestInc(t *testing.T) {
 	for i := 0; i < rows*cols; i++ {
 		if m.vals[i] != float64(i) {
 			t.Errorf("At %d, expected %f, got %f", i, float64(i), m.vals[i])
+		}
+	}
+}
+
+func TestReset(t *testing.T) {
+	row := 3
+	col := 4
+	m := New(row, col).Inc()
+	m.Reset()
+	for i := 0; i < row*col; i++ {
+		if m.vals[i] != 0.0 {
+			t.Errorf("at index %d, not equal to 0.0", i)
 		}
 	}
 }
@@ -217,6 +229,13 @@ func BenchmarkRow(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = m.Row(211)
+	}
+}
+
+func TestEquals(t *testing.T) {
+	m := New(13, 12)
+	if !m.Equals(m) {
+		t.Errorf("m is not equal iteself")
 	}
 }
 
