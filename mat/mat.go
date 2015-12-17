@@ -23,9 +23,9 @@ type mat struct {
 	vals []float64
 }
 
-type elementFunc func(float64) float64
+type elementFunc func(*float64)
 type booleanFunc func(float64) bool
-type reducerFunc func(float64, float64) float64
+type reducerFunc func(accumulator *float64, next float64)
 
 func New(r, c int) *mat {
 	if r <= 0 {
@@ -189,19 +189,17 @@ func (m *mat) ToSlice() [][]float64 {
 
 func (m *mat) Map(f elementFunc) *mat {
 	for i := 0; i < m.r*m.c; i++ {
-		m.vals[i] = f(m.vals[i])
+		f(&m.vals[i])
 	}
 	return m
 }
 
 func (m *mat) Ones() *mat {
-	f := func(float64) float64 {
-		return 1.0
+	f := func(i *float64) {
+		*i = 1.0
+		return
 	}
-	for i := 0; i < m.r*m.c; i++ {
-		m.vals[i] = f(m.vals[i])
-	}
-	return m
+	return m.Map(f)
 }
 
 func (m *mat) Inc() *mat {
@@ -209,6 +207,14 @@ func (m *mat) Inc() *mat {
 		m.vals[i] = float64(i)
 	}
 	return m
+}
+
+func (m *mat) Reset() *mat {
+	f := func(i *float64) {
+		*i = 0.0
+		return
+	}
+	return m.Map(f)
 }
 
 func (m *mat) Col(x int) *mat {
@@ -278,7 +284,43 @@ func (m *mat) T() *mat {
 	return n
 }
 
-func (m *mat) Combine(n *mat, how reducerFunc) *mat {
+func (m *mat) Filter(f booleanFunc) *mat {
+	var res []float64
+	for i := 0; i < m.r*m.c; i++ {
+		if f(m.vals[i]) {
+			res = append(res, m.vals[i])
+		}
+	}
+	if len(res) == 0 {
+		return nil
+	} else {
+		n := New(1, len(res))
+		for i := 0; i < len(res); i++ {
+			n.vals[i] = res[i]
+		}
+		return n
+	}
+}
+
+func (m *mat) All(f booleanFunc) bool {
+	for i := 0; i < m.r*m.c; i++ {
+		if !f(m.vals[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+func (m *mat) Any(f booleanFunc) bool {
+	for i := 0; i < m.r*m.c; i++ {
+		if f(m.vals[i]) {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *mat) CombineWith(n *mat, how reducerFunc) *mat {
 	if m.r != n.r {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, the number of the rows of the first mat is %d\n"
@@ -302,55 +344,58 @@ func (m *mat) Combine(n *mat, how reducerFunc) *mat {
 		os.Exit(1)
 	}
 	for i := 0; i < m.r*m.c; i++ {
-		m.vals[i] = how(m.vals[i], n.vals[i])
+		how(&m.vals[i], n.vals[i])
 	}
 	return m
 }
 
-// /*
-// Mul returns a new 2D slice that is the result of element-wise multiplication
-// of two 2D slices.
-// */
-// func Mul(m, n [][]float64) [][]float64 {
-// 	if len(m) != len(n) {
-// 		fmt.Println("\nNumgo/mat error.")
-// 		s := "In mat.%s the number of rows of the first 2D slice is %d, while\n"
-// 		s += "the number of rows of the second 2D slice is %d. They must be equal\n"
-// 		s = fmt.Sprintf(s, "Mul", len(m), len(n))
-// 		fmt.Println(s)
-// 		fmt.Println("Stack trace for this error:\n")
-// 		debug.PrintStack()
-// 		os.Exit(1)
-// 	}
-// 	o := make([][]float64, len(m))
-// 	for i := range m {
-// 		o[i] = vec.Mul(m[i], n[i])
-// 	}
-// 	return o
-// }
+func (m *mat) Mul(n *mat) *mat {
+	multiply := func(i *float64, j float64) {
+		*i *= j
+		return
+	}
+	return m.CombineWith(n, multiply)
+}
 
-// /*
-// MapInPlace calls a given elemental function on each Element of a 2D slice, returning
-// it afterwards. This function modifies the original 2D slice.
-// */
-// func MapInPlace(f func(float64) float64, m [][]float64) {
-// 	for i := range m {
-// 		vec.MapInPlace(f, m[i])
-// 	}
-// 	return
-// }
+func (m *mat) Add(n *mat) *mat {
+	add := func(i *float64, j float64) {
+		*i += j
+		return
+	}
+	return m.CombineWith(n, add)
+}
 
-// /*
-// Map calls a given elemental function on each Element of a 2D slice, returning
-// a new 2D slice. This function does not modify the original 2D slice.
-// */
-// func Map(f func(float64) float64, m [][]float64) [][]float64 {
-// 	n := make([][]float64, len(m))
-// 	for i := range m {
-// 		n[i] = vec.Map(f, m[i])
-// 	}
-// 	return n
-// }
+func (m *mat) Sub(n *mat) *mat {
+	subtract := func(i *float64, j float64) {
+		*i -= j
+		return
+	}
+	return m.CombineWith(n, subtract)
+}
+
+func (m *mat) Div(n *mat) *mat {
+	zero := func(i float64) bool {
+		if i == 0.0 {
+			return true
+		}
+		return false
+	}
+	if n.Any(zero) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, one or more elements of the second matrix are 0.0\n"
+		s += "Division by zero is not allowed.\n"
+		s = fmt.Sprintf(s, "Div", m.c, n.c)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	devide := func(i *float64, j float64) {
+		*i /= j
+		return
+	}
+	return m.CombineWith(n, devide)
+}
 
 // /*
 // Dot is the matrix multiplication of two 2D slices of `float64`.
@@ -393,17 +438,6 @@ func (m *mat) Combine(n *mat, how reducerFunc) *mat {
 // 		}
 // 	}
 // 	return o
-// }
-
-// /*
-// Reset sets the values of all entries in a 2D slice of `float64` to `0.0`.
-// */
-// func Reset(m [][]float64) {
-// 	f := func(i float64) float64 {
-// 		return 0.0
-// 	}
-// 	MapInPlace(f, m)
-// 	return
 // }
 
 // /*

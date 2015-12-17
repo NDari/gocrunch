@@ -104,8 +104,9 @@ func TestToSlice(t *testing.T) {
 func TestMap(t *testing.T) {
 	rows := 132
 	cols := 24
-	f := func(float64) float64 {
-		return 1.0
+	f := func(i *float64) {
+		*i = 1.0
+		return
 	}
 	m := New(rows, cols)
 	m.Map(f)
@@ -254,13 +255,15 @@ func BenchmarkMatT(b *testing.B) {
 func TestCombine(t *testing.T) {
 	m := New(13, 21).Inc()
 	n := m.Copy()
-	square := func(i float64) float64 {
-		return i * i
+	square := func(i *float64) {
+		*i *= *i
+		return
 	}
-	multiply := func(i, j float64) float64 {
-		return i * j
+	multiply := func(i *float64, j float64) {
+		*i *= j
+		return
 	}
-	m.Combine(n, multiply)
+	m.CombineWith(n, multiply)
 	n.Map(square)
 	if !m.Equals(n) {
 		t.Errorf("m and n are not equal")
