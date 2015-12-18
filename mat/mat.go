@@ -24,7 +24,7 @@ type mat struct {
 }
 
 type elementFunc func(*float64)
-type booleanFunc func(float64) bool
+type booleanFunc func(*float64) bool
 type reducerFunc func(accumulator *float64, next float64)
 
 func New(r, c int) *mat {
@@ -287,7 +287,7 @@ func (m *mat) T() *mat {
 func (m *mat) Filter(f booleanFunc) *mat {
 	var res []float64
 	for i := 0; i < m.r*m.c; i++ {
-		if f(m.vals[i]) {
+		if f(&m.vals[i]) {
 			res = append(res, m.vals[i])
 		}
 	}
@@ -304,7 +304,7 @@ func (m *mat) Filter(f booleanFunc) *mat {
 
 func (m *mat) All(f booleanFunc) bool {
 	for i := 0; i < m.r*m.c; i++ {
-		if !f(m.vals[i]) {
+		if !f(&m.vals[i]) {
 			return false
 		}
 	}
@@ -313,7 +313,7 @@ func (m *mat) All(f booleanFunc) bool {
 
 func (m *mat) Any(f booleanFunc) bool {
 	for i := 0; i < m.r*m.c; i++ {
-		if f(m.vals[i]) {
+		if f(&m.vals[i]) {
 			return true
 		}
 	}
@@ -374,8 +374,8 @@ func (m *mat) Sub(n *mat) *mat {
 }
 
 func (m *mat) Div(n *mat) *mat {
-	zero := func(i float64) bool {
-		if i == 0.0 {
+	zero := func(i *float64) bool {
+		if *i == 0.0 {
 			return true
 		}
 		return false

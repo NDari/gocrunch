@@ -271,6 +271,71 @@ func BenchmarkMatT(b *testing.B) {
 	}
 }
 
+func TestFilter(t *testing.T) {
+	m := New(100, 21).Inc()
+	neg := func(i *float64) bool {
+		if *i < 0.0 {
+			return true
+		} else {
+			return false
+		}
+	}
+	r := m.Filter(neg)
+	if r != nil {
+		t.Errorf("Found negative values in Inc()")
+	}
+}
+
+func TestAll(t *testing.T) {
+	m := New(100, 21).Inc()
+	pos := func(i *float64) bool {
+		if *i >= 0.0 {
+			return true
+		} else {
+			return false
+		}
+	}
+	if !m.All(pos) {
+		t.Errorf("All(pos) is false for Inc()")
+	}
+	one := func(i *float64) bool {
+		if *i == 1.0 {
+			return true
+		} else {
+			return false
+		}
+	}
+	m.Ones()
+	if !m.All(one) {
+		t.Errorf("m.Ones() has non-one values in it")
+	}
+}
+
+func TestAny(t *testing.T) {
+	m := New(100, 21).Inc()
+	neg := func(i *float64) bool {
+		if *i < 0.0 {
+			return true
+		} else {
+			return false
+		}
+	}
+	if m.Any(neg) {
+		t.Errorf("Any(neg) is true for Inc()")
+	}
+	notOne := func(i *float64) bool {
+		if *i != 1.0 {
+			return true
+		} else {
+			return false
+		}
+	}
+	m.Ones()
+	if m.Any(notOne) {
+		t.Errorf("m.Ones() has non-one values in it")
+	}
+}
+
 func TestCombine(t *testing.T) {
 	m := New(13, 21).Inc()
 	n := m.Copy()
