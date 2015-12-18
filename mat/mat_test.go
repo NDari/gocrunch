@@ -284,6 +284,18 @@ func TestFilter(t *testing.T) {
 	if r != nil {
 		t.Errorf("Found negative values in Inc()")
 	}
+	m.Ones()
+	one := func(i *float64) bool {
+		if *i == 1.0 {
+			return true
+		} else {
+			return false
+		}
+	}
+	r = m.Filter(one)
+	if len(m.vals) != len(r.vals) {
+		t.Errorf("not all values of Ones came through the filter")
+	}
 }
 
 func TestAll(t *testing.T) {
@@ -298,15 +310,15 @@ func TestAll(t *testing.T) {
 	if !m.All(pos) {
 		t.Errorf("All(pos) is false for Inc()")
 	}
-	one := func(i *float64) bool {
-		if *i == 1.0 {
+	notOne := func(i *float64) bool {
+		if *i != 1.0 {
 			return true
 		} else {
 			return false
 		}
 	}
 	m.Ones()
-	if !m.All(one) {
+	if m.All(notOne) {
 		t.Errorf("m.Ones() has non-one values in it")
 	}
 }
@@ -323,20 +335,20 @@ func TestAny(t *testing.T) {
 	if m.Any(neg) {
 		t.Errorf("Any(neg) is true for Inc()")
 	}
-	notOne := func(i *float64) bool {
-		if *i != 1.0 {
+	one := func(i *float64) bool {
+		if *i == 1.0 {
 			return true
 		} else {
 			return false
 		}
 	}
 	m.Ones()
-	if m.Any(notOne) {
-		t.Errorf("m.Ones() has non-one values in it")
+	if !m.Any(one) {
+		t.Errorf("m.Ones() has no values equal to 1.0 in it")
 	}
 }
 
-func TestCombine(t *testing.T) {
+func TestCombineWith(t *testing.T) {
 	m := New(13, 21).Inc()
 	n := m.Copy()
 	square := func(i *float64) {
