@@ -56,10 +56,20 @@ func New(r, c int) *mat {
 }
 
 func FromSlice(s [][]float64) *mat {
+	if s == nil {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s, an unallocated 2D slice was recieved, where the slice\n"
+		s += "is equal to nil."
+		s = fmt.Sprintf(s, "FromSlice")
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
+	}
 	if isJagged(s) {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s, a 'jagged' 2D slice was recieved, where the rows\n"
-		s += "(the inner slice of the 2D slice) have different lengths. The"
+		s += "(the inner slice of the 2D slice) have different lengths. The\n"
 		s += "creation of a *mat from jagged slices is not supported.\n"
 		s = fmt.Sprintf(s, "FromSlice")
 		fmt.Println(s)
@@ -84,6 +94,22 @@ func isJagged(s [][]float64) bool {
 		}
 	}
 	return false
+}
+
+func From1DSlice(s []float64) *mat {
+	if s == nil {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s, an unallocated 1D slice was recieved, where the slice\n"
+		s += "is equal to nil."
+		s = fmt.Sprintf(s, "From1DSlice")
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	m := New(1, len(s))
+	copy(m.vals, s)
+	return m
 }
 
 func FromCSV(filename string) *mat {
@@ -168,6 +194,43 @@ func FromCSV(filename string) *mat {
 			os.Exit(1)
 		}
 		m.r += 1
+	}
+	return m
+}
+
+func (m *mat) Reshape(rows, cols int) *mat {
+	if rows <= 0 {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s, the number of rows must be greater than '0', but\n"
+		s += "recieved %d. "
+		s = fmt.Sprintf(s, "Reshape", rows)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	if cols <= 0 {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s, the number of columns must be greater than '0', but\n"
+		s += "recieved %d. "
+		s = fmt.Sprintf(s, "Reshape", c)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	if row*cols != m.r*m.c {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s, The total number of entries of the old and new shape\n"
+		s := "must match.\n"
+		s = fmt.Sprintf(s, "Reshape")
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
+	} else {
+		m.r = rows
+		m.c = cols
 	}
 	return m
 }
