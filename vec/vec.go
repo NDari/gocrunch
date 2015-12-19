@@ -58,7 +58,7 @@ func Mul(v1, v2 []float64) []float64 {
 		s += "the length of the second 1D slice is %d. They must be equal\n"
 		s = fmt.Sprintf(s, "Mul", len(v1), len(v2))
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -78,7 +78,7 @@ func Add(v1, v2 []float64) []float64 {
 		s += "the length of the second 1D slice is %d. They must be equal\n"
 		s = fmt.Sprintf(s, "Add", len(v1), len(v2))
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -98,7 +98,7 @@ func Sub(v1, v2 []float64) []float64 {
 		s += "the length of the second 1D slice is %d. They must be equal\n"
 		s = fmt.Sprintf(s, "Sub", len(v1), len(v2))
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -119,7 +119,7 @@ func Div(v1, v2 []float64) []float64 {
 		s += "the length of the second 1D slice is %d. They must be equal\n"
 		s = fmt.Sprintf(s, "Div", len(v1), len(v2))
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -131,7 +131,7 @@ func Div(v1, v2 []float64) []float64 {
 			s += "Division by zero is not defined."
 			s = fmt.Sprintf(s, "Div", i)
 			fmt.Println(s)
-			fmt.Println("Stack trace for this error:\n")
+			fmt.Println("Stack trace for this error:")
 			debug.PrintStack()
 			os.Exit(1)
 		}
@@ -170,7 +170,7 @@ func Dot(v1, v2 []float64) float64 {
 		s += "the length of the second 1D slice is %d. They must be equal\n"
 		s = fmt.Sprintf(s, "Dot", len(v1), len(v2))
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
