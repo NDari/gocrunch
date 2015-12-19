@@ -350,27 +350,24 @@ func (m *mat) CombineWith(n *mat, how reducerFunc) *mat {
 }
 
 func (m *mat) Mul(n *mat) *mat {
-	multiply := func(i *float64, j float64) {
-		*i *= j
-		return
+	for i := 0; i < m.r*m.c; i++ {
+		m.vals[i] *= n.vals[i]
 	}
-	return m.CombineWith(n, multiply)
+	return m
 }
 
 func (m *mat) Add(n *mat) *mat {
-	add := func(i *float64, j float64) {
-		*i += j
-		return
+	for i := 0; i < m.r*m.c; i++ {
+		m.vals[i] += n.vals[i]
 	}
-	return m.CombineWith(n, add)
+	return m
 }
 
 func (m *mat) Sub(n *mat) *mat {
-	subtract := func(i *float64, j float64) {
-		*i -= j
-		return
+	for i := 0; i < m.r*m.c; i++ {
+		m.vals[i] -= n.vals[i]
 	}
-	return m.CombineWith(n, subtract)
+	return m
 }
 
 func (m *mat) Div(n *mat) *mat {
@@ -390,11 +387,10 @@ func (m *mat) Div(n *mat) *mat {
 		debug.PrintStack()
 		os.Exit(1)
 	}
-	devide := func(i *float64, j float64) {
-		*i /= j
-		return
+	for i := 0; i < m.r*m.c; i++ {
+		m.vals[i] /= n.vals[i]
 	}
-	return m.CombineWith(n, devide)
+	return m
 }
 
 // /*
@@ -534,20 +530,6 @@ func (m *mat) Div(n *mat) *mat {
 // 		os.Exit(1)
 // 	}
 // 	return FromString(str)
-// }
-
-// /*
-// Copy copies the content of a 2D slice of float64 into another with
-// the same shape. This is a deep copy, unlike the built in copy function
-// that is shallow for 2D slices.
-// */
-// func Copy(m [][]float64) [][]float64 {
-// 	n := make([][]float64, len(m))
-// 	for i := range m {
-// 		n[i] = make([]float64, len(m[i]))
-// 		copy(n[i], m[i])
-// 	}
-// 	return n
 // }
 
 // /*

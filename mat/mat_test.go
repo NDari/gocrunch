@@ -365,3 +365,55 @@ func TestCombineWith(t *testing.T) {
 		t.Errorf("m and n are not equal")
 	}
 }
+
+func TestMul(t *testing.T) {
+	m := New(10, 11).Inc()
+	n := m.Copy()
+	m.Mul(m)
+	for i := 0; i < 110; i++ {
+		if m.vals[i] != n.vals[i]*n.vals[i] {
+			t.Errorf("expected %f, got %f", n.vals[i]*n.vals[i], m.vals[i])
+		}
+	}
+}
+
+func BenchmarkMul(b *testing.B) {
+	n := New(1000, 1000).Inc()
+	m := New(1000, 1000).Inc()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		m.Mul(n)
+	}
+}
+
+func TestAdd(t *testing.T) {
+	m := New(10, 11).Inc()
+	n := m.Copy()
+	m.Add(m)
+	for i := 0; i < 110; i++ {
+		if m.vals[i] != 2.0*n.vals[i] {
+			t.Errorf("expected %f, got %f", 2.0*n.vals[i], m.vals[i])
+		}
+	}
+}
+
+func TestSub(t *testing.T) {
+	m := New(10, 11).Inc()
+	m.Sub(m)
+	for i := 0; i < 110; i++ {
+		if m.vals[i] != 0.0 {
+			t.Errorf("expected 0.0, got %f", m.vals[i])
+		}
+	}
+}
+
+func TestDiv(t *testing.T) {
+	m := New(10, 11).Inc()
+	m.vals[0] = 1.0
+	m.Div(m)
+	for i := 0; i < 110; i++ {
+		if m.vals[i] != 1.0 {
+			t.Errorf("expected 1.0, got %f", m.vals[i])
+		}
+	}
+}
