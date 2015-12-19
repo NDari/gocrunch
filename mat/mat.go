@@ -256,6 +256,44 @@ func (m *mat) ToSlice() [][]float64 {
 	return s
 }
 
+func (m *mat) ToCSV(fileName string) {
+	f, err := os.Create(fileName)
+	if err != nil {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, cannot open %s due to error: %v.\n"
+		s = fmt.Sprintf(s, "ToCSV", fileName, err)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	defer f.Close()
+	str := ""
+	idx := 0
+	for i := 0; i < m.r; i++ {
+		for j := 0; j < m.c; j++ {
+			str += strconv.FormatFloat(m.vals[idx], 'e', 14, 64)
+			if j+1 != m.c {
+				str += ","
+			}
+			idx += 1
+		}
+		if i+1 != m.r {
+			str += "\n"
+		}
+	}
+	_, err = f.Write([]byte(str))
+	if err != nil {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, cannot write to %s due to error: %v.\n"
+		s = fmt.Sprintf(s, "ToCSV", fileName, err)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+}
+
 func (m *mat) Map(f elementFunc) *mat {
 	for i := 0; i < m.r*m.c; i++ {
 		f(&m.vals[i])
@@ -537,35 +575,6 @@ func (m *mat) Std() {
 // 		}
 // 	}
 // 	return str
-// }
-
-// /*
-// Dump prints the content of a `[][]float64` slice to a file, using comma as the
-// delimiter between the elements of a row, and a new line between rows.
-// */
-// func Dump(m [][]float64, fileName string) {
-// 	f, err := os.Create(fileName)
-// 	if err != nil {
-// 		fmt.Println("\nNumgo/mat error.")
-// 		s := "In mat.%v, cannot open %s due to error: %v.\n"
-// 		s = fmt.Sprintf(s, "Dump", fileName, err)
-// 		fmt.Println(s)
-// 		fmt.Println("Stack trace for this error:\n")
-// 		debug.PrintStack()
-// 		os.Exit(1)
-// 	}
-// 	defer f.Close()
-// 	w := csv.NewWriter(f)
-// 	w.WriteAll(ToString(m))
-// 	if err = w.Error(); err != nil {
-// 		fmt.Println("\nNumgo/mat error.")
-// 		s := "In mat.%v, cannot write to %s due to error: %v.\n"
-// 		s = fmt.Sprintf(s, "Dump", fileName, err)
-// 		fmt.Println(s)
-// 		fmt.Println("Stack trace for this error:\n")
-// 		debug.PrintStack()
-// 		os.Exit(1)
-// 	}
 // }
 
 // /*

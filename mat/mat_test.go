@@ -142,7 +142,16 @@ func TestDims(t *testing.T) {
 }
 
 func TestVals(t *testing.T) {
-	return
+	m := New(22, 22).Ones()
+	s := m.Vals()
+	if len(s) != 22*22 {
+		t.Errorf("expected len(s) to be %d, got %d", 22*22, len(s))
+	}
+	for i := 0; i < len(s); i++ {
+		if s[i] != 1.0 {
+			t.Errorf("At index %d: expected 1.0, got %f", i, s[i])
+		}
+	}
 }
 
 func TestToSlice(t *testing.T) {
@@ -168,6 +177,15 @@ func TestToSlice(t *testing.T) {
 			}
 			idx += 1
 		}
+	}
+}
+
+func TestToCSV(t *testing.T) {
+	m := New(23, 17).Inc()
+	m.ToCSV("tocsv_test.csv")
+	n := FromCSV("tocsv_test.csv")
+	if !n.Equals(m) {
+		t.Errorf("m and n are not equal")
 	}
 }
 
