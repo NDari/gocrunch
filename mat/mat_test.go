@@ -182,7 +182,7 @@ func TestMap(t *testing.T) {
 	m.Map(f)
 	for i := 0; i < rows*cols; i++ {
 		if m.vals[i] != 1.0 {
-			t.Errorf("At %d, expected 1.0, got %d")
+			t.Errorf("At %d, expected 1.0, got %f", i, m.vals[i])
 		}
 	}
 }
@@ -193,7 +193,7 @@ func TestOnes(t *testing.T) {
 	m := New(rows, cols).Ones()
 	for i := 0; i < rows*cols; i++ {
 		if m.vals[i] != 1.0 {
-			t.Errorf("At %d, expected 1.0, got %d", i, m.vals[i])
+			t.Errorf("At %d, expected 1.0, got %f", i, m.vals[i])
 		}
 	}
 }

@@ -34,7 +34,7 @@ func New(r, c int) *mat {
 		s += "recieved %d. "
 		s = fmt.Sprintf(s, "New", r)
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -44,7 +44,7 @@ func New(r, c int) *mat {
 		s += "recieved %d. "
 		s = fmt.Sprintf(s, "New", c)
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -62,7 +62,7 @@ func FromSlice(s [][]float64) *mat {
 		s += "is equal to nil."
 		s = fmt.Sprintf(s, "FromSlice")
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -73,7 +73,7 @@ func FromSlice(s [][]float64) *mat {
 		s += "creation of a *mat from jagged slices is not supported.\n"
 		s = fmt.Sprintf(s, "FromSlice")
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -103,7 +103,7 @@ func From1DSlice(s []float64) *mat {
 		s += "is equal to nil."
 		s = fmt.Sprintf(s, "From1DSlice")
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -119,7 +119,7 @@ func FromCSV(filename string) *mat {
 		s := "In mat.%v, cannot open %s due to error: %v.\n"
 		s = fmt.Sprintf(s, "FromCSV", filename, err)
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -140,7 +140,7 @@ func FromCSV(filename string) *mat {
 		s := "In mat.%v, cannot read from %s due to error: %v.\n"
 		s = fmt.Sprintf(s, "FromCSV", filename, err)
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -161,7 +161,7 @@ func FromCSV(filename string) *mat {
 				s += "be converted to a float64 due to: %v"
 				s = fmt.Sprintf(s, "FromCSV", i, line, str[i], err)
 				fmt.Println(s)
-				fmt.Println("Stack trace for this error:\n")
+				fmt.Println("Stack trace for this error:")
 				debug.PrintStack()
 				os.Exit(1)
 			}
@@ -177,7 +177,7 @@ func FromCSV(filename string) *mat {
 			s := "In mat.%v, cannot read from %s due to error: %v.\n"
 			s = fmt.Sprintf(s, "FromCSV", filename, err)
 			fmt.Println(s)
-			fmt.Println("Stack trace for this error:\n")
+			fmt.Println("Stack trace for this error:")
 			debug.PrintStack()
 			os.Exit(1)
 		}
@@ -189,7 +189,7 @@ func FromCSV(filename string) *mat {
 			s += "Creation of a *mat from jagged slices is not supported.\n"
 			s = fmt.Sprintf(s, "Load", filename, err)
 			fmt.Println(s)
-			fmt.Println("Stack trace for this error:\n")
+			fmt.Println("Stack trace for this error:")
 			debug.PrintStack()
 			os.Exit(1)
 		}
@@ -205,7 +205,7 @@ func (m *mat) Reshape(rows, cols int) *mat {
 		s += "recieved %d. "
 		s = fmt.Sprintf(s, "Reshape", rows)
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -215,7 +215,7 @@ func (m *mat) Reshape(rows, cols int) *mat {
 		s += "recieved %d. "
 		s = fmt.Sprintf(s, "Reshape", cols)
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -225,7 +225,7 @@ func (m *mat) Reshape(rows, cols int) *mat {
 		s += "must match.\n"
 		s = fmt.Sprintf(s, "Reshape")
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	} else {
@@ -292,7 +292,7 @@ func (m *mat) Col(x int) *mat {
 		s := "In mat.%s the requested column %d is outside of the bounds [0, %d]\n"
 		s = fmt.Sprintf(s, "Col", x, m.c)
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -309,7 +309,7 @@ func (m *mat) Row(x int) *mat {
 		s := "In mat.%s the requested row %d is outside of the bounds [0, %d]\n"
 		s = fmt.Sprintf(s, "Row", x, m.r)
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -394,7 +394,7 @@ func (m *mat) CombineWith(n *mat, how reducerFunc) *mat {
 		s += "match for combination.\n"
 		s = fmt.Sprintf(s, "Combine", m.r, n.r)
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -405,7 +405,7 @@ func (m *mat) CombineWith(n *mat, how reducerFunc) *mat {
 		s += "match for combination.\n"
 		s = fmt.Sprintf(s, "Combine", m.c, n.c)
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -449,7 +449,7 @@ func (m *mat) Div(n *mat) *mat {
 		s += "Division by zero is not allowed.\n"
 		s = fmt.Sprintf(s, "Div", m.c, n.c)
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
