@@ -64,6 +64,19 @@ func TestIsJagged(t *testing.T) {
 	}
 }
 
+func TestFrom1DSlice(t *testing.T) {
+	s := make([]float64, 113)
+	for i := 0; i < len(s); i++ {
+		s[i] = float64(i * i)
+	}
+	m := From1DSlice(s)
+	for i := 0; i < len(s); i++ {
+		if s[i] != m.vals[i] {
+			t.Errorf("slice[%d]: %f, mat: %f", i, s[i], m.vals[i])
+		}
+	}
+}
+
 func TestFromCSV(t *testing.T) {
 	filename := "test.csv"
 	str := "1.0,1.0,2.0,3.0\n"
@@ -97,6 +110,26 @@ func TestFromCSV(t *testing.T) {
 	os.Remove(filename)
 }
 
+func TestReshape(t *testing.T) {
+	s := make([]float64, 120)
+	for i := 0; i < len(s); i++ {
+		s[i] = float64(i * 3)
+	}
+	m := From1DSlice(s)
+	m.Reshape(10, 12)
+	if m.r != 10 {
+		t.Errorf("expected rows = 10, got %d", m.r)
+	}
+	if m.c != 12 {
+		t.Errorf("expected cols = 12, got %d", m.c)
+	}
+	for i := 0; i < len(s); i++ {
+		if m.vals[i] != s[i] {
+			t.Errorf("at index %d, expected %f, got %f", i, s[i], m.vals[i])
+		}
+	}
+}
+
 func TestDims(t *testing.T) {
 	m := New(11, 10)
 	r, c := m.Dims()
@@ -106,6 +139,10 @@ func TestDims(t *testing.T) {
 	if m.c != c {
 		t.Errorf("m.r expected 10, got %d", m.c)
 	}
+}
+
+func TestVals(t *testing.T) {
+	return
 }
 
 func TestToSlice(t *testing.T) {
@@ -414,6 +451,17 @@ func TestDiv(t *testing.T) {
 	for i := 0; i < 110; i++ {
 		if m.vals[i] != 1.0 {
 			t.Errorf("expected 1.0, got %f", m.vals[i])
+		}
+	}
+}
+
+func TestScale(t *testing.T) {
+	m := New(12, 13).Inc()
+	n := m.Copy()
+	m.Scale(1.7)
+	for i := 0; i < m.r*m.c; i++ {
+		if m.vals[i] != 1.7*n.vals[i] {
+			t.Errorf("At %d, expected %f, got %f", i, 1.7*n.vals[i], m.vals[i])
 		}
 	}
 }

@@ -213,16 +213,16 @@ func (m *mat) Reshape(rows, cols int) *mat {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s, the number of columns must be greater than '0', but\n"
 		s += "recieved %d. "
-		s = fmt.Sprintf(s, "Reshape", c)
+		s = fmt.Sprintf(s, "Reshape", cols)
 		fmt.Println(s)
 		fmt.Println("Stack trace for this error:\n")
 		debug.PrintStack()
 		os.Exit(1)
 	}
-	if row*cols != m.r*m.c {
+	if rows*cols != m.r*m.c {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s, The total number of entries of the old and new shape\n"
-		s := "must match.\n"
+		s += "must match.\n"
 		s = fmt.Sprintf(s, "Reshape")
 		fmt.Println(s)
 		fmt.Println("Stack trace for this error:\n")
@@ -237,6 +237,12 @@ func (m *mat) Reshape(rows, cols int) *mat {
 
 func (m *mat) Dims() (int, int) {
 	return m.r, m.c
+}
+
+func (m *mat) Vals() []float64 {
+	s := make([]float64, m.r*m.c)
+	copy(s, m.vals)
+	return s
 }
 
 func (m *mat) ToSlice() [][]float64 {
@@ -357,10 +363,7 @@ func (m *mat) Filter(f booleanFunc) *mat {
 	if len(res) == 0 {
 		return nil
 	} else {
-		n := New(1, len(res))
-		for i := 0; i < len(res); i++ {
-			n.vals[i] = res[i]
-		}
+		n := From1DSlice(res)
 		return n
 	}
 }
@@ -454,6 +457,29 @@ func (m *mat) Div(n *mat) *mat {
 		m.vals[i] /= n.vals[i]
 	}
 	return m
+}
+
+func (m *mat) Scale(f float64) *mat {
+	for i := 0; i < m.r*m.c; i++ {
+		m.vals[i] *= f
+	}
+	return m
+}
+
+func (m *mat) Sum() {
+	return
+}
+
+func (m *mat) Average() {
+	return
+}
+
+func (m *mat) Prod() {
+	return
+}
+
+func (m *mat) Std() {
+	return
 }
 
 // /*
