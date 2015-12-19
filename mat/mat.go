@@ -263,7 +263,7 @@ func (m *mat) ToCSV(fileName string) {
 		s := "In mat.%v, cannot open %s due to error: %v.\n"
 		s = fmt.Sprintf(s, "ToCSV", fileName, err)
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
@@ -288,7 +288,7 @@ func (m *mat) ToCSV(fileName string) {
 		s := "In mat.%v, cannot write to %s due to error: %v.\n"
 		s = fmt.Sprintf(s, "ToCSV", fileName, err)
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
