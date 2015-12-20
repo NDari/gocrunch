@@ -580,7 +580,7 @@ func (m *mat) Scale(f float64) *mat {
 }
 
 func (m *mat) Sum(axis, slice int) float64 {
-	if axis != 0 || axis != 1 {
+	if axis == 0 && axis != 1 {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, the first argument must be 0 or 1, however %d "
 		s += "was recieved.\n"
