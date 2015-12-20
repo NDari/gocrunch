@@ -1,11 +1,15 @@
 /*
-Package mat implements function that create or act upon 2D slices of
-`float64`. This is in essence the same concept of a matrix in other
-languages.
+Package mat implements a "mat" object, which behaves like a 2-dimensional array
+or list in other programming languages. Under the hood, the mat object is a
+flat slice, which provides for optimal performance in Go, while the methods
+and contructors provide for a higher level of performance and abstraction
+when compared to the "2D" slices of go (slices of slices).
 
-The 2D slices acted on or created by the functions below are assumed to
-be non-jagged. This means that for a given [][]float64, the inner slices
-are assumed to be of the same length.
+All errors encountered in this package, such as attempting to access an
+element out of bounds are treated as critical error, and thus, the code
+immidiately exits with signal 1. In such cases, the function/method in
+which the error was encountered is printed to the screen, in addition
+to the full stack trace, in order to help fix the issue rapidly.
 */
 package mat
 
@@ -27,6 +31,12 @@ type elementFunc func(*float64)
 type booleanFunc func(*float64) bool
 type reducerFunc func(accumulator *float64, next float64)
 
+/*
+New is the primary constructor for the "mat" object. The "r" and "c" params
+are expected to be greater than zero, and the values of the mat object are
+initialized to 0.0, which is the default behavior of Go for slices of
+float64s.
+*/
 func New(r, c int) *mat {
 	if r <= 0 {
 		fmt.Println("\nNumgo/mat error.")
@@ -55,6 +65,12 @@ func New(r, c int) *mat {
 	}
 }
 
+/*
+FromSlice generated a mat object from a [][]float64 slice. The slice is
+checked for being a non-jagged slice, where each row contains the same
+number of elements. The creation of a mat object from jagged 2D slices
+is not supported as on yet.
+*/
 func FromSlice(s [][]float64) *mat {
 	if s == nil {
 		fmt.Println("\nNumgo/mat error.")
@@ -96,6 +112,11 @@ func isJagged(s [][]float64) bool {
 	return false
 }
 
+/*
+From1DSlice creates a mat object from a slice of float64s. The created mat
+object has one row, and the number of coloumns equal to the length of the
+1D slice from which it was created.
+*/
 func From1DSlice(s []float64) *mat {
 	if s == nil {
 		fmt.Println("\nNumgo/mat error.")
@@ -112,6 +133,18 @@ func From1DSlice(s []float64) *mat {
 	return m
 }
 
+/*
+FromCSV creates a mat object from a CSV (comma separated values) file. Here, we
+assume that the number of rows of the resultant mat object is equal to the
+number of lines, and the number of columns is equal to the number of entries
+in each line. As before, we make sure that each line contains the same number
+of elements.
+
+The file to be read is assumed to be very large, and hence it is read one line
+at a time. This results in some major inefficiences, and it is reccommanded
+that this function is used sparingly, and not as a major component of your
+library/executable.
+*/
 func FromCSV(filename string) *mat {
 	f, err := os.Open(filename)
 	if err != nil {
@@ -131,9 +164,6 @@ func FromCSV(filename string) *mat {
 	// Then we will read the rest of the lines one at a time, checking that the
 	// number of entries in each line is the same as the first line, and
 	// incrementing the number of rows each time.
-	//
-	// Another thing to note is that since we are assuming that the file is
-	// large, I am going to create a Bare mat.
 	str, err := r.Read()
 	if err != nil {
 		fmt.Println("\nNumgo/mat error.")
@@ -198,6 +228,11 @@ func FromCSV(filename string) *mat {
 	return m
 }
 
+/*
+Reshape changes the row and the columns of the mat object as long as the total
+number of values contained in the mat object remains constant. The order and
+the values of the the mat does not change with this function.
+*/
 func (m *mat) Reshape(rows, cols int) *mat {
 	if rows <= 0 {
 		fmt.Println("\nNumgo/mat error.")
@@ -235,16 +270,25 @@ func (m *mat) Reshape(rows, cols int) *mat {
 	return m
 }
 
+/*
+Dims returns the number of rows and columns of a mat object.
+*/
 func (m *mat) Dims() (int, int) {
 	return m.r, m.c
 }
 
+/*
+Vals returns the values contained in a mat object as a 1D slice of float64s.
+*/
 func (m *mat) Vals() []float64 {
 	s := make([]float64, m.r*m.c)
 	copy(s, m.vals)
 	return s
 }
 
+/*
+ToSlice returns the values of a mat object as a 2D slice of float64s.
+*/
 func (m *mat) ToSlice() [][]float64 {
 	s := make([][]float64, m.r)
 	for i := 0; i < m.r; i++ {
@@ -256,6 +300,11 @@ func (m *mat) ToSlice() [][]float64 {
 	return s
 }
 
+/*
+ToCSV creates a file with the passed name, and writes the content of a mat
+object to it, by putting each row in a single comma separated line. The
+number of entries in each line is equal to the columns of the mat object.
+*/
 func (m *mat) ToCSV(fileName string) {
 	f, err := os.Create(fileName)
 	if err != nil {
@@ -294,6 +343,10 @@ func (m *mat) ToCSV(fileName string) {
 	}
 }
 
+/*
+Map applies a given function to each element of a mat object. The given
+function must take a pointer to a float64, and return nothing.
+*/
 func (m *mat) Map(f elementFunc) *mat {
 	for i := 0; i < m.r*m.c; i++ {
 		f(&m.vals[i])
@@ -301,6 +354,9 @@ func (m *mat) Map(f elementFunc) *mat {
 	return m
 }
 
+/*
+Ones sets all values of a mat to be equal to 1.0
+*/
 func (m *mat) Ones() *mat {
 	f := func(i *float64) {
 		*i = 1.0
@@ -309,6 +365,12 @@ func (m *mat) Ones() *mat {
 	return m.Map(f)
 }
 
+/*
+Inc takes each element of a mat object, and starting from 0.0, sets their
+value to be the value of the previous entry plus 1.0. In other words, the
+first few values of a mat object after this operation would be 0.0, 1.0,
+2.0, ...
+*/
 func (m *mat) Inc() *mat {
 	for i := 0; i < m.r*m.c; i++ {
 		m.vals[i] = float64(i)
@@ -316,6 +378,9 @@ func (m *mat) Inc() *mat {
 	return m
 }
 
+/*
+Reset sets all values of a mat object to 0.0
+*/
 func (m *mat) Reset() *mat {
 	f := func(i *float64) {
 		*i = 0.0
@@ -324,10 +389,15 @@ func (m *mat) Reset() *mat {
 	return m.Map(f)
 }
 
+/*
+Col returns a new mat object whole values are equal to a column of the original
+mat object. The number of Rows of the returned mat object is equal to the
+number of rows of the original mat, and the number of columns is equal to 1.
+*/
 func (m *mat) Col(x int) *mat {
 	if (x >= m.c) || (x < 0) {
 		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s the requested column %d is outside of the bounds [0, %d]\n"
+		s := "In mat.%s the requested column %d is outside of bounds [0, %d]\n"
 		s = fmt.Sprintf(s, "Col", x, m.c)
 		fmt.Println(s)
 		fmt.Println("Stack trace for this error:")
@@ -341,6 +411,11 @@ func (m *mat) Col(x int) *mat {
 	return v
 }
 
+/*
+Row returns a new mat object whose values are equal to a row of the original
+mat object. The number of Rows of the returned mat object is equal to 1, and
+the number of columns is equal to the number of columns of the original mat.
+*/
 func (m *mat) Row(x int) *mat {
 	if (x >= m.r) || (x < 0) {
 		fmt.Println("\nNumgo/mat error.")
