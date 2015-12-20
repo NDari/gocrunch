@@ -483,3 +483,21 @@ func TestScale(t *testing.T) {
 		}
 	}
 }
+
+func TestSum(t *testing.T) {
+	row := 12
+	col := 17
+	m := New(row, col).Ones()
+	for i := 0; i < row; i++ {
+		q := m.Sum(0, i)
+		if q != float64(col) {
+			t.Errorf("at %d expected sum to be %d, got %f", i, col, q)
+		}
+	}
+	for i := 0; i < col; i++ {
+		q := m.Sum(1, i)
+		if q != float64(row) {
+			t.Errorf("at %d expected sum to be %d, got %f", i, row, q)
+		}
+	}
+}
