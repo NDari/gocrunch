@@ -662,9 +662,9 @@ func (m *mat) Average(axis, slice int) float64 {
 	}
 	sum := m.precheckedSum(axis, slice)
 	if axis == 0 {
-		return float64(m.r) / sum
+		return sum / float64(m.c)
 	}
-	return float64(m.c) / sum
+	return sum / float64(m.r)
 }
 
 func (m *mat) Prod(axis, slice int) float64 {

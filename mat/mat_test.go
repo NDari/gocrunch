@@ -182,11 +182,13 @@ func TestToSlice(t *testing.T) {
 
 func TestToCSV(t *testing.T) {
 	m := New(23, 17).Inc()
-	m.ToCSV("tocsv_test.csv")
-	n := FromCSV("tocsv_test.csv")
+	filename := "tocsv_test.csv"
+	m.ToCSV(filename)
+	n := FromCSV(filename)
 	if !n.Equals(m) {
 		t.Errorf("m and n are not equal")
 	}
+	os.Remove(filename)
 }
 
 func TestMap(t *testing.T) {
@@ -491,13 +493,49 @@ func TestSum(t *testing.T) {
 	for i := 0; i < row; i++ {
 		q := m.Sum(0, i)
 		if q != float64(col) {
-			t.Errorf("at %d expected sum to be %d, got %f", i, col, q)
+			t.Errorf("at row %d expected sum to be %d, got %f", i, col, q)
 		}
 	}
 	for i := 0; i < col; i++ {
 		q := m.Sum(1, i)
 		if q != float64(row) {
-			t.Errorf("at %d expected sum to be %d, got %f", i, row, q)
+			t.Errorf("at col %d expected sum to be %d, got %f", i, row, q)
+		}
+	}
+}
+
+func TestAverage(t *testing.T) {
+	row := 12
+	col := 17
+	m := New(row, col).Ones()
+	for i := 0; i < row; i++ {
+		q := m.Average(0, i)
+		if q != 1.0 {
+			t.Errorf("at row %d expected average to be 1.0, got %f", i, q)
+		}
+	}
+	for i := 0; i < col; i++ {
+		q := m.Average(1, i)
+		if q != 1.0 {
+			t.Errorf("at col %d expected average to be 1.0, got %f", i, q)
+		}
+	}
+}
+
+func TestProd(t *testing.T) {
+	row := 12
+	col := 17
+	m := New(row, col).Ones()
+	for i := 0; i < row; i++ {
+		q := m.Prod(0, i)
+		if q != 1.0 {
+			t.Errorf("at row %d expected product to be 1.0, got %f", i, q)
+		}
+	}
+	for i := 0; i < col; i++ {
+		q := m.Prod(1, i)
+		if q != 1.0 {
+			t.Errorf("at col %d expected product to be 1.0, got %f", i, q)
 		}
 	}
 }
