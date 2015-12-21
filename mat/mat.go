@@ -611,6 +611,10 @@ func (m *mat) Sum(axis, slice int) float64 {
 			os.Exit(1)
 		}
 	}
+	return m.precheckedSum(axis, slice)
+}
+
+func (m *mat) precheckedSum(axis, slice int) float64 {
 	x := 0.0
 	if axis == 0 {
 		for i := 0; i < m.c; i++ {
@@ -624,12 +628,88 @@ func (m *mat) Sum(axis, slice int) float64 {
 	return x
 }
 
-func (m *mat) Average() {
-	return
+func (m *mat) Average(axis, slice int) float64 {
+	if axis != 0 && axis != 1 {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, the first argument must be 0 or 1, however %d "
+		s += "was recieved.\n"
+		s = fmt.Sprintf(s, "Average", axis)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	if axis == 0 {
+		if (slice >= m.r) || (slice < 0) {
+			fmt.Println("\nNumgo/mat error.")
+			s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
+			s = fmt.Sprintf(s, "Average", slice, m.r)
+			fmt.Println(s)
+			fmt.Println("Stack trace for this error:")
+			debug.PrintStack()
+			os.Exit(1)
+		}
+	} else if axis == 1 {
+		if (slice >= m.c) || (slice < 0) {
+			fmt.Println("\nNumgo/mat error.")
+			s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
+			s = fmt.Sprintf(s, "Average", slice, m.c)
+			fmt.Println(s)
+			fmt.Println("Stack trace for this error:")
+			debug.PrintStack()
+			os.Exit(1)
+		}
+	}
+	sum := m.precheckedSum(axis, slice)
+	if axis == 0 {
+		return float64(m.r) / sum
+	}
+	return float64(m.c) / sum
 }
 
-func (m *mat) Prod() {
-	return
+func (m *mat) Prod(axis, slice int) float64 {
+	if axis != 0 && axis != 1 {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, the first argument must be 0 or 1, however %d "
+		s += "was recieved.\n"
+		s = fmt.Sprintf(s, "Prod", axis)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	if axis == 0 {
+		if (slice >= m.r) || (slice < 0) {
+			fmt.Println("\nNumgo/mat error.")
+			s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
+			s = fmt.Sprintf(s, "Prod", slice, m.r)
+			fmt.Println(s)
+			fmt.Println("Stack trace for this error:")
+			debug.PrintStack()
+			os.Exit(1)
+		}
+	} else if axis == 1 {
+		if (slice >= m.c) || (slice < 0) {
+			fmt.Println("\nNumgo/mat error.")
+			s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
+			s = fmt.Sprintf(s, "Prod", slice, m.c)
+			fmt.Println(s)
+			fmt.Println("Stack trace for this error:")
+			debug.PrintStack()
+			os.Exit(1)
+		}
+	}
+	x := 1.0
+	if axis == 0 {
+		for i := 0; i < m.c; i++ {
+			x *= m.vals[slice*m.c+i]
+		}
+	} else if axis == 1 {
+		for i := 0; i < m.r; i++ {
+			x *= m.vals[i*m.c+slice]
+		}
+	}
+	return x
 }
 
 func (m *mat) Std() {
