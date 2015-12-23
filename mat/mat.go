@@ -23,7 +23,17 @@ import (
 	"strconv"
 )
 
-type mat struct {
+/*
+Mat is the main struct of this library. Mat is a essentially a 1D slice
+(a []float64) that contains two integers, representing rows and columns,
+which allow it to behave as if it was a 2D slice. This allows for higher
+performance and flexibility for the users of this library, at the expense
+of some bookkeeping that is done here.
+
+The fields of this struct are not directly accessible, and they may only
+change by the use of the various methods in this library.
+*/
+type Mat struct {
 	r, c int
 	vals []float64
 }
@@ -38,7 +48,7 @@ are expected to be greater than zero, and the values of the mat object are
 initialized to 0.0, which is the default behavior of Go for slices of
 float64s.
 */
-func New(r, c int) *mat {
+func New(r, c int) *Mat {
 	if r <= 0 {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s, the number of rows must be greater than '0', but\n"
@@ -72,7 +82,7 @@ checked for being a non-jagged slice, where each row contains the same
 number of elements. The creation of a mat object from jagged 2D slices
 is not supported as on yet.
 */
-func FromSlice(s [][]float64) *mat {
+func FromSlice(s [][]float64) *Mat {
 	if s == nil {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s, an unallocated 2D slice was recieved, where the slice\n"
@@ -87,7 +97,7 @@ func FromSlice(s [][]float64) *mat {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s, a 'jagged' 2D slice was recieved, where the rows\n"
 		s += "(the inner slice of the 2D slice) have different lengths. The\n"
-		s += "creation of a *mat from jagged slices is not supported.\n"
+		s += "creation of a *Mat from jagged slices is not supported.\n"
 		s = fmt.Sprintf(s, "FromSlice")
 		fmt.Println(s)
 		fmt.Println("Stack trace for this error:")
@@ -118,7 +128,7 @@ From1DSlice creates a mat object from a slice of float64s. The created mat
 object has one row, and the number of columns equal to the length of the
 1D slice from which it was created.
 */
-func From1DSlice(s []float64) *mat {
+func From1DSlice(s []float64) *Mat {
 	if s == nil {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s, an unallocated 1D slice was recieved, where the slice\n"
@@ -146,7 +156,7 @@ at a time. This results in some major inefficiencies, and it is recommended
 that this function be used sparingly, and not as a major component of your
 library/executable.
 */
-func FromCSV(filename string) *mat {
+func FromCSV(filename string) *Mat {
 	f, err := os.Open(filename)
 	if err != nil {
 		fmt.Println("\nNumgo/mat error.")
@@ -217,7 +227,7 @@ func FromCSV(filename string) *mat {
 			fmt.Println("\nNumgo/mat error.")
 			s := "In mat.%v, line %d in %s has %d entries. The first line\n"
 			s += "(line 1) has %d entries.\n"
-			s += "Creation of a *mat from jagged slices is not supported.\n"
+			s += "Creation of a *Mat from jagged slices is not supported.\n"
 			s = fmt.Sprintf(s, "Load", filename, err)
 			fmt.Println(s)
 			fmt.Println("Stack trace for this error:")
@@ -234,7 +244,7 @@ Reshape changes the row and the columns of the mat object as long as the total
 number of values contained in the mat object remains constant. The order and
 the values of the mat does not change with this function.
 */
-func (m *mat) Reshape(rows, cols int) *mat {
+func (m *Mat) Reshape(rows, cols int) *Mat {
 	if rows <= 0 {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s, the number of rows must be greater than '0', but\n"
@@ -274,14 +284,14 @@ func (m *mat) Reshape(rows, cols int) *mat {
 /*
 Dims returns the number of rows and columns of a mat object.
 */
-func (m *mat) Dims() (int, int) {
+func (m *Mat) Dims() (int, int) {
 	return m.r, m.c
 }
 
 /*
 Vals returns the values contained in a mat object as a 1D slice of float64s.
 */
-func (m *mat) Vals() []float64 {
+func (m *Mat) Vals() []float64 {
 	s := make([]float64, m.r*m.c)
 	copy(s, m.vals)
 	return s
@@ -290,7 +300,7 @@ func (m *mat) Vals() []float64 {
 /*
 ToSlice returns the values of a mat object as a 2D slice of float64s.
 */
-func (m *mat) ToSlice() [][]float64 {
+func (m *Mat) ToSlice() [][]float64 {
 	s := make([][]float64, m.r)
 	for i := 0; i < m.r; i++ {
 		s[i] = make([]float64, m.c)
@@ -306,7 +316,7 @@ ToCSV creates a file with the passed name, and writes the content of a mat
 object to it, by putting each row in a single comma separated line. The
 number of entries in each line is equal to the columns of the mat object.
 */
-func (m *mat) ToCSV(fileName string) {
+func (m *Mat) ToCSV(fileName string) {
 	f, err := os.Create(fileName)
 	if err != nil {
 		fmt.Println("\nNumgo/mat error.")
@@ -348,7 +358,7 @@ func (m *mat) ToCSV(fileName string) {
 Map applies a given function to each element of a mat object. The given
 function must take a pointer to a float64, and return nothing.
 */
-func (m *mat) Map(f elementFunc) *mat {
+func (m *Mat) Map(f elementFunc) *Mat {
 	for i := 0; i < m.r*m.c; i++ {
 		f(&m.vals[i])
 	}
@@ -358,7 +368,7 @@ func (m *mat) Map(f elementFunc) *mat {
 /*
 Ones sets all values of a mat to be equal to 1.0
 */
-func (m *mat) Ones() *mat {
+func (m *Mat) Ones() *Mat {
 	f := func(i *float64) {
 		*i = 1.0
 		return
@@ -372,7 +382,7 @@ value to be the value of the previous entry plus 1.0. In other words, the
 first few values of a mat object after this operation would be 0.0, 1.0,
 2.0, ...
 */
-func (m *mat) Inc() *mat {
+func (m *Mat) Inc() *Mat {
 	for i := 0; i < m.r*m.c; i++ {
 		m.vals[i] = float64(i)
 	}
@@ -382,7 +392,7 @@ func (m *mat) Inc() *mat {
 /*
 Reset sets all values of a mat object to 0.0
 */
-func (m *mat) Reset() *mat {
+func (m *Mat) Reset() *Mat {
 	f := func(i *float64) {
 		*i = 0.0
 		return
@@ -395,7 +405,7 @@ Col returns a new mat object whole values are equal to a column of the original
 mat object. The number of Rows of the returned mat object is equal to the
 number of rows of the original mat, and the number of columns is equal to 1.
 */
-func (m *mat) Col(x int) *mat {
+func (m *Mat) Col(x int) *Mat {
 	if (x >= m.c) || (x < 0) {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s the requested column %d is outside of bounds [0, %d)\n"
@@ -417,7 +427,7 @@ Row returns a new mat object whose values are equal to a row of the original
 mat object. The number of Rows of the returned mat object is equal to 1, and
 the number of columns is equal to the number of columns of the original mat.
 */
-func (m *mat) Row(x int) *mat {
+func (m *Mat) Row(x int) *Mat {
 	if (x >= m.r) || (x < 0) {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s the requested row %d is outside of the bounds [0, %d)\n"
@@ -439,7 +449,7 @@ Equals checks to see if two mat objects are equal. That mean that the two mats
 have the same number of rows, same number of columns, and have the same float64
 in each entry at a given index.
 */
-func (m *mat) Equals(n *mat) bool {
+func (m *Mat) Equals(n *Mat) bool {
 	if m.r != n.r {
 		return false
 	}
@@ -458,7 +468,7 @@ func (m *mat) Equals(n *mat) bool {
 Copy returns a duplicate of a mat object. The returned copy is "deep", meaning
 that the object can be manipulated without effecting the original mat object.
 */
-func (m *mat) Copy() *mat {
+func (m *Mat) Copy() *Mat {
 	n := New(m.r, m.c)
 	copy(n.vals, m.vals)
 	return n
@@ -471,7 +481,7 @@ placed at row y, and column x. The number of rows and column of the transposed
 mat are equal to the number of columns and rows of the original matrix,
 respectively.
 */
-func (m *mat) T() *mat {
+func (m *Mat) T() *Mat {
 	n := New(m.c, m.r)
 	idx := 0
 	for i := 0; i < m.c; i++ {
@@ -492,7 +502,7 @@ from all the positive elements of the original matrix. If no elements return
 true for a given function, nil is returned. It is expected that the caller
 of this method checks the returned value to ensure that it is not nil.
 */
-func (m *mat) Filter(f booleanFunc) *mat {
+func (m *Mat) Filter(f booleanFunc) *Mat {
 	var res []float64
 	for i := 0; i < m.r*m.c; i++ {
 		if f(&m.vals[i]) {
@@ -513,7 +523,7 @@ For instance, if a supplied function returns true for negative values and
 false otherwise, then All would be true if and only if all elements of the
 mat object are negative.
 */
-func (m *mat) All(f booleanFunc) bool {
+func (m *Mat) All(f booleanFunc) bool {
 	for i := 0; i < m.r*m.c; i++ {
 		if !f(&m.vals[i]) {
 			return false
@@ -528,7 +538,7 @@ For instance, if a supplied function returns true for negative values and
 false otherwise, then Any would be true if at least one element of the mat
 object is negative.
 */
-func (m *mat) Any(f booleanFunc) bool {
+func (m *Mat) Any(f booleanFunc) bool {
 	for i := 0; i < m.r*m.c; i++ {
 		if f(&m.vals[i]) {
 			return true
@@ -537,7 +547,7 @@ func (m *mat) Any(f booleanFunc) bool {
 	return false
 }
 
-func (m *mat) CombineWith(n *mat, how reducerFunc) *mat {
+func (m *Mat) CombineWith(n *Mat, how reducerFunc) *Mat {
 	if m.r != n.r {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, the number of the rows of the first mat is %d\n"
@@ -566,28 +576,28 @@ func (m *mat) CombineWith(n *mat, how reducerFunc) *mat {
 	return m
 }
 
-func (m *mat) Mul(n *mat) *mat {
+func (m *Mat) Mul(n *Mat) *Mat {
 	for i := 0; i < m.r*m.c; i++ {
 		m.vals[i] *= n.vals[i]
 	}
 	return m
 }
 
-func (m *mat) Add(n *mat) *mat {
+func (m *Mat) Add(n *Mat) *Mat {
 	for i := 0; i < m.r*m.c; i++ {
 		m.vals[i] += n.vals[i]
 	}
 	return m
 }
 
-func (m *mat) Sub(n *mat) *mat {
+func (m *Mat) Sub(n *Mat) *Mat {
 	for i := 0; i < m.r*m.c; i++ {
 		m.vals[i] -= n.vals[i]
 	}
 	return m
 }
 
-func (m *mat) Div(n *mat) *mat {
+func (m *Mat) Div(n *Mat) *Mat {
 	zero := func(i *float64) bool {
 		if *i == 0.0 {
 			return true
@@ -610,14 +620,14 @@ func (m *mat) Div(n *mat) *mat {
 	return m
 }
 
-func (m *mat) Scale(f float64) *mat {
+func (m *Mat) Scale(f float64) *Mat {
 	for i := 0; i < m.r*m.c; i++ {
 		m.vals[i] *= f
 	}
 	return m
 }
 
-func (m *mat) Sum(axis, slice int) float64 {
+func (m *Mat) Sum(axis, slice int) float64 {
 	if axis != 0 && axis != 1 {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, the first argument must be 0 or 1, however %d "
@@ -652,7 +662,7 @@ func (m *mat) Sum(axis, slice int) float64 {
 	return m.precheckedSum(axis, slice)
 }
 
-func (m *mat) precheckedSum(axis, slice int) float64 {
+func (m *Mat) precheckedSum(axis, slice int) float64 {
 	x := 0.0
 	if axis == 0 {
 		for i := 0; i < m.c; i++ {
@@ -666,7 +676,7 @@ func (m *mat) precheckedSum(axis, slice int) float64 {
 	return x
 }
 
-func (m *mat) Average(axis, slice int) float64 {
+func (m *Mat) Average(axis, slice int) float64 {
 	if axis != 0 && axis != 1 {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, the first argument must be 0 or 1, however %d "
@@ -701,7 +711,7 @@ func (m *mat) Average(axis, slice int) float64 {
 	return m.precheckedAverage(axis, slice)
 }
 
-func (m *mat) precheckedAverage(axis, slice int) float64 {
+func (m *Mat) precheckedAverage(axis, slice int) float64 {
 	sum := m.precheckedSum(axis, slice)
 	if axis == 0 {
 		return sum / float64(m.c)
@@ -709,7 +719,7 @@ func (m *mat) precheckedAverage(axis, slice int) float64 {
 	return sum / float64(m.r)
 }
 
-func (m *mat) Prod(axis, slice int) float64 {
+func (m *Mat) Prod(axis, slice int) float64 {
 	if axis != 0 && axis != 1 {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, the first argument must be 0 or 1, however %d "
@@ -754,7 +764,7 @@ func (m *mat) Prod(axis, slice int) float64 {
 	return x
 }
 
-func (m *mat) Std(axis, slice int) float64 {
+func (m *Mat) Std(axis, slice int) float64 {
 	if axis != 0 && axis != 1 {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, the first argument must be 0 or 1, however %d "
