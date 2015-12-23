@@ -539,3 +539,21 @@ func TestProd(t *testing.T) {
 		}
 	}
 }
+
+func TestStd(t *testing.T) {
+	row := 12
+	col := 17
+	m := New(row, col).Ones()
+	for i := 0; i < row; i++ {
+		q := m.Std(0, i)
+		if q != 0.0 {
+			t.Errorf("at row %d expected std-div to be 0.0, got %f", i, q)
+		}
+	}
+	for i := 0; i < col; i++ {
+		q := m.Std(1, i)
+		if q != 0.0 {
+			t.Errorf("at col %d expected product to be 0.0, got %f", i, q)
+		}
+	}
+}

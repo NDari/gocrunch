@@ -17,6 +17,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"runtime/debug"
 	"strconv"
@@ -660,6 +661,10 @@ func (m *mat) Average(axis, slice int) float64 {
 			os.Exit(1)
 		}
 	}
+	return m.precheckedAverage(axis, slice)
+}
+
+func (m *mat) precheckedAverage(axis, slice int) float64 {
 	sum := m.precheckedSum(axis, slice)
 	if axis == 0 {
 		return sum / float64(m.c)
@@ -712,8 +717,58 @@ func (m *mat) Prod(axis, slice int) float64 {
 	return x
 }
 
-func (m *mat) Std() {
-	return
+func (m *mat) Std(axis, slice int) float64 {
+	if axis != 0 && axis != 1 {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, the first argument must be 0 or 1, however %d "
+		s += "was recieved.\n"
+		s = fmt.Sprintf(s, "Std", axis)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	if axis == 0 {
+		if (slice >= m.r) || (slice < 0) {
+			fmt.Println("\nNumgo/mat error.")
+			s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
+			s = fmt.Sprintf(s, "Std", slice, m.r)
+			fmt.Println(s)
+			fmt.Println("Stack trace for this error:")
+			debug.PrintStack()
+			os.Exit(1)
+		}
+	} else if axis == 1 {
+		if (slice >= m.c) || (slice < 0) {
+			fmt.Println("\nNumgo/mat error.")
+			s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
+			s = fmt.Sprintf(s, "Std", slice, m.c)
+			fmt.Println(s)
+			fmt.Println("Stack trace for this error:")
+			debug.PrintStack()
+			os.Exit(1)
+		}
+	}
+	avg := m.precheckedAverage(axis, slice)
+	var s []float64
+	if axis == 0 {
+		s = make([]float64, m.c)
+		for i := 0; i < m.c; i++ {
+			s[i] = avg - m.vals[slice*m.c+i]
+			s[i] *= s[i]
+		}
+	} else {
+		s = make([]float64, m.r)
+		for i := 0; i < m.r; i++ {
+			s[i] = avg - m.vals[i*m.c+slice]
+			s[i] *= s[i]
+		}
+	}
+	sum := 0.0
+	for i := range s {
+		sum += s[i]
+	}
+	return math.Sqrt(sum / float64(len(s)))
 }
 
 // /*
@@ -757,73 +812,6 @@ func (m *mat) Std() {
 // 		}
 // 	}
 // 	return o
-// }
-
-// /*
-// ToString converts a `[][]float64` to `[][]string`.
-// */
-// func ToString(m [][]float64) [][]string {
-// 	str := make([][]string, len(m))
-// 	for i := range m {
-// 		str[i] = make([]string, len(m[i]))
-// 		for j := range m[i] {
-// 			str[i][j] = strconv.FormatFloat(m[i][j], 'e', 14, 64)
-// 		}
-// 	}
-// 	return str
-// }
-
-// /*
-// FromString converts a `[][]string` to `[][]float64`.
-// */
-// func FromString(str [][]string) [][]float64 {
-// 	var err error
-// 	m := make([][]float64, len(str))
-// 	for i := range str {
-// 		m[i] = make([]float64, len(str[i]))
-// 		for j := 0; j < len(str[i]); j++ {
-// 			m[i][j], err = strconv.ParseFloat(str[i][j], 64)
-// 			if err != nil {
-// 				fmt.Println("\nNumgo/mat error.")
-// 				s := "In mat.%v, item %d in line %d (0-indices) due to: %v.\n"
-// 				s = fmt.Sprintf(s, "FromString", i, j, err)
-// 				fmt.Println(s)
-// 				fmt.Println("Stack trace for this error:\n")
-// 				debug.PrintStack()
-// 				os.Exit(1)
-// 			}
-// 		}
-// 	}
-// 	return m
-// }
-
-// /*
-// Load generates a 2D slice of floats from a CSV file.
-// */
-// func Load(fileName string) [][]float64 {
-// 	f, err := os.Open(fileName)
-// 	if err != nil {
-// 		fmt.Println("\nNumgo/mat error.")
-// 		s := "In mat.%v, cannot open %s due to error: %v.\n"
-// 		s = fmt.Sprintf(s, "Load", fileName, err)
-// 		fmt.Println(s)
-// 		fmt.Println("Stack trace for this error:\n")
-// 		debug.PrintStack()
-// 		os.Exit(1)
-// 	}
-// 	defer f.Close()
-// 	r := csv.NewReader(f)
-// 	str, err := r.ReadAll()
-// 	if err != nil {
-// 		fmt.Println("\nNumgo/mat error.")
-// 		s := "In mat.%v, cannot read from %s due to error: %v.\n"
-// 		s = fmt.Sprintf(s, "Load", fileName, err)
-// 		fmt.Println(s)
-// 		fmt.Println("Stack trace for this error:\n")
-// 		debug.PrintStack()
-// 		os.Exit(1)
-// 	}
-// 	return FromString(str)
 // }
 
 // /*
