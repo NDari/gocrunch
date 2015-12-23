@@ -69,7 +69,7 @@ func New(r, c int) *Mat {
 		debug.PrintStack()
 		os.Exit(1)
 	}
-	return &mat{
+	return &Mat{
 		r,
 		c,
 		make([]float64, r*c),
