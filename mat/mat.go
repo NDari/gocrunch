@@ -2,12 +2,12 @@
 Package mat implements a "mat" object, which behaves like a 2-dimensional array
 or list in other programming languages. Under the hood, the mat object is a
 flat slice, which provides for optimal performance in Go, while the methods
-and contructors provide for a higher level of performance and abstraction
+and constructors provide for a higher level of performance and abstraction
 when compared to the "2D" slices of go (slices of slices).
 
 All errors encountered in this package, such as attempting to access an
 element out of bounds are treated as critical error, and thus, the code
-immidiately exits with signal 1. In such cases, the function/method in
+immediately exits with signal 1. In such cases, the function/method in
 which the error was encountered is printed to the screen, in addition
 to the full stack trace, in order to help fix the issue rapidly.
 */
@@ -115,7 +115,7 @@ func isJagged(s [][]float64) bool {
 
 /*
 From1DSlice creates a mat object from a slice of float64s. The created mat
-object has one row, and the number of coloumns equal to the length of the
+object has one row, and the number of columns equal to the length of the
 1D slice from which it was created.
 */
 func From1DSlice(s []float64) *mat {
@@ -142,8 +142,8 @@ in each line. As before, we make sure that each line contains the same number
 of elements.
 
 The file to be read is assumed to be very large, and hence it is read one line
-at a time. This results in some major inefficiences, and it is reccommanded
-that this function is used sparingly, and not as a major component of your
+at a time. This results in some major inefficiencies, and it is recommended
+that this function be used sparingly, and not as a major component of your
 library/executable.
 */
 func FromCSV(filename string) *mat {
@@ -161,7 +161,7 @@ func FromCSV(filename string) *mat {
 	r := csv.NewReader(f)
 	// I am going with the assumption that a mat loaded from a CSV is going to
 	// be large. So, we are going to read one line, and determine the number
-	// of coloumns based on the number of comma separated strings in that line.
+	// of columns based on the number of comma separated strings in that line.
 	// Then we will read the rest of the lines one at a time, checking that the
 	// number of entries in each line is the same as the first line, and
 	// incrementing the number of rows each time.
@@ -232,7 +232,7 @@ func FromCSV(filename string) *mat {
 /*
 Reshape changes the row and the columns of the mat object as long as the total
 number of values contained in the mat object remains constant. The order and
-the values of the the mat does not change with this function.
+the values of the mat does not change with this function.
 */
 func (m *mat) Reshape(rows, cols int) *mat {
 	if rows <= 0 {
@@ -434,6 +434,11 @@ func (m *mat) Row(x int) *mat {
 	return v
 }
 
+/*
+Equals checks to see if two mat objects are equal. That mean that the two mats
+have the same number of rows, same number of columns, and have the same float64
+in each entry at a given index.
+*/
 func (m *mat) Equals(n *mat) bool {
 	if m.r != n.r {
 		return false
@@ -449,12 +454,23 @@ func (m *mat) Equals(n *mat) bool {
 	return true
 }
 
+/*
+Copy returns a duplicate of a mat object. The returned copy is "deep", meaning
+that the object can be manipulated without effecting the original mat object.
+*/
 func (m *mat) Copy() *mat {
 	n := New(m.r, m.c)
 	copy(n.vals, m.vals)
 	return n
 }
 
+/*
+T returns the transpose of the original matrix. The transpose of a mat object
+is defined in the usual manner, where every value at row x, and column y is
+placed at row y, and column x. The number of rows and column of the transposed
+mat are equal to the number of columns and rows of the original matrix,
+respectively.
+*/
 func (m *mat) T() *mat {
 	n := New(m.c, m.r)
 	idx := 0
@@ -467,6 +483,15 @@ func (m *mat) T() *mat {
 	return n
 }
 
+/*
+Filter applies a function to each element of a mat object, creating a new
+mat object from all elements for which the function returned true. For
+example, given a function that takes a float64, returning true for numbers
+greater than zero and false otherwise, This method created a new mat object
+from all the positive elements of the original matrix. If no elements return
+true for a given function, nil is returned. It is expected that the caller
+of this method checks the returned value to ensure that it is not nil.
+*/
 func (m *mat) Filter(f booleanFunc) *mat {
 	var res []float64
 	for i := 0; i < m.r*m.c; i++ {
@@ -482,6 +507,12 @@ func (m *mat) Filter(f booleanFunc) *mat {
 	}
 }
 
+/*
+All checks if a supplied function is true for all elements of a mat object.
+For instance, if a supplied function returns true for negative values and
+false otherwise, then All would be true if and only if all elements of the
+mat object are negative.
+*/
 func (m *mat) All(f booleanFunc) bool {
 	for i := 0; i < m.r*m.c; i++ {
 		if !f(&m.vals[i]) {
@@ -491,6 +522,12 @@ func (m *mat) All(f booleanFunc) bool {
 	return true
 }
 
+/*
+Any checks if a supplied function is true for one elements of a mat object.
+For instance, if a supplied function returns true for negative values and
+false otherwise, then Any would be true if at least one element of the mat
+object is negative.
+*/
 func (m *mat) Any(f booleanFunc) bool {
 	for i := 0; i < m.r*m.c; i++ {
 		if f(&m.vals[i]) {
