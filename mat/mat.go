@@ -581,7 +581,7 @@ func (m *Mat) Mul(n *Mat) *Mat {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, the number of the rows of the first mat is %d\n"
 		s += "but the number of rows of the second mat is %d. They must\n"
-		s += "match for combination.\n"
+		s += "match.\n"
 		s = fmt.Sprintf(s, "Mul", m.r, n.r)
 		fmt.Println(s)
 		fmt.Println("Stack trace for this error:")
@@ -592,7 +592,7 @@ func (m *Mat) Mul(n *Mat) *Mat {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, the number of the columns of the first mat is %d\n"
 		s += "but the number of columns of the second mat is %d. They must\n"
-		s += "match for combination.\n"
+		s += "match.\n"
 		s = fmt.Sprintf(s, "Mul", m.c, n.c)
 		fmt.Println(s)
 		fmt.Println("Stack trace for this error:")
@@ -610,7 +610,7 @@ func (m *Mat) Add(n *Mat) *Mat {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, the number of the rows of the first mat is %d\n"
 		s += "but the number of rows of the second mat is %d. They must\n"
-		s += "match for combination.\n"
+		s += "match.\n"
 		s = fmt.Sprintf(s, "Add", m.r, n.r)
 		fmt.Println(s)
 		fmt.Println("Stack trace for this error:")
@@ -621,7 +621,7 @@ func (m *Mat) Add(n *Mat) *Mat {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, the number of the columns of the first mat is %d\n"
 		s += "but the number of columns of the second mat is %d. They must\n"
-		s += "match for combination.\n"
+		s += "match.\n"
 		s = fmt.Sprintf(s, "Add", m.c, n.c)
 		fmt.Println(s)
 		fmt.Println("Stack trace for this error:")
@@ -639,7 +639,7 @@ func (m *Mat) Sub(n *Mat) *Mat {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, the number of the rows of the first mat is %d\n"
 		s += "but the number of rows of the second mat is %d. They must\n"
-		s += "match for combination.\n"
+		s += "match.\n"
 		s = fmt.Sprintf(s, "Sub", m.r, n.r)
 		fmt.Println(s)
 		fmt.Println("Stack trace for this error:")
@@ -650,7 +650,7 @@ func (m *Mat) Sub(n *Mat) *Mat {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, the number of the columns of the first mat is %d\n"
 		s += "but the number of columns of the second mat is %d. They must\n"
-		s += "match for combination.\n"
+		s += "match.\n"
 		s = fmt.Sprintf(s, "Sub", m.c, n.c)
 		fmt.Println(s)
 		fmt.Println("Stack trace for this error:")
@@ -668,7 +668,7 @@ func (m *Mat) Div(n *Mat) *Mat {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, the number of the rows of the first mat is %d\n"
 		s += "but the number of rows of the second mat is %d. They must\n"
-		s += "match for combination.\n"
+		s += "match.\n"
 		s = fmt.Sprintf(s, "Div", m.r, n.r)
 		fmt.Println(s)
 		fmt.Println("Stack trace for this error:")
@@ -679,7 +679,7 @@ func (m *Mat) Div(n *Mat) *Mat {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, the number of the columns of the first mat is %d\n"
 		s += "but the number of columns of the second mat is %d. They must\n"
-		s += "match for combination.\n"
+		s += "match.\n"
 		s = fmt.Sprintf(s, "Div", m.c, n.c)
 		fmt.Println(s)
 		fmt.Println("Stack trace for this error:")
