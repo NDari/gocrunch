@@ -537,9 +537,6 @@ Any checks if a supplied function is true for one elements of a mat object.
 For instance, if a supplied function returns true for negative values and
 false otherwise, then Any would be true if at least one element of the mat
 object is negative.
- ```go
- fmt.Println("jo")
- ```
 */
 func (m *Mat) Any(f booleanFunc) bool {
 	for i := 0; i < m.r*m.c; i++ {
