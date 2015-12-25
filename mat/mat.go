@@ -1047,48 +1047,43 @@ func (m *Mat) Std(axis, slice int) float64 {
 	return math.Sqrt(sum / float64(len(s)))
 }
 
-// /*
-// Dot is the matrix multiplication of two 2D slices of `float64`.
-// */
-// func Dot(m, n [][]float64) [][]float64 {
-// 	lenm := len(m)
-// 	// make sure that the length of the row of m matches the length of
-// 	// each column in n.
-// 	for i := range n {
-// 		if lenm != len(n[i]) {
-// 			fmt.Println("\nNumgo/mat error.")
-// 			s := "In mat.%s the length of column %d os the second 2D slice is %d\n"
-// 			s += "which is not equal to the number of rows of the first 2D slice,\n"
-// 			s += "which is %d. They must be equal.\n"
-// 			s = fmt.Sprintf(s, "Mul", i, len(n[i]), lenm)
-// 			fmt.Println(s)
-// 			fmt.Println("Stack trace for this error:\n")
-// 			debug.PrintStack()
-// 			os.Exit(1)
-// 		}
-// 	}
-// 	o := make([][]float64, len(m))
-// 	for i := range m {
-// 		if len(m[i]) != len(n) {
-// 			fmt.Println("\nNumgo/mat error.")
-// 			s := "In mat.%s the length of column %d os the first 2D slice is %d\n"
-// 			s += "which is not equal to the number of rows of the 2nd 2D slice,\n"
-// 			s += "which is %d. They must be equal.\n"
-// 			s = fmt.Sprintf(s, "Mul", i, len(m[i]), len(n))
-// 			fmt.Println(s)
-// 			fmt.Println("Stack trace for this error:\n")
-// 			debug.PrintStack()
-// 			os.Exit(1)
-// 		}
-// 		o[i] = make([]float64, len(n[0]))
-// 		for j := range m[i] {
-// 			for k := range n {
-// 				o[i][j] += m[i][k] * n[k][j]
-// 			}
-// 		}
-// 	}
-// 	return o
-// }
+/*
+Dot is the matrix multiplication of two mat objects. Consider the following two
+mats:
+
+m := New(5, 6)
+n := New(6, 10)
+
+then
+
+o := m.Dot(n)
+
+is a 5 by 10 mat whose element at row i and column j is given by:
+
+Sum(m.Row(i).Mul(n.col(j))
+*/
+func (m *Mat) Dot(n *Mat) *Mat {
+	if m.c != n.r {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the number of columns of the first mat is %d\n"
+		s += "which is not equal to the number of row of the second mat,\n"
+		s += "which is %d. They must be equal.\n"
+		s = fmt.Sprintf(s, "Dot", m.c, n.r)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:\n")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	o := New(m.r, n.c)
+	for i := 0; i < m.r; i++ {
+		for j := 0; j < n.c; j++ {
+			for k := 0; k < m.c; k++ {
+				o.vals[i*o.c+j] += (m.vals[i*m.c+k] * n.vals[k*n.c+j])
+			}
+		}
+	}
+	return o
+}
 
 // /*
 // AppendCol appends a column to the right side of a 2D slice of float64s.

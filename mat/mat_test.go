@@ -557,3 +557,35 @@ func TestStd(t *testing.T) {
 		}
 	}
 }
+
+func TestDot(t *testing.T) {
+	var (
+		row = 10
+		col = 4
+	)
+	m := New(row, col).Inc()
+	n := New(col, row).Inc()
+	o := m.Dot(n)
+	if o.r != row {
+		t.Errorf("o.r: expected %d, got %d", row, o.r)
+	}
+	if o.c != row {
+		t.Errorf("o.c: expected %d, got %d", row, o.c)
+	}
+	p := New(row, row)
+	q := o.Dot(p)
+	for i := 0; i < row*row; i++ {
+		if q.vals[i] != 0.0 {
+			t.Errorf("at index %d expected 0.0 got %f", i, q.vals[i])
+		}
+	}
+}
+
+func BenchmarkDot(b *testing.B) {
+	m := New(150, 130).Inc()
+	n := New(130, 150).Inc()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = m.Dot(n)
+	}
+}
