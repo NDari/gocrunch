@@ -1070,7 +1070,7 @@ func (m *Mat) Dot(n *Mat) *Mat {
 		s += "which is %d. They must be equal.\n"
 		s = fmt.Sprintf(s, "Dot", m.c, n.r)
 		fmt.Println(s)
-		fmt.Println("Stack trace for this error:\n")
+		fmt.Println("Stack trace for this error:")
 		debug.PrintStack()
 		os.Exit(1)
 	}
