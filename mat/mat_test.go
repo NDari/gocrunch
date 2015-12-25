@@ -320,7 +320,7 @@ func TestT(t *testing.T) {
 	}
 }
 
-func BenchmarkMatT(b *testing.B) {
+func BenchmarkT(b *testing.B) {
 	m := New(1000, 251).Inc()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

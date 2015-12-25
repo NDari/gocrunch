@@ -479,7 +479,8 @@ T returns the transpose of the original matrix. The transpose of a mat object
 is defined in the usual manner, where every value at row x, and column y is
 placed at row y, and column x. The number of rows and column of the transposed
 mat are equal to the number of columns and rows of the original matrix,
-respectively.
+respectively. This method creates a new mat object, and the original is
+left intact.
 */
 func (m *Mat) T() *Mat {
 	n := New(m.c, m.r)
@@ -496,11 +497,24 @@ func (m *Mat) T() *Mat {
 /*
 Filter applies a function to each element of a mat object, creating a new
 mat object from all elements for which the function returned true. For
-example, given a function that takes a float64, returning true for numbers
-greater than zero and false otherwise, This method created a new mat object
-from all the positive elements of the original matrix. If no elements return
-true for a given function, nil is returned. It is expected that the caller
-of this method checks the returned value to ensure that it is not nil.
+example consider the following function:
+
+f := func(i float64) bool {
+	if i > 0.0 {
+		return true
+	} else {
+		return false
+	}
+}
+
+then calling
+
+m.Filter(f)
+
+will create a new mat object which contains the positive elements of the
+original matrix. If no elements return true for a given function, nil is
+returned. It is expected that the caller of this method checks the
+returned value to ensure that it is not nil.
 */
 func (m *Mat) Filter(f booleanFunc) *Mat {
 	var res []float64
@@ -519,9 +533,21 @@ func (m *Mat) Filter(f booleanFunc) *Mat {
 
 /*
 All checks if a supplied function is true for all elements of a mat object.
-For instance, if a supplied function returns true for negative values and
-false otherwise, then All would be true if and only if all elements of the
-mat object are negative.
+For instance, consider
+
+positive := func(i float64) bool {
+	if i > 0.0 {
+		return true
+	} else {
+		return false
+	}
+}
+
+Then calling
+
+m.All(positive)
+
+will return true if and only if all elements in m are positive.
 */
 func (m *Mat) All(f booleanFunc) bool {
 	for i := 0; i < m.r*m.c; i++ {
@@ -534,9 +560,22 @@ func (m *Mat) All(f booleanFunc) bool {
 
 /*
 Any checks if a supplied function is true for one elements of a mat object.
-For instance, if a supplied function returns true for negative values and
-false otherwise, then Any would be true if at least one element of the mat
-object is negative.
+For instance,
+
+
+positive := func(i float64) bool {
+	if i > 0.0 {
+		return true
+	} else {
+		return false
+	}
+}
+
+Then calling
+
+m.Any(positive)
+
+would be true if at least one element of the mat object is positive.
 */
 func (m *Mat) Any(f booleanFunc) bool {
 	for i := 0; i < m.r*m.c; i++ {
@@ -547,6 +586,25 @@ func (m *Mat) Any(f booleanFunc) bool {
 	return false
 }
 
+/*
+CombineWith combines a mat object with another, using a function which is
+passed. For example consider the function:
+
+f := func(i, j float64) float64 {
+	return i * j
+}
+
+now consider two mat objects, m, and n, which are of the same shape (same
+number of rows and columns). Then:
+
+m.CombineWith(n, f)
+
+will result in m containing the element by element multiplication with n.
+
+The passed function must have the above signiture, and the two mat objects
+must have the same shape. The result is stored in the mat object which
+calls this method (m in the above example).
+*/
 func (m *Mat) CombineWith(n *Mat, how reducerFunc) *Mat {
 	if m.r != n.r {
 		fmt.Println("\nNumgo/mat error.")
@@ -576,6 +634,14 @@ func (m *Mat) CombineWith(n *Mat, how reducerFunc) *Mat {
 	return m
 }
 
+/*
+Mul is the element-wise multiplication of a mat object by another which is passed
+to this method.
+
+The shape of the mat objects must be the same (same number or rows and columns)
+and the results of the element-wise multiplication is stored in the original
+mat on which the method was invoked.
+*/
 func (m *Mat) Mul(n *Mat) *Mat {
 	if m.r != n.r {
 		fmt.Println("\nNumgo/mat error.")
@@ -605,6 +671,14 @@ func (m *Mat) Mul(n *Mat) *Mat {
 	return m
 }
 
+/*
+Add is the element-wise addition of a mat object with another which is passed
+to this method.
+
+The shape of the mat objects must be the same (same number or rows and columns)
+and the results of the element-wise addition is stored in the original
+mat on which the method was invoked.
+*/
 func (m *Mat) Add(n *Mat) *Mat {
 	if m.r != n.r {
 		fmt.Println("\nNumgo/mat error.")
@@ -634,6 +708,14 @@ func (m *Mat) Add(n *Mat) *Mat {
 	return m
 }
 
+/*
+Sub is the element-wise subtraction of a mat object which is passed
+to this method from the original mat which called the method.
+
+The shape of the mat objects must be the same (same number or rows and columns)
+and the results of the element-wise subtraction is stored in the original
+mat on which the method was invoked.
+*/
 func (m *Mat) Sub(n *Mat) *Mat {
 	if m.r != n.r {
 		fmt.Println("\nNumgo/mat error.")
@@ -663,6 +745,15 @@ func (m *Mat) Sub(n *Mat) *Mat {
 	return m
 }
 
+/*
+Div is the element-wise dicition of a mat object by another which is passed
+to this method.
+
+The shape of the mat objects must be the same (same number or rows and columns)
+and the results of the element-wise divition is stored in the original
+mat on which the method was invoked. The dividing mat object (passed to this
+method) must not contain any elements which are equal to 0.0.
+*/
 func (m *Mat) Div(n *Mat) *Mat {
 	if m.r != n.r {
 		fmt.Println("\nNumgo/mat error.")
@@ -708,6 +799,12 @@ func (m *Mat) Div(n *Mat) *Mat {
 	return m
 }
 
+/*
+Scale is the element-wise multiplication of a mat object by a scalar.
+
+The results of the element-wise multiplication is stored in the original
+mat on which the method was invoked.
+*/
 func (m *Mat) Scale(f float64) *Mat {
 	for i := 0; i < m.r*m.c; i++ {
 		m.vals[i] *= f
