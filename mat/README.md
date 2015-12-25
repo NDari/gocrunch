@@ -214,6 +214,24 @@ and the results of the element-wise divition is stored in the original mat on
 which the method was invoked. The dividing mat object (passed to this method)
 must not contain any elements which are equal to 0.0.
 
+#### func (*Mat) Dot
+
+```go
+func (m *Mat) Dot(n *Mat) *Mat
+```
+Dot is the matrix multiplication of two mat objects. Consider the following two
+mats:
+
+m := New(5, 6) n := New(6, 10)
+
+then
+
+o := m.Dot(n)
+
+is a 5 by 10 mat whose element at row i and column j is given by:
+
+Sum(m.Row(i).Mul(n.col(j))
+
 #### func (*Mat) Equals
 
 ```go
