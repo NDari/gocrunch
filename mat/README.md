@@ -81,6 +81,12 @@ initialized to 0.0, which is the default behavior of Go for slices of float64s.
 ```go
 func (m *Mat) Add(n *Mat) *Mat
 ```
+Add is the element-wise addition of a mat object with another which is passed to
+this method.
+
+The shape of the mat objects must be the same (same number or rows and columns)
+and the results of the element-wise addition is stored in the original mat on
+which the method was invoked.
 
 #### func (*Mat) All
 
@@ -88,9 +94,24 @@ func (m *Mat) Add(n *Mat) *Mat
 func (m *Mat) All(f booleanFunc) bool
 ```
 All checks if a supplied function is true for all elements of a mat object. For
-instance, if a supplied function returns true for negative values and false
-otherwise, then All would be true if and only if all elements of the mat object
-are negative.
+instance, consider
+
+positive := func(i float64) bool {
+
+    if i > 0.0 {
+    	return true
+    } else {
+    	return false
+    }
+
+}
+
+
+Then calling
+
+m.All(positive)
+
+will return true if and only if all elements in m are positive.
 
 #### func (*Mat) Any
 
@@ -98,15 +119,38 @@ are negative.
 func (m *Mat) Any(f booleanFunc) bool
 ```
 Any checks if a supplied function is true for one elements of a mat object. For
-instance, if a supplied function returns true for negative values and false
-otherwise, then Any would be true if at least one element of the mat object is
-negative.
+instance,
+
+positive := func(i float64) bool {
+
+    if i > 0.0 {
+    	return true
+    } else {
+    	return false
+    }
+
+}
+
+
+Then calling
+
+m.Any(positive)
+
+would be true if at least one element of the mat object is positive.
 
 #### func (*Mat) Average
 
 ```go
 func (m *Mat) Average(axis, slice int) float64
 ```
+Average returns the average of the elements along a specific row or specific
+column. The first argument selects the row or column (0 or 1), and the second
+argument selects which row or column for which we want to calculate the average.
+For example:
+
+m.Average(0, 2)
+
+will calculate the average of the 3rd row of mat m.
 
 #### func (*Mat) Col
 
@@ -122,6 +166,25 @@ of rows of the original mat, and the number of columns is equal to 1.
 ```go
 func (m *Mat) CombineWith(n *Mat, how reducerFunc) *Mat
 ```
+CombineWith combines a mat object with another, using a function which is
+passed. For example consider the function:
+
+f := func(i, j float64) float64 {
+
+    return i * j
+
+}
+
+now consider two mat objects, m, and n, which are of the same shape (same number
+of rows and columns). Then:
+
+m.CombineWith(n, f)
+
+will result in m containing the element by element multiplication with n.
+
+The passed function must have the above signiture, and the two mat objects must
+have the same shape. The result is stored in the mat object which calls this
+method (m in the above example).
 
 #### func (*Mat) Copy
 
@@ -143,6 +206,13 @@ Dims returns the number of rows and columns of a mat object.
 ```go
 func (m *Mat) Div(n *Mat) *Mat
 ```
+Div is the element-wise dicition of a mat object by another which is passed to
+this method.
+
+The shape of the mat objects must be the same (same number or rows and columns)
+and the results of the element-wise divition is stored in the original mat on
+which the method was invoked. The dividing mat object (passed to this method)
+must not contain any elements which are equal to 0.0.
 
 #### func (*Mat) Equals
 
@@ -159,12 +229,27 @@ in each entry at a given index.
 func (m *Mat) Filter(f booleanFunc) *Mat
 ```
 Filter applies a function to each element of a mat object, creating a new mat
-object from all elements for which the function returned true. For example,
-given a function that takes a float64, returning true for numbers greater than
-zero and false otherwise, This method created a new mat object from all the
-positive elements of the original matrix. If no elements return true for a given
-function, nil is returned. It is expected that the caller of this method checks
-the returned value to ensure that it is not nil.
+object from all elements for which the function returned true. For example
+consider the following function:
+
+f := func(i float64) bool {
+
+    if i > 0.0 {
+    	return true
+    } else {
+    	return false
+    }
+
+}
+
+then calling
+
+m.Filter(f)
+
+will create a new mat object which contains the positive elements of the
+original matrix. If no elements return true for a given function, nil is
+returned. It is expected that the caller of this method checks the returned
+value to ensure that it is not nil.
 
 #### func (*Mat) Inc
 
@@ -188,6 +273,12 @@ must take a pointer to a float64, and return nothing.
 ```go
 func (m *Mat) Mul(n *Mat) *Mat
 ```
+Mul is the element-wise multiplication of a mat object by another which is
+passed to this method.
+
+The shape of the mat objects must be the same (same number or rows and columns)
+and the results of the element-wise multiplication is stored in the original mat
+on which the method was invoked.
 
 #### func (*Mat) Ones
 
@@ -201,6 +292,14 @@ Ones sets all values of a mat to be equal to 1.0
 ```go
 func (m *Mat) Prod(axis, slice int) float64
 ```
+Prod returns the product of the elements along a specific row or specific
+column. The first argument selects the row or column (0 or 1), and the second
+argument selects which row or column for which we want to calculate the product.
+For example:
+
+m.Prod(1, 2)
+
+will calculate the product of the 3rd column of mat m.
 
 #### func (*Mat) Reset
 
@@ -232,24 +331,51 @@ number of columns is equal to the number of columns of the original mat.
 ```go
 func (m *Mat) Scale(f float64) *Mat
 ```
+Scale is the element-wise multiplication of a mat object by a scalar.
+
+The results of the element-wise multiplication is stored in the original mat on
+which the method was invoked.
 
 #### func (*Mat) Std
 
 ```go
 func (m *Mat) Std(axis, slice int) float64
 ```
+Std returns the standard deviation of the elements along a specific row or
+specific column. The standard deviation is defined as the square root of the
+mean distance of each element from the mean. Look at:
+http://mathworld.wolfram.com/StandardDeviation.html
+
+For example:
+
+m.Std(1, 0)
+
+will calculate the standard deviation of the first column of mat m.
 
 #### func (*Mat) Sub
 
 ```go
 func (m *Mat) Sub(n *Mat) *Mat
 ```
+Sub is the element-wise subtraction of a mat object which is passed to this
+method from the original mat which called the method.
+
+The shape of the mat objects must be the same (same number or rows and columns)
+and the results of the element-wise subtraction is stored in the original mat on
+which the method was invoked.
 
 #### func (*Mat) Sum
 
 ```go
 func (m *Mat) Sum(axis, slice int) float64
 ```
+Sum returns the sum of the elements along a specific row or specific column. The
+first argument selects the row or column (0 or 1), and the second argument
+selects which row or column for which we want to calculate the sum. For example:
+
+m.Sum(0, 2)
+
+will calculate the sum of the 3rd row of mat m.
 
 #### func (*Mat) T
 
@@ -260,6 +386,7 @@ T returns the transpose of the original matrix. The transpose of a mat object is
 defined in the usual manner, where every value at row x, and column y is placed
 at row y, and column x. The number of rows and column of the transposed mat are
 equal to the number of columns and rows of the original matrix, respectively.
+This method creates a new mat object, and the original is left intact.
 
 #### func (*Mat) ToCSV
 

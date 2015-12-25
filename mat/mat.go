@@ -812,6 +812,16 @@ func (m *Mat) Scale(f float64) *Mat {
 	return m
 }
 
+/*
+Sum returns the sum of the elements along a specific row or specific column.
+The first argument selects the row or column (0 or 1), and the second argument
+selects which row or column for which we want to calculate the sum. For
+example:
+
+m.Sum(0, 2)
+
+will calculate the sum of the 3rd row of mat m.
+*/
 func (m *Mat) Sum(axis, slice int) float64 {
 	if axis != 0 && axis != 1 {
 		fmt.Println("\nNumgo/mat error.")
@@ -861,6 +871,17 @@ func (m *Mat) precheckedSum(axis, slice int) float64 {
 	return x
 }
 
+/*
+Average returns the average of the elements along a specific row or specific
+column.
+The first argument selects the row or column (0 or 1), and the second argument
+selects which row or column for which we want to calculate the average. For
+example:
+
+m.Average(0, 2)
+
+will calculate the average of the 3rd row of mat m.
+*/
 func (m *Mat) Average(axis, slice int) float64 {
 	if axis != 0 && axis != 1 {
 		fmt.Println("\nNumgo/mat error.")
@@ -904,6 +925,17 @@ func (m *Mat) precheckedAverage(axis, slice int) float64 {
 	return sum / float64(m.r)
 }
 
+/*
+Prod returns the product of the elements along a specific row or specific
+column.
+The first argument selects the row or column (0 or 1), and the second argument
+selects which row or column for which we want to calculate the product. For
+example:
+
+m.Prod(1, 2)
+
+will calculate the product of the 3rd column of mat m.
+*/
 func (m *Mat) Prod(axis, slice int) float64 {
 	if axis != 0 && axis != 1 {
 		fmt.Println("\nNumgo/mat error.")
@@ -949,6 +981,18 @@ func (m *Mat) Prod(axis, slice int) float64 {
 	return x
 }
 
+/*
+Std returns the standard deviation of the elements along a specific row
+or specific column. The standard deviation is defined as the square root of
+the mean distance of each element from the mean. Look at:
+http://mathworld.wolfram.com/StandardDeviation.html
+
+For example:
+
+m.Std(1, 0)
+
+will calculate the standard deviation of the first column of mat m.
+*/
 func (m *Mat) Std(axis, slice int) float64 {
 	if axis != 0 && axis != 1 {
 		fmt.Println("\nNumgo/mat error.")
