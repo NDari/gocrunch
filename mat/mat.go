@@ -47,6 +47,11 @@ New is the primary constructor for the "mat" object. The "r" and "c" params
 are expected to be greater than zero, and the values of the mat object are
 initialized to 0.0, which is the default behavior of Go for slices of
 float64s.
+
+The len(m.vals) is equal to r*c. The cap(m.vals) is 2*r*c. Whenever a
+reallocation is required (such as when appending a row to the mat, and the
+capacity is at its limit) a new mat object is allocated with the capacity
+being twice the length again.
 */
 func New(r, c int) *Mat {
 	if r <= 0 {
@@ -72,7 +77,7 @@ func New(r, c int) *Mat {
 	return &Mat{
 		r,
 		c,
-		make([]float64, r*c),
+		make([]float64, r*c, 2*r*c),
 	}
 }
 

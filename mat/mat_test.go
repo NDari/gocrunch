@@ -22,6 +22,9 @@ func TestNew(t *testing.T) {
 	if len(m.vals) != rows*cols {
 		t.Errorf("len(mat.vals) is %d, expected %d", len(m.vals), rows*cols)
 	}
+	if cap(m.vals) != 2*rows*cols {
+		t.Errorf("cap(mat.vals) is %d, expected %d", cap(m.vals), 2*rows*cols)
+	}
 }
 
 func TestFromSlice(t *testing.T) {
