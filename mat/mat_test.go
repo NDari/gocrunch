@@ -28,9 +28,11 @@ func TestNew(t *testing.T) {
 }
 
 func TestFromSlice(t *testing.T) {
-	s := make([][]float64, 11)
+	rows := 11
+	cols := 5
+	s := make([][]float64, rows)
 	for i := range s {
-		s[i] = make([]float64, 5)
+		s[i] = make([]float64, cols)
 	}
 	for i := range s {
 		for j := range s[i] {
@@ -38,6 +40,12 @@ func TestFromSlice(t *testing.T) {
 		}
 	}
 	m := FromSlice(s)
+	if len(m.vals) != rows*cols {
+		t.Errorf("expected length of mat to be %d, but got %d", rows*cols, len(m.vals))
+	}
+	if cap(m.vals) != 2*rows*cols {
+		t.Errorf("expected capacity of mat to be %d, but got %d", 2*rows*cols, cap(m.vals))
+	}
 	idx := 0
 	for i := range s {
 		for j := range s[i] {
@@ -48,6 +56,7 @@ func TestFromSlice(t *testing.T) {
 			idx += 1
 		}
 	}
+
 }
 
 func TestIsJagged(t *testing.T) {
@@ -68,11 +77,19 @@ func TestIsJagged(t *testing.T) {
 }
 
 func TestFrom1DSlice(t *testing.T) {
-	s := make([]float64, 113)
+	rows := 1
+	cols := 113
+	s := make([]float64, cols)
 	for i := 0; i < len(s); i++ {
 		s[i] = float64(i * i)
 	}
 	m := From1DSlice(s)
+	if len(m.vals) != rows*cols {
+		t.Errorf("expected length of mat to be %d, but got %d", rows*cols, len(m.vals))
+	}
+	if cap(m.vals) != 2*rows*cols {
+		t.Errorf("expected capacity of mat to be %d, but got %d", 2*rows*cols, cap(m.vals))
+	}
 	for i := 0; i < len(s); i++ {
 		if s[i] != m.vals[i] {
 			t.Errorf("slice[%d]: %f, mat: %f", i, s[i], m.vals[i])
@@ -81,6 +98,8 @@ func TestFrom1DSlice(t *testing.T) {
 }
 
 func TestFromCSV(t *testing.T) {
+	rows := 4
+	cols := 4
 	filename := "test.csv"
 	str := "1.0,1.0,2.0,3.0\n"
 	str += "5.0,8.0,13.0,21.0\n"
@@ -102,6 +121,12 @@ func TestFromCSV(t *testing.T) {
 	}
 	f.Close()
 	m := FromCSV(filename)
+	if len(m.vals) != rows*cols {
+		t.Errorf("expected length of mat to be %d, but got %d", rows*cols, len(m.vals))
+	}
+	if cap(m.vals) != rows*cols {
+		t.Errorf("expected capacity of mat to be %d, but got %d", rows*cols, cap(m.vals))
+	}
 	if m.vals[0] != 1.0 || m.vals[1] != 1.0 {
 		t.Errorf("The first two entries are not 1.0: %f, %f", m.vals[0], m.vals[1])
 	}
@@ -405,24 +430,6 @@ func TestAny(t *testing.T) {
 	m.Ones()
 	if !m.Any(one) {
 		t.Errorf("m.Ones() has no values equal to 1.0 in it")
-	}
-}
-
-func TestCombineWith(t *testing.T) {
-	m := New(13, 21).Inc()
-	n := m.Copy()
-	square := func(i *float64) {
-		*i *= *i
-		return
-	}
-	multiply := func(i *float64, j float64) {
-		*i *= j
-		return
-	}
-	m.CombineWith(n, multiply)
-	n.Map(square)
-	if !m.Equals(n) {
-		t.Errorf("m and n are not equal")
 	}
 }
 

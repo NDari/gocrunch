@@ -40,7 +40,7 @@ type Mat struct {
 
 type elementFunc func(*float64)
 type booleanFunc func(*float64) bool
-type reducerFunc func(accumulator *float64, next float64)
+type reducerFunc func(accumulator, next *float64)
 
 /*
 New is the primary constructor for the "mat" object. The "r" and "c" params
@@ -160,6 +160,10 @@ The file to be read is assumed to be very large, and hence it is read one line
 at a time. This results in some major inefficiencies, and it is recommended
 that this function be used sparingly, and not as a major component of your
 library/executable.
+
+Unline other mat creation methods in this package, the mat object created here,
+the capacity of the mat opject created here is the same as its length since we
+assume the mat to be very large.
 */
 func FromCSV(filename string) *Mat {
 	f, err := os.Open(filename)
@@ -504,7 +508,7 @@ Filter applies a function to each element of a mat object, creating a new
 mat object from all elements for which the function returned true. For
 example consider the following function:
 
-f := func(i float64) bool {
+f := func(i *float64) bool {
 	if i > 0.0 {
 		return true
 	} else {
@@ -540,7 +544,7 @@ func (m *Mat) Filter(f booleanFunc) *Mat {
 All checks if a supplied function is true for all elements of a mat object.
 For instance, consider
 
-positive := func(i float64) bool {
+positive := func(i *float64) bool {
 	if i > 0.0 {
 		return true
 	} else {
@@ -568,7 +572,7 @@ Any checks if a supplied function is true for one elements of a mat object.
 For instance,
 
 
-positive := func(i float64) bool {
+positive := func(i *float64) bool {
 	if i > 0.0 {
 		return true
 	} else {
@@ -589,54 +593,6 @@ func (m *Mat) Any(f booleanFunc) bool {
 		}
 	}
 	return false
-}
-
-/*
-CombineWith combines a mat object with another, using a function which is
-passed. For example consider the function:
-
-f := func(i, j float64) float64 {
-	return i * j
-}
-
-now consider two mat objects, m, and n, which are of the same shape (same
-number of rows and columns). Then:
-
-m.CombineWith(n, f)
-
-will result in m containing the element by element multiplication with n.
-
-The passed function must have the above signiture, and the two mat objects
-must have the same shape. The result is stored in the mat object which
-calls this method (m in the above example).
-*/
-func (m *Mat) CombineWith(n *Mat, how reducerFunc) *Mat {
-	if m.r != n.r {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the number of the rows of the first mat is %d\n"
-		s += "but the number of rows of the second mat is %d. They must\n"
-		s += "match for combination.\n"
-		s = fmt.Sprintf(s, "Combine", m.r, n.r)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	if m.c != n.c {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the number of the columns of the first mat is %d\n"
-		s += "but the number of columns of the second mat is %d. They must\n"
-		s += "match for combination.\n"
-		s = fmt.Sprintf(s, "Combine", m.c, n.c)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	for i := 0; i < m.r*m.c; i++ {
-		how(&m.vals[i], n.vals[i])
-	}
-	return m
 }
 
 /*

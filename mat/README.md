@@ -57,6 +57,10 @@ at a time. This results in some major inefficiencies, and it is recommended that
 this function be used sparingly, and not as a major component of your
 library/executable.
 
+Unline other mat creation methods in this package, the mat object created here,
+the capacity of the mat opject created here is the same as its length since we
+assume the mat to be very large.
+
 #### func  FromSlice
 
 ```go
@@ -101,7 +105,7 @@ func (m *Mat) All(f booleanFunc) bool
 All checks if a supplied function is true for all elements of a mat object. For
 instance, consider
 
-positive := func(i float64) bool {
+positive := func(i *float64) bool {
 
     if i > 0.0 {
     	return true
@@ -126,7 +130,7 @@ func (m *Mat) Any(f booleanFunc) bool
 Any checks if a supplied function is true for one elements of a mat object. For
 instance,
 
-positive := func(i float64) bool {
+positive := func(i *float64) bool {
 
     if i > 0.0 {
     	return true
@@ -165,31 +169,6 @@ func (m *Mat) Col(x int) *Mat
 Col returns a new mat object whole values are equal to a column of the original
 mat object. The number of Rows of the returned mat object is equal to the number
 of rows of the original mat, and the number of columns is equal to 1.
-
-#### func (*Mat) CombineWith
-
-```go
-func (m *Mat) CombineWith(n *Mat, how reducerFunc) *Mat
-```
-CombineWith combines a mat object with another, using a function which is
-passed. For example consider the function:
-
-f := func(i, j float64) float64 {
-
-    return i * j
-
-}
-
-now consider two mat objects, m, and n, which are of the same shape (same number
-of rows and columns). Then:
-
-m.CombineWith(n, f)
-
-will result in m containing the element by element multiplication with n.
-
-The passed function must have the above signiture, and the two mat objects must
-have the same shape. The result is stored in the mat object which calls this
-method (m in the above example).
 
 #### func (*Mat) Copy
 
@@ -255,7 +234,7 @@ Filter applies a function to each element of a mat object, creating a new mat
 object from all elements for which the function returned true. For example
 consider the following function:
 
-f := func(i float64) bool {
+f := func(i *float64) bool {
 
     if i > 0.0 {
     	return true
