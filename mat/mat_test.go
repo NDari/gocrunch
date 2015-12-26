@@ -219,6 +219,21 @@ func TestToCSV(t *testing.T) {
 	os.Remove(filename)
 }
 
+func TestAt(t *testing.T) {
+	rows := 17
+	cols := 13
+	m := New(rows, cols).Inc()
+	idx := 0
+	for i := 0; i < rows; i++ {
+		for j := 0; j < cols; j++ {
+			if *m.At(i, j) != m.vals[idx] {
+				t.Errorf("at index %d expected %f, got %f", i, m.vals[idx], *m.At(i, j))
+			}
+			idx += 1
+		}
+	}
+}
+
 func TestMap(t *testing.T) {
 	rows := 132
 	cols := 24

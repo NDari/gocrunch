@@ -147,6 +147,13 @@ m.Any(positive)
 
 would be true if at least one element of the mat object is positive.
 
+#### func (*Mat) At
+
+```go
+func (m *Mat) At(r, c int) *float64
+```
+At returns a pointer to the float64 stored in the given row and column.
+
 #### func (*Mat) Average
 
 ```go

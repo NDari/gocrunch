@@ -364,6 +364,31 @@ func (m *Mat) ToCSV(fileName string) {
 }
 
 /*
+At returns a pointer to the float64 stored in the given row and column.
+*/
+func (m *Mat) At(r, c int) *float64 {
+	if (r >= m.r) || (r < 0) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
+		s = fmt.Sprintf(s, "At", r, m.r)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	if (c >= m.c) || (c < 0) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the requested column %d is outside of bounds [0, %d)\n"
+		s = fmt.Sprintf(s, "At", r, m.c)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	return &m.vals[r*m.c+c]
+}
+
+/*
 Map applies a given function to each element of a mat object. The given
 function must take a pointer to a float64, and return nothing.
 */
@@ -807,7 +832,7 @@ func (m *Mat) Sum(axis, slice int) float64 {
 	} else if axis == 1 {
 		if (slice >= m.c) || (slice < 0) {
 			fmt.Println("\nNumgo/mat error.")
-			s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
+			s := "In mat.%s the requested column %d is outside of bounds [0, %d)\n"
 			s = fmt.Sprintf(s, "Sum", slice, m.c)
 			fmt.Println(s)
 			fmt.Println("Stack trace for this error:")
@@ -867,7 +892,7 @@ func (m *Mat) Average(axis, slice int) float64 {
 	} else if axis == 1 {
 		if (slice >= m.c) || (slice < 0) {
 			fmt.Println("\nNumgo/mat error.")
-			s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
+			s := "In mat.%s the requested column %d is outside of bounds [0, %d)\n"
 			s = fmt.Sprintf(s, "Average", slice, m.c)
 			fmt.Println(s)
 			fmt.Println("Stack trace for this error:")
@@ -921,7 +946,7 @@ func (m *Mat) Prod(axis, slice int) float64 {
 	} else if axis == 1 {
 		if (slice >= m.c) || (slice < 0) {
 			fmt.Println("\nNumgo/mat error.")
-			s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
+			s := "In mat.%s the requested column %d is outside of bounds [0, %d)\n"
 			s = fmt.Sprintf(s, "Prod", slice, m.c)
 			fmt.Println(s)
 			fmt.Println("Stack trace for this error:")
@@ -978,7 +1003,7 @@ func (m *Mat) Std(axis, slice int) float64 {
 	} else if axis == 1 {
 		if (slice >= m.c) || (slice < 0) {
 			fmt.Println("\nNumgo/mat error.")
-			s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
+			s := "In mat.%s the requested column %d is outside of bounds [0, %d)\n"
 			s = fmt.Sprintf(s, "Std", slice, m.c)
 			fmt.Println(s)
 			fmt.Println("Stack trace for this error:")
