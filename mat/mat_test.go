@@ -226,8 +226,8 @@ func TestAt(t *testing.T) {
 	idx := 0
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
-			if *m.At(i, j) != m.vals[idx] {
-				t.Errorf("at index %d expected %f, got %f", i, m.vals[idx], *m.At(i, j))
+			if m.At(i, j) != m.vals[idx] {
+				t.Errorf("at index %d expected %f, got %f", i, m.vals[idx], m.At(i, j))
 			}
 			idx += 1
 		}

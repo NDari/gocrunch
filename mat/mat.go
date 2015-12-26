@@ -366,7 +366,7 @@ func (m *Mat) ToCSV(fileName string) {
 /*
 At returns a pointer to the float64 stored in the given row and column.
 */
-func (m *Mat) At(r, c int) *float64 {
+func (m *Mat) At(r, c int) float64 {
 	if (r >= m.r) || (r < 0) {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
@@ -385,7 +385,7 @@ func (m *Mat) At(r, c int) *float64 {
 		debug.PrintStack()
 		os.Exit(1)
 	}
-	return &m.vals[r*m.c+c]
+	return m.vals[r*m.c+c]
 }
 
 /*
