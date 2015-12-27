@@ -2,220 +2,440 @@
 --
     import "numgo/mat"
 
-Package mat implements function that create or act upon 2D slices of `float64`.
-This is in essence the same concept of a matrix in other languages.
+Package mat implements a "mat" object, which behaves like a 2-dimensional array
+or list in other programming languages. Under the hood, the mat object is a flat
+slice, which provides for optimal performance in Go, while the methods and
+constructors provide for a higher level of performance and abstraction when
+compared to the "2D" slices of go (slices of slices).
 
-The 2D slices acted on or created by the functions below are assumed to be
-non-jagged. This means that for a given [][]float64, the inner slices are
-assumed to be of the same length.
+All errors encountered in this package, such as attempting to access an element
+out of bounds are treated as critical error, and thus, the code immediately
+exits with signal 1. In such cases, the function/method in which the error was
+encountered is printed to the screen, in addition to the full stack trace, in
+order to help fix the issue rapidly.
 
 ## Usage
 
-#### func  AppendCol
+#### type Mat
 
 ```go
-func AppendCol(m [][]float64, v []float64) [][]float64
+type Mat struct {
+}
 ```
-AppendCol appends a column to the right side of a 2D slice of float64s.
 
-#### func  Col
+Mat is the main struct of this library. Mat is a essentially a 1D slice (a
+[]float64) that contains two integers, representing rows and columns, which
+allow it to behave as if it was a 2D slice. This allows for higher performance
+and flexibility for the users of this library, at the expense of some
+bookkeeping that is done here.
+
+The fields of this struct are not directly accessible, and they may only change
+by the use of the various methods in this library.
+
+#### func  From1DSlice
 
 ```go
-func Col(c int, m [][]float64) []float64
+func From1DSlice(s []float64) *Mat
 ```
-Col returns a column of a 2D slice of `float64`. Col uses a 0-based index, hence
-the first column of a 2D slice, m, is `Col(0, m)`.
+From1DSlice creates a mat object from a slice of float64s. The created mat
+object has one row, and the number of columns equal to the length of the 1D
+slice from which it was created.
 
-This function also allows for negative indexing. For example, `Col(-1, m)` is
-the last column of the 2D slice m, and `Col(-2, m)` is the second to last column
-of m, and so on.
-
-#### func  Concat
+#### func  FromCSV
 
 ```go
-func Concat(m, n [][]float64) [][]float64
+func FromCSV(filename string) *Mat
 ```
-Concat concatenates the inner slices of two `[][]float64` arguments..
+FromCSV creates a mat object from a CSV (comma separated values) file. Here, we
+assume that the number of rows of the resultant mat object is equal to the
+number of lines, and the number of columns is equal to the number of entries in
+each line. As before, we make sure that each line contains the same number of
+elements.
 
-For example, if we have:
+The file to be read is assumed to be very large, and hence it is read one line
+at a time. This results in some major inefficiencies, and it is recommended that
+this function be used sparingly, and not as a major component of your
+library/executable.
+
+Unline other mat creation methods in this package, the mat object created here,
+the capacity of the mat opject created here is the same as its length since we
+assume the mat to be very large.
+
+#### func  FromSlice
 
 ```go
-m := [[1.0, 2.0], [3.0, 4.0]] 
-n := [[5.0, 6.0], [7.0, 8.0]] 
-o := mat.Concat(m, n)
-
-mat.Print(o) // 1.0, 2.0, 5.0, 6.0
-             // 3.0, 4.0, 7.0, 8.0
+func FromSlice(s [][]float64) *Mat
 ```
-
-#### func  Copy
-
-```go
-func Copy(m [][]float64) [][]float64
-```
-Copy copies the content of a 2D slice of float64 into another with the same
-shape. This is a deep copy, unlike the built in copy function that is shallow
-for 2D slices.
-
-#### func  Dot
-
-```go
-func Dot(m, n [][]float64) [][]float64
-```
-Dot is the matrix multiplication of two 2D slices of `float64`.
-
-#### func  Dump
-
-```go
-func Dump(m [][]float64, fileName string)
-```
-Dump prints the content of a `[][]float64` slice to a file, using comma as the
-delimiter between the elements of a row, and a new line between rows.
-
-#### func  Equal
-
-```go
-func Equal(m, n [][]float64) bool
-```
-Equal checks if two 2D slices have the same shape and the same entries in each
-row and column. If either the shape or the entries of the arguments are
-different, `false` is returned. Otherwise, the return value is `true`.
-
-#### func  FromString
-
-```go
-func FromString(str [][]string) [][]float64
-```
-FromString converts a `[][]string` to `[][]float64`.
-
-#### func  I
-
-```go
-func I(r int) [][]float64
-```
-I returns an r by r 2D slice for a given r, where the elements along the
-diagonal (where the first and the second index are equal) is set to `1.0`, and
-all other elements are set to `0.0`.
-
-#### func  Inc
-
-```go
-func Inc(r, c int) [][]float64
-```
-Inc returns a 2D slice, where element `[0][0] == 0.0`, and each subsequent
-element is incremented by `1.0`.
-
-For example:
-
-```go
-m := Inc(3, 2)
-mat.Print(m)     // 1.0, 2.0
-                 // 3.0, 4.0
-    			 // 5.0, 6.0
-```
-
-#### func  Load
-
-```go
-func Load(fileName string) [][]float64
-```
-Load generates a 2D slice of floats from a CSV file.
-
-#### func  Map
-
-```go
-func Map(f func(float64) float64, m [][]float64) [][]float64
-```
-Map calls a given elemental function on each Element of a 2D slice, returning a
-new 2D slice. This function does not modify the original 2D slice.
-
-#### func  MapInPlace
-
-```go
-func MapInPlace(f func(float64) float64, m [][]float64)
-```
-MapInPlace calls a given elemental function on each Element of a 2D slice,
-returning it afterwards. This function modifies the original 2D slice.
-
-#### func  Mul
-
-```go
-func Mul(m, n [][]float64) [][]float64
-```
-Mul returns a new 2D slice that is the result of element-wise multiplication of
-two 2D slices.
+FromSlice generated a mat object from a [][]float64 slice. The slice is checked
+for being a non-jagged slice, where each row contains the same number of
+elements. The creation of a mat object from jagged 2D slices is not supported as
+on yet.
 
 #### func  New
 
 ```go
-func New(r, c int) [][]float64
+func New(dims ...int) *Mat
 ```
-New returns a 2D slice of `float64` with the given number of row and columns.
-This function should be used as a convenience tool, and it is exactly equivalent
-to the normal method of allocating a uniform (non-jagged) 2D slice of `float64`.
+New is the primary constructor for the "Mat" object. New is a veradic function,
+expecting 0 to 3 ints, with differing behavior as follows:
 
-If it is anticipated that the 2D slice will grow, use the "NewExpand" function
-below. For full details, read that function's documentation.
+m := New()
 
-#### func  NewExpand
+m is now an empty &Mat{}, where the number of rows, columns and the length and
+capacity of the underlying slice are all zero. This is mostly for internal use.
+
+m := New(x)
+
+m is a x by x (square) matrix, with the underlying slice of length x, and
+capacity 2x.
+
+m := New(x, y)
+
+m is an x by y matrix, with the underlying slice of length rc, and capacity of
+2rc. This is a good case for when your matrix is going to expand in the future.
+There is a negligible hit to performance and a larger memory usage of your code.
+But in case expanding matrices, many reallocations are avoided.
+
+m := New(x, y, z)
+
+m is a x by u matrix, with the underlying slice of length rc, and capacity z.
+This is a good choice for when the size of the matrix is static, or when the
+application is memory constrained.
+
+For most cases, we recommend using the New(x) or New(x, y) options, and almost
+never the New() option.
+
+#### func (*Mat) Add
 
 ```go
-func NewExpand(r, c int) [][]float64
+func (m *Mat) Add(n *Mat) *Mat
 ```
-NewExpand returns a 2D slice of `float64`, with the given number of rows and
-columns. The difference between this function and the "New" function above is
-that the inner slices are allocated with double the capacity, and hence can grow
-without the need for reallocation up to column * 2.
+Add is the element-wise addition of a mat object with another which is passed to
+this method.
 
-Note that this extended capacity will waste memory, so the NewExtend should be
-used with care in situations where the performance gained by avoiding
-reallocation justifies the extra cost in memory.
+The shape of the mat objects must be the same (same number or rows and columns)
+and the results of the element-wise addition is stored in the original mat on
+which the method was invoked.
 
-#### func  Ones
+#### func (*Mat) All
 
 ```go
-func Ones(r, c int) [][]float64
+func (m *Mat) All(f booleanFunc) bool
 ```
-Ones returns a new 2D slice where all the elements are equal to `1.0`.
+All checks if a supplied function is true for all elements of a mat object. For
+instance, consider
 
-#### func  Print
+positive := func(i *float64) bool {
+
+    if i > 0.0 {
+    	return true
+    } else {
+    	return false
+    }
+
+}
+
+
+Then calling
+
+m.All(positive)
+
+will return true if and only if all elements in m are positive.
+
+#### func (*Mat) Any
 
 ```go
-func Print(m [][]float64)
+func (m *Mat) Any(f booleanFunc) bool
 ```
-Print prints a `[][]float64` to the stdout.
+Any checks if a supplied function is true for one elements of a mat object. For
+instance,
 
-#### func  Reset
+positive := func(i *float64) bool {
+
+    if i > 0.0 {
+    	return true
+    } else {
+    	return false
+    }
+
+}
+
+
+Then calling
+
+m.Any(positive)
+
+would be true if at least one element of the mat object is positive.
+
+#### func (*Mat) At
 
 ```go
-func Reset(m [][]float64)
+func (m *Mat) At(r, c int) float64
 ```
-Reset sets the values of all entries in a 2D slice of `float64` to `0.0`.
+At returns a pointer to the float64 stored in the given row and column.
 
-#### func  Row
+#### func (*Mat) Average
 
 ```go
-func Row(r int, m [][]float64) []float64
+func (m *Mat) Average(axis, slice int) float64
 ```
-Row returns a row of a 2D slice of `float64`. Row uses a 0-based index, hence
-the first row of a 2D slice, m, is Row(0, m).
+Average returns the average of the elements along a specific row or specific
+column. The first argument selects the row or column (0 or 1), and the second
+argument selects which row or column for which we want to calculate the average.
+For example:
 
-This function also allows for negative indexing. For example, Row(-1, m) is the
-last row of m.
+m.Average(0, 2)
 
-#### func  T
+will calculate the average of the 3rd row of mat m.
+
+#### func (*Mat) Col
 
 ```go
-func T(m [][]float64) [][]float64
+func (m *Mat) Col(x int) *Mat
 ```
-T returns a copy of a given 2D slice with the elements of the 2D slice mirrored
-across the diagonal. For example, the element `[i][j]` becomes the element
-`[j][i]` of the returned 2D slice. This function leaves the original matrix
-intact.
+Col returns a new mat object whole values are equal to a column of the original
+mat object. The number of Rows of the returned mat object is equal to the number
+of rows of the original mat, and the number of columns is equal to 1.
 
-#### func  ToString
+#### func (*Mat) Copy
 
 ```go
-func ToString(m [][]float64) [][]string
+func (m *Mat) Copy() *Mat
 ```
-ToString converts a `[][]float64` to `[][]string`.
+Copy returns a duplicate of a mat object. The returned copy is "deep", meaning
+that the object can be manipulated without effecting the original mat object.
+
+#### func (*Mat) Dims
+
+```go
+func (m *Mat) Dims() (int, int)
+```
+Dims returns the number of rows and columns of a mat object.
+
+#### func (*Mat) Div
+
+```go
+func (m *Mat) Div(n *Mat) *Mat
+```
+Div is the element-wise dicition of a mat object by another which is passed to
+this method.
+
+The shape of the mat objects must be the same (same number or rows and columns)
+and the results of the element-wise divition is stored in the original mat on
+which the method was invoked. The dividing mat object (passed to this method)
+must not contain any elements which are equal to 0.0.
+
+#### func (*Mat) Dot
+
+```go
+func (m *Mat) Dot(n *Mat) *Mat
+```
+Dot is the matrix multiplication of two mat objects. Consider the following two
+mats:
+
+m := New(5, 6) n := New(6, 10)
+
+then
+
+o := m.Dot(n)
+
+is a 5 by 10 mat whose element at row i and column j is given by:
+
+Sum(m.Row(i).Mul(n.col(j))
+
+#### func (*Mat) Equals
+
+```go
+func (m *Mat) Equals(n *Mat) bool
+```
+Equals checks to see if two mat objects are equal. That mean that the two mats
+have the same number of rows, same number of columns, and have the same float64
+in each entry at a given index.
+
+#### func (*Mat) Filter
+
+```go
+func (m *Mat) Filter(f booleanFunc) *Mat
+```
+Filter applies a function to each element of a mat object, creating a new mat
+object from all elements for which the function returned true. For example
+consider the following function:
+
+f := func(i *float64) bool {
+
+    if i > 0.0 {
+    	return true
+    } else {
+    	return false
+    }
+
+}
+
+then calling
+
+m.Filter(f)
+
+will create a new mat object which contains the positive elements of the
+original matrix. If no elements return true for a given function, nil is
+returned. It is expected that the caller of this method checks the returned
+value to ensure that it is not nil.
+
+#### func (*Mat) Inc
+
+```go
+func (m *Mat) Inc() *Mat
+```
+Inc takes each element of a mat object, and starting from 0.0, sets their value
+to be the value of the previous entry plus 1.0. In other words, the first few
+values of a mat object after this operation would be 0.0, 1.0, 2.0, ...
+
+#### func (*Mat) Map
+
+```go
+func (m *Mat) Map(f elementFunc) *Mat
+```
+Map applies a given function to each element of a mat object. The given function
+must take a pointer to a float64, and return nothing.
+
+#### func (*Mat) Mul
+
+```go
+func (m *Mat) Mul(n *Mat) *Mat
+```
+Mul is the element-wise multiplication of a mat object by another which is
+passed to this method.
+
+The shape of the mat objects must be the same (same number or rows and columns)
+and the results of the element-wise multiplication is stored in the original mat
+on which the method was invoked.
+
+#### func (*Mat) Ones
+
+```go
+func (m *Mat) Ones() *Mat
+```
+Ones sets all values of a mat to be equal to 1.0
+
+#### func (*Mat) Prod
+
+```go
+func (m *Mat) Prod(axis, slice int) float64
+```
+Prod returns the product of the elements along a specific row or specific
+column. The first argument selects the row or column (0 or 1), and the second
+argument selects which row or column for which we want to calculate the product.
+For example:
+
+m.Prod(1, 2)
+
+will calculate the product of the 3rd column of mat m.
+
+#### func (*Mat) Reset
+
+```go
+func (m *Mat) Reset() *Mat
+```
+Reset sets all values of a mat object to 0.0
+
+#### func (*Mat) Reshape
+
+```go
+func (m *Mat) Reshape(rows, cols int) *Mat
+```
+Reshape changes the row and the columns of the mat object as long as the total
+number of values contained in the mat object remains constant. The order and the
+values of the mat does not change with this function.
+
+#### func (*Mat) Row
+
+```go
+func (m *Mat) Row(x int) *Mat
+```
+Row returns a new mat object whose values are equal to a row of the original mat
+object. The number of Rows of the returned mat object is equal to 1, and the
+number of columns is equal to the number of columns of the original mat.
+
+#### func (*Mat) Scale
+
+```go
+func (m *Mat) Scale(f float64) *Mat
+```
+Scale is the element-wise multiplication of a mat object by a scalar.
+
+The results of the element-wise multiplication is stored in the original mat on
+which the method was invoked.
+
+#### func (*Mat) Std
+
+```go
+func (m *Mat) Std(axis, slice int) float64
+```
+Std returns the standard deviation of the elements along a specific row or
+specific column. The standard deviation is defined as the square root of the
+mean distance of each element from the mean. Look at:
+http://mathworld.wolfram.com/StandardDeviation.html
+
+For example:
+
+m.Std(1, 0)
+
+will calculate the standard deviation of the first column of mat m.
+
+#### func (*Mat) Sub
+
+```go
+func (m *Mat) Sub(n *Mat) *Mat
+```
+Sub is the element-wise subtraction of a mat object which is passed to this
+method from the original mat which called the method.
+
+The shape of the mat objects must be the same (same number or rows and columns)
+and the results of the element-wise subtraction is stored in the original mat on
+which the method was invoked.
+
+#### func (*Mat) Sum
+
+```go
+func (m *Mat) Sum(axis, slice int) float64
+```
+Sum returns the sum of the elements along a specific row or specific column. The
+first argument selects the row or column (0 or 1), and the second argument
+selects which row or column for which we want to calculate the sum. For example:
+
+m.Sum(0, 2)
+
+will calculate the sum of the 3rd row of mat m.
+
+#### func (*Mat) T
+
+```go
+func (m *Mat) T() *Mat
+```
+T returns the transpose of the original matrix. The transpose of a mat object is
+defined in the usual manner, where every value at row x, and column y is placed
+at row y, and column x. The number of rows and column of the transposed mat are
+equal to the number of columns and rows of the original matrix, respectively.
+This method creates a new mat object, and the original is left intact.
+
+#### func (*Mat) ToCSV
+
+```go
+func (m *Mat) ToCSV(fileName string)
+```
+ToCSV creates a file with the passed name, and writes the content of a mat
+object to it, by putting each row in a single comma separated line. The number
+of entries in each line is equal to the columns of the mat object.
+
+#### func (*Mat) ToSlice
+
+```go
+func (m *Mat) ToSlice() [][]float64
+```
+ToSlice returns the values of a mat object as a 2D slice of float64s.
+
+#### func (*Mat) Vals
+
+```go
+func (m *Mat) Vals() []float64
+```
+Vals returns the values contained in a mat object as a 1D slice of float64s.
