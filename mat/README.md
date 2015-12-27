@@ -76,33 +76,33 @@ on yet.
 ```go
 func New(dims ...int) *Mat
 ```
-New is the primary contructor for the "Mat" object. New is a veradic function,
+New is the primary constructor for the "Mat" object. New is a veradic function,
 expecting 0 to 3 ints, with differing behavior as follows:
 
-m := New() // m is now an empty &Mat{}, where the number of rows,
+m := New()
 
-    // columns and the length and capacity of the underlying
-    // slice are all zero. This is mostly for internal use.
+m is now an empty &Mat{}, where the number of rows, columns and the length and
+capacity of the underlying slice are all zero. This is mostly for internal use.
 
-m := New(x) // m is a x by x (square) matrix, with the underlying
+m := New(x)
 
-    // slice of length x, and capacity 2x.
+m is a x by x (square) matrix, with the underlying slice of length x, and
+capacity 2x.
 
-m := New(x, y) // m is an x by y matrix, with the underlying slice of
+m := New(x, y)
 
-    // length rc, and capacity of 2rc. This is a good case
-    // for when your matrix is going to expand in the
-    // future. There is a negligible hit to performance
-    // and a larger momery usage of your code. But in case
-    // exapanding matrices, many reallocations are avoided.
+m is an x by y matrix, with the underlying slice of length rc, and capacity of
+2rc. This is a good case for when your matrix is going to expand in the future.
+There is a negligible hit to performance and a larger memory usage of your code.
+But in case expanding matrices, many reallocations are avoided.
 
-m := New(x, y, z) // m is a x by u matrix, with the underlying slice of
+m := New(x, y, z)
 
-    // length rc, and capcity z. This is a good choice for
-    // when the size of the matrix is static, or when the
-    // application is memory contrained.
+m is a x by u matrix, with the underlying slice of length rc, and capacity z.
+This is a good choice for when the size of the matrix is static, or when the
+application is memory constrained.
 
-For most cases, we recommand using the New(x) or New(x, y) options, and almost
+For most cases, we recommend using the New(x) or New(x, y) options, and almost
 never the New() option.
 
 #### func (*Mat) Add
