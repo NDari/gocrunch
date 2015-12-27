@@ -9,7 +9,37 @@ import (
 func TestNew(t *testing.T) {
 	rows := 13
 	cols := 7
-	m := New(rows, cols)
+	m := New()
+	if m.r != 0 {
+		t.Errorf("expected m.r to be 0, but got %d", m.r)
+	}
+	if m.c != 0 {
+		t.Errorf("expected m.c to be 0, but got %d", m.c)
+	}
+	if len(m.vals) != 0 {
+		t.Errorf("expected len(m.vals) to be 0, but got %d", len(m.vals))
+	}
+	if cap(m.vals) != 0 {
+		t.Errorf("expected cap(m.vals) to be 0, but got %d", cap(m.vals))
+	}
+
+	m = New(rows)
+	if m.r != rows {
+		t.Errorf("expected m.r to be %d, but got %d", rows, m.r)
+	}
+	if m.c != rows {
+		t.Errorf("expected m.c to be %d, but got %d", rows, m.c)
+	}
+	if m.vals == nil {
+		t.Errorf("New mat.vals not initilized")
+	}
+	if len(m.vals) != rows*rows {
+		t.Errorf("expected len(m.vals) to be %d, but got %d", rows*rows, len(m.vals))
+	}
+	if cap(m.vals) != 2*rows*rows {
+		t.Errorf("expected cap(m.vals) to be %d, but got %d", 2*rows*rows, cap(m.vals))
+	}
+	m = New(rows, cols)
 	if m.r != rows {
 		t.Errorf("New mat.r is %d, expected %d", m.r, rows)
 	}
@@ -24,6 +54,23 @@ func TestNew(t *testing.T) {
 	}
 	if cap(m.vals) != 2*rows*cols {
 		t.Errorf("cap(mat.vals) is %d, expected %d", cap(m.vals), 2*rows*cols)
+	}
+
+	m = New(rows, cols, rows*cols)
+	if m.r != rows {
+		t.Errorf("New mat.r is %d, expected %d", m.r, rows)
+	}
+	if m.c != cols {
+		t.Errorf("New mat.c is %d, expected %d", m.c, cols)
+	}
+	if m.vals == nil {
+		t.Errorf("New mat.vals not initilized")
+	}
+	if len(m.vals) != rows*cols {
+		t.Errorf("len(mat.vals) is %d, expected %d", len(m.vals), rows*cols)
+	}
+	if cap(m.vals) != rows*cols {
+		t.Errorf("cap(mat.vals) is %d, expected %d", cap(m.vals), rows*cols)
 	}
 }
 

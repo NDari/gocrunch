@@ -74,16 +74,36 @@ on yet.
 #### func  New
 
 ```go
-func New(r, c int) *Mat
+func New(dims ...int) *Mat
 ```
-New is the primary constructor for the "mat" object. The "r" and "c" params are
-expected to be greater than zero, and the values of the mat object are
-initialized to 0.0, which is the default behavior of Go for slices of float64s.
+New is the primary contructor for the "Mat" object. New is a veradic function,
+expecting 0 to 3 ints, with differing behavior as follows:
 
-The len(m.vals) is equal to r*c. The cap(m.vals) is 2*r*c. Whenever a
-reallocation is required (such as when appending a row to the mat, and the
-capacity is at its limit) a new mat object is allocated with the capacity being
-twice the length again.
+m := New() // m is now an empty &Mat{}, where the number of rows,
+
+    // columns and the length and capacity of the underlying
+    // slice are all zero. This is mostly for internal use.
+
+m := New(x) // m is a x by x (square) matrix, with the underlying
+
+    // slice of length x, and capacity 2x.
+
+m := New(x, y) // m is an x by y matrix, with the underlying slice of
+
+    // length rc, and capacity of 2rc. This is a good case
+    // for when your matrix is going to expand in the
+    // future. There is a negligible hit to performance
+    // and a larger momery usage of your code. But in case
+    // exapanding matrices, many reallocations are avoided.
+
+m := New(x, y, z) // m is a x by u matrix, with the underlying slice of
+
+    // length rc, and capcity z. This is a good choice for
+    // when the size of the matrix is static, or when the
+    // application is memory contrained.
+
+For most cases, we recommand using the New(x) or New(x, y) options, and almost
+never the New() option.
 
 #### func (*Mat) Add
 
@@ -150,7 +170,7 @@ would be true if at least one element of the mat object is positive.
 #### func (*Mat) At
 
 ```go
-func (m *Mat) At(r, c int) *float64
+func (m *Mat) At(r, c int) float64
 ```
 At returns a pointer to the float64 stored in the given row and column.
 
