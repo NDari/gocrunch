@@ -246,7 +246,8 @@ Dot is the matrix multiplication of two mat objects. Consider the following two
 mats:
 
 ```go
-m := New(5, 6) n := New(6, 10)
+m := New(5, 6) 
+n := New(6, 10)
 ```
 
 then
