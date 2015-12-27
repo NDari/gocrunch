@@ -43,29 +43,37 @@ type booleanFunc func(*float64) bool
 type reducerFunc func(accumulator, next *float64)
 
 /*
-New is the primary contructor for the "Mat" object. New is a veradic function,
+New is the primary constructor for the "Mat" object. New is a veradic function,
 expecting 0 to 3 ints, with differing behavior as follows:
 
-m := New()        // m is now an empty &Mat{}, where the number of rows,
-				  // columns and the length and capacity of the underlying
-				  // slice are all zero. This is mostly for internal use.
+m := New()
 
-m := New(x)       // m is a x by x (square) matrix, with the underlying
-				  // slice of length x, and capacity 2x.
+m is now an empty &Mat{}, where the number of rows,
+columns and the length and capacity of the underlying
+slice are all zero. This is mostly for internal use.
 
-m := New(x, y)    // m is an x by y matrix, with the underlying slice of
-                  // length rc, and capacity of 2rc. This is a good case
-                  // for when your matrix is going to expand in the
-                  // future. There is a negligible hit to performance
-                  // and a larger momery usage of your code. But in case
-                  // exapanding matrices, many reallocations are avoided.
+m := New(x)
 
-m := New(x, y, z) // m is a x by u matrix, with the underlying slice of
-                  // length rc, and capcity z. This is a good choice for
-                  // when the size of the matrix is static, or when the
-                  // application is memory contrained.
+m is a x by x (square) matrix, with the underlying
+slice of length x, and capacity 2x.
 
-For most cases, we recommand using the New(x) or New(x, y) options, and
+m := New(x, y)
+
+m is an x by y matrix, with the underlying slice of
+length rc, and capacity of 2rc. This is a good case
+for when your matrix is going to expand in the
+future. There is a negligible hit to performance
+and a larger memory usage of your code. But in case
+expanding matrices, many reallocations are avoided.
+
+m := New(x, y, z)
+
+m is a x by u matrix, with the underlying slice of
+length rc, and capacity z. This is a good choice for
+when the size of the matrix is static, or when the
+application is memory constrained.
+
+For most cases, we recommend using the New(x) or New(x, y) options, and
 almost never the New() option.
 */
 func New(dims ...int) *Mat {
@@ -272,12 +280,10 @@ func FromCSV(filename string) *Mat {
 		os.Exit(1)
 	}
 	line := 1
-	// In order to use "append", we must allocate an empty slice ( [] ).
-	// However this is not allowed in mat.New by design, as you
-	// cannot pass zeros for mat.r nor mat.c. So here we allocate and
-	// then set it equal to nil for the desired effect.
-	m := New(1, len(str))
-	m.vals = nil
+	m := New()
+	// Start with one row, and set the number of enteries per row
+	m.r = 1
+	m.c = len(str)
 	row := make([]float64, len(str))
 	for {
 		for i := range str {
