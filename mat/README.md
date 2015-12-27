@@ -1,6 +1,6 @@
 # mat
 --
-    import "numgo/mat"
+    import "github/NDari/numgo/mat"
 
 Package mat implements a "mat" object, which behaves like a 2-dimensional array
 or list in other programming languages. Under the hood, the mat object is a flat
@@ -79,24 +79,32 @@ func New(dims ...int) *Mat
 New is the primary constructor for the "Mat" object. New is a veradic function,
 expecting 0 to 3 ints, with differing behavior as follows:
 
+```go
 m := New()
+```
 
 m is now an empty &Mat{}, where the number of rows, columns and the length and
 capacity of the underlying slice are all zero. This is mostly for internal use.
 
+```go
 m := New(x)
+```
 
 m is a x by x (square) matrix, with the underlying slice of length x, and
 capacity 2x.
 
+```go
 m := New(x, y)
+```
 
 m is an x by y matrix, with the underlying slice of length rc, and capacity of
 2rc. This is a good case for when your matrix is going to expand in the future.
 There is a negligible hit to performance and a larger memory usage of your code.
 But in case expanding matrices, many reallocations are avoided.
 
+```go
 m := New(x, y, z)
+```
 
 m is a x by u matrix, with the underlying slice of length rc, and capacity z.
 This is a good choice for when the size of the matrix is static, or when the
@@ -125,20 +133,21 @@ func (m *Mat) All(f booleanFunc) bool
 All checks if a supplied function is true for all elements of a mat object. For
 instance, consider
 
+```go
 positive := func(i *float64) bool {
-
     if i > 0.0 {
     	return true
     } else {
     	return false
     }
-
 }
-
+```
 
 Then calling
 
+```go
 m.All(positive)
+```
 
 will return true if and only if all elements in m are positive.
 
@@ -150,20 +159,21 @@ func (m *Mat) Any(f booleanFunc) bool
 Any checks if a supplied function is true for one elements of a mat object. For
 instance,
 
+```go
 positive := func(i *float64) bool {
-
     if i > 0.0 {
     	return true
     } else {
     	return false
     }
-
 }
-
+```
 
 Then calling
 
+```go
 m.Any(positive)
+```
 
 would be true if at least one element of the mat object is positive.
 
@@ -184,7 +194,9 @@ column. The first argument selects the row or column (0 or 1), and the second
 argument selects which row or column for which we want to calculate the average.
 For example:
 
+```go
 m.Average(0, 2)
+```
 
 will calculate the average of the 3rd row of mat m.
 
@@ -233,15 +245,21 @@ func (m *Mat) Dot(n *Mat) *Mat
 Dot is the matrix multiplication of two mat objects. Consider the following two
 mats:
 
+```go
 m := New(5, 6) n := New(6, 10)
+```
 
 then
 
+```go
 o := m.Dot(n)
+```
 
 is a 5 by 10 mat whose element at row i and column j is given by:
 
+```go
 Sum(m.Row(i).Mul(n.col(j))
+```
 
 #### func (*Mat) Equals
 
@@ -261,19 +279,21 @@ Filter applies a function to each element of a mat object, creating a new mat
 object from all elements for which the function returned true. For example
 consider the following function:
 
-f := func(i *float64) bool {
-
+```go
+positive := func(i *float64) bool {
     if i > 0.0 {
     	return true
     } else {
     	return false
     }
-
 }
+```
 
 then calling
 
-m.Filter(f)
+```go
+m.Filter(positive)
+```
 
 will create a new mat object which contains the positive elements of the
 original matrix. If no elements return true for a given function, nil is
@@ -326,7 +346,9 @@ column. The first argument selects the row or column (0 or 1), and the second
 argument selects which row or column for which we want to calculate the product.
 For example:
 
+```go
 m.Prod(1, 2)
+```
 
 will calculate the product of the 3rd column of mat m.
 
@@ -377,7 +399,9 @@ http://mathworld.wolfram.com/StandardDeviation.html
 
 For example:
 
+```go
 m.Std(1, 0)
+```
 
 will calculate the standard deviation of the first column of mat m.
 
@@ -402,7 +426,9 @@ Sum returns the sum of the elements along a specific row or specific column. The
 first argument selects the row or column (0 or 1), and the second argument
 selects which row or column for which we want to calculate the sum. For example:
 
+```go
 m.Sum(0, 2)
+```
 
 will calculate the sum of the 3rd row of mat m.
 
