@@ -8,7 +8,7 @@ import (
 	"os"
 	"runtime/debug"
 
-	"numgo/mat"
+	"github/NDari/numgo/mat"
 )
 
 /*
