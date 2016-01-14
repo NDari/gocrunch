@@ -661,3 +661,12 @@ func BenchmarkDot(b *testing.B) {
 		_ = m.Dot(n)
 	}
 }
+
+func TestPrint(t *testing.T) {
+	var (
+		row = 10
+		col = 4
+	)
+	m := New(row, col).Inc()
+	m.Print()
+}

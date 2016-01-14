@@ -314,7 +314,7 @@ func FromCSV(filename string) *Mat {
 			debug.PrintStack()
 			os.Exit(1)
 		}
-		line += 1
+		line++
 		if len(str) != len(row) {
 			fmt.Println("\nNumgo/mat error.")
 			s := "In mat.%v, line %d in %s has %d entries. The first line\n"
@@ -326,7 +326,7 @@ func FromCSV(filename string) *Mat {
 			debug.PrintStack()
 			os.Exit(1)
 		}
-		m.r += 1
+		m.r++
 	}
 	return m
 }
@@ -428,7 +428,7 @@ func (m *Mat) ToCSV(fileName string) {
 			if j+1 != m.c {
 				str += ","
 			}
-			idx += 1
+			idx++
 		}
 		if i+1 != m.r {
 			str += "\n"
@@ -605,7 +605,7 @@ func (m *Mat) T() *Mat {
 	for i := 0; i < m.c; i++ {
 		for j := 0; j < m.r; j++ {
 			n.vals[idx] = m.vals[j*m.c+i]
-			idx += 1
+			idx++
 		}
 	}
 	return n
@@ -642,10 +642,8 @@ func (m *Mat) Filter(f booleanFunc) *Mat {
 	}
 	if len(res) == 0 {
 		return nil
-	} else {
-		n := From1DSlice(res)
-		return n
 	}
+	return From1DSlice(res)
 }
 
 /*
@@ -1152,6 +1150,23 @@ func (m *Mat) Dot(n *Mat) *Mat {
 		}
 	}
 	return o
+}
+
+/*
+Print displays the mat to the stdout.
+*/
+func (m *Mat) Print() {
+	var str string
+	for i := 0; i < m.r; i++ {
+		for j := 0; j < m.c; j++ {
+			str += strconv.FormatFloat(m.vals[i*m.c+j], 'f', 14, 64)
+			str += " "
+		}
+		if i+1 <= m.r {
+			str += "\n"
+		}
+	}
+	fmt.Println(str)
 }
 
 // /*
