@@ -643,8 +643,7 @@ func (m *Mat) Filter(f booleanFunc) *Mat {
 	if len(res) == 0 {
 		return nil
 	}
-	n := From1DSlice(res)
-	return n
+	return From1DSlice(res)
 }
 
 /*
@@ -1151,6 +1150,23 @@ func (m *Mat) Dot(n *Mat) *Mat {
 		}
 	}
 	return o
+}
+
+/*
+Print displays the mat to the stdout.
+*/
+func (m *Mat) Print() {
+	var str string
+	for i := 0; i < m.r; i++ {
+		for j := 0; j < m.c; j++ {
+			str += strconv.FormatFloat(m.vals[i*m.c+j], 'f', 14, 64)
+			str += " "
+		}
+		if i+1 <= m.r {
+			str += "\n"
+		}
+	}
+	fmt.Println(str)
 }
 
 // /*
