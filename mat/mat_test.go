@@ -343,6 +343,29 @@ func TestSetAllTo(t *testing.T) {
 	}
 }
 
+func TestRand(t *testing.T) {
+	row := 31
+	col := 42
+	m := New(row, col).Rand()
+	for i := 0; i < row*col; i++ {
+		if m.vals[i] < 0.0 || m.vals[i] >= 1.0 {
+			t.Errorf("at index %d, expected [0, 1.0), got %f", i, m.vals[i])
+		}
+	}
+	m.Rand(100.0)
+	for i := 0; i < row*col; i++ {
+		if m.vals[i] < 0.0 || m.vals[i] >= 100.0 {
+			t.Errorf("at index %d, expected [0, 100.0), got %f", i, m.vals[i])
+		}
+	}
+	m.Rand(-12.0, 2.0)
+	for i := 0; i < row*col; i++ {
+		if m.vals[i] < -12.0 || m.vals[i] >= 2.0 {
+			t.Errorf("at index %d, expected [-12.0, 2.0), got %f", i, m.vals[i])
+		}
+	}
+}
+
 func TestCol(t *testing.T) {
 	row := 3
 	col := 4

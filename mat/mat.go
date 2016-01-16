@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"math/rand"
 	"os"
 	"runtime/debug"
 	"strconv"
@@ -77,9 +78,9 @@ For most cases, we recommend using the New(x) or New(x, y) options, and
 almost never the New() option.
 */
 func New(dims ...int) *Mat {
+	m := &Mat{}
 	switch len(dims) {
 	case 0:
-		return &Mat{}
 	case 1:
 		r := dims[0]
 		if r <= 0 {
@@ -92,7 +93,7 @@ func New(dims ...int) *Mat {
 			debug.PrintStack()
 			os.Exit(1)
 		}
-		return &Mat{
+		m = &Mat{
 			r,
 			r,
 			make([]float64, r*r, 2*r*r),
@@ -120,7 +121,7 @@ func New(dims ...int) *Mat {
 			debug.PrintStack()
 			os.Exit(1)
 		}
-		return &Mat{
+		m = &Mat{
 			r,
 			c,
 			make([]float64, r*c, 2*r*c),
@@ -149,7 +150,7 @@ func New(dims ...int) *Mat {
 			debug.PrintStack()
 			os.Exit(1)
 		}
-		return &Mat{
+		m = &Mat{
 			r,
 			c,
 			make([]float64, r*c, capacity),
@@ -163,7 +164,7 @@ func New(dims ...int) *Mat {
 		debug.PrintStack()
 		os.Exit(1)
 	}
-	return nil
+	return m
 }
 
 /*
@@ -522,6 +523,54 @@ SetAllTo sets all values of a mat to the passed float64 value.
 func (m *Mat) SetAllTo(val float64) *Mat {
 	for i := 0; i < m.r*m.c; i++ {
 		m.vals[i] = val
+	}
+	return m
+}
+
+/*
+Rand sets the values of a mat to random numbers. The range from which the random
+numbers are selected is determined based on the arguments passed.
+
+- For no arguments, the range is [0, 1)
+- For 1 argument, the range is [0, arg) for arg > 0, or (arg, 0] is arg < 0.
+- For 2 arguments, the range is [arg1, arg2).
+*/
+func (m *Mat) Rand(args ...float64) *Mat {
+	switch len(args) {
+	case 0:
+		for i := 0; i < m.r*m.c; i++ {
+			m.vals[i] = rand.Float64()
+		}
+	case 1:
+		to := args[0]
+		for i := 0; i < m.r*m.c; i++ {
+			m.vals[i] = rand.Float64() * to
+		}
+	case 2:
+		from := args[0]
+		to := args[1]
+		if !(from < to) {
+			fmt.Println("\nNumgo/mat error.")
+			s := "In mat.%s the first argument, %f, is not less than the\n"
+			s += "second argument, %f. The first argument must be strictly\n"
+			s += "less than the second.\n"
+			s = fmt.Sprintf(s, "Rand", from, to)
+			fmt.Println(s)
+			fmt.Println("Stack trace for this error:")
+			debug.PrintStack()
+			os.Exit(1)
+		}
+		for i := 0; i < m.r*m.c; i++ {
+			m.vals[i] = rand.Float64()*(to-from) + from
+		}
+	default:
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s expected 0 to 2 arguments, but recieved %d."
+		s = fmt.Sprintf(s, "Rand", len(args))
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
 	}
 	return m
 }
