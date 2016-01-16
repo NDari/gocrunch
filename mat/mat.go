@@ -510,11 +510,20 @@ func (m *Mat) Inc() *Mat {
 Reset sets all values of a mat object to 0.0
 */
 func (m *Mat) Reset() *Mat {
-	f := func(i *float64) {
-		*i = 0.0
-		return
+	for i := 0; i < m.r*m.c; i++ {
+		m.vals[i] = 0.0
 	}
-	return m.Map(f)
+	return m
+}
+
+/*
+SetAllTo sets all values of a mat to the passed float64 value.
+*/
+func (m *Mat) SetAllTo(val float64) *Mat {
+	for i := 0; i < m.r*m.c; i++ {
+		m.vals[i] = val
+	}
+	return m
 }
 
 /*

@@ -19,4 +19,3 @@ the error.
 ## Directories
 
 - [numgo/mat](https://github.com/NDari/numgo/tree/master/mat): Package mat implements function that create or act upon 2D slices of `float64`.
-- [numgo/vec](https://github.com/NDari/numgo/tree/master/vec): Package vec implements functions that create or act upon 1D slices of `float64`.

@@ -100,7 +100,7 @@ func TestFromSlice(t *testing.T) {
 				t.Errorf("slice[%d][%d]: %f, mat: %f", i, j,
 					s[i][j], m.vals[idx])
 			}
-			idx += 1
+			idx++
 		}
 	}
 
@@ -250,7 +250,7 @@ func TestToSlice(t *testing.T) {
 				t.Errorf("slice[%d][%d]: %f, mat: %f", i, j,
 					s[i][j], m.vals[idx])
 			}
-			idx += 1
+			idx++
 		}
 	}
 }
@@ -276,7 +276,7 @@ func TestAt(t *testing.T) {
 			if m.At(i, j) != m.vals[idx] {
 				t.Errorf("at index %d expected %f, got %f", i, m.vals[idx], m.At(i, j))
 			}
-			idx += 1
+			idx++
 		}
 	}
 }
@@ -331,6 +331,18 @@ func TestReset(t *testing.T) {
 	}
 }
 
+func TestSetAllTo(t *testing.T) {
+	row := 3
+	col := 4
+	val := 11.0
+	m := New(row, col).SetAllTo(val)
+	for i := 0; i < row*col; i++ {
+		if m.vals[i] != val {
+			t.Errorf("at index %d, not equal to %f", i, val)
+		}
+	}
+}
+
 func TestCol(t *testing.T) {
 	row := 3
 	col := 4
@@ -366,7 +378,7 @@ func TestRow(t *testing.T) {
 				t.Errorf("At index %v Col(%v), got %f, want %f", j, i,
 					got.vals[j], m.vals[j*m.r+i])
 			}
-			idx += 1
+			idx++
 		}
 	}
 }
@@ -423,9 +435,8 @@ func TestFilter(t *testing.T) {
 	neg := func(i *float64) bool {
 		if *i < 0.0 {
 			return true
-		} else {
-			return false
 		}
+		return false
 	}
 	r := m.Filter(neg)
 	if r != nil {
@@ -435,9 +446,8 @@ func TestFilter(t *testing.T) {
 	one := func(i *float64) bool {
 		if *i == 1.0 {
 			return true
-		} else {
-			return false
 		}
+		return false
 	}
 	r = m.Filter(one)
 	if len(m.vals) != len(r.vals) {
@@ -450,9 +460,8 @@ func TestAll(t *testing.T) {
 	pos := func(i *float64) bool {
 		if *i >= 0.0 {
 			return true
-		} else {
-			return false
 		}
+		return false
 	}
 	if !m.All(pos) {
 		t.Errorf("All(pos) is false for Inc()")
@@ -460,9 +469,8 @@ func TestAll(t *testing.T) {
 	notOne := func(i *float64) bool {
 		if *i != 1.0 {
 			return true
-		} else {
-			return false
 		}
+		return false
 	}
 	m.Ones()
 	if m.All(notOne) {
@@ -475,9 +483,8 @@ func TestAny(t *testing.T) {
 	neg := func(i *float64) bool {
 		if *i < 0.0 {
 			return true
-		} else {
-			return false
 		}
+		return false
 	}
 	if m.Any(neg) {
 		t.Errorf("Any(neg) is true for Inc()")
@@ -485,9 +492,8 @@ func TestAny(t *testing.T) {
 	one := func(i *float64) bool {
 		if *i == 1.0 {
 			return true
-		} else {
-			return false
 		}
+		return false
 	}
 	m.Ones()
 	if !m.Any(one) {
