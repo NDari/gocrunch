@@ -5,6 +5,7 @@ package ann
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"runtime/debug"
 
@@ -12,7 +13,8 @@ import (
 )
 
 /*
-Net is the main type of this package
+Net is the main type of this package. It represents a fully connected artificial
+neural network.
 */
 type Net struct {
 	input  *mat.Mat
@@ -25,6 +27,7 @@ type Net struct {
 New is the main contructor of this package.
 */
 func New(dims ...int) *Net {
+	net := &Net{}
 	switch len(dims) {
 	case 0, 1, 2:
 		fmt.Println("\nNumgo/ann error.")
@@ -76,27 +79,39 @@ func New(dims ...int) *Net {
 			}
 			hid = append(hid, mat.New(1, dims[i]))
 		}
-		// new one bias per hidden layer
+		// one bias per hidden layer
 		bias := mat.New(1, len(dims)-2)
-		return &Net{
+
+		// Initialize the weights. We use http://arxiv.org/abs/1206.5533
+		// for setting the random range.
+		for i := 0; i < len(dims)-2; i++ {
+			if i == 0 {
+				val := 4.0 * math.Sqrt(6.0/float64(dims[0]+dims[2]))
+				hid[0].Rand(-val, val)
+				continue
+			}
+			val := 4.0 * math.Sqrt(6.0/float64(dims[i-1]+dims[i+1]))
+			hid[i].Rand(-val, val)
+		}
+		net = &Net{
 			inp,
 			hid,
 			out,
 			bias,
 		}
 	}
-	return nil
+	return net
 }
 
+/*
+Print writes the weights of the hidden layers to a file.
+TODO: Change this to actually print to a file, not stdout.
+*/
 func (n *Net) Print() {
-	fmt.Println("The input layer's weights:")
-	n.input.Print()
 	for i := 0; i < len(n.hidden); i++ {
 		fmt.Printf("Hidden layer %d weights:\n", i)
 		n.hidden[i].Print()
 	}
-	fmt.Println("The output layer's weights:")
-	n.output.Print()
 	fmt.Println("The bias weights:")
 	n.bias.Print()
 }
