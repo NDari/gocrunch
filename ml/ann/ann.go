@@ -25,6 +25,7 @@ type Net struct {
 
 /*
 New is the main contructor of this package.
+TODO: weights are 2D. 3 input, 5 hidden => 15 weights.
 */
 func New(dims ...int) *Net {
 	net := &Net{}
