@@ -1191,7 +1191,7 @@ func (m *Mat) Dot(n *Mat) *Mat {
 	if m.c != n.r {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s the number of columns of the first mat is %d\n"
-		s += "which is not equal to the number of row of the second mat,\n"
+		s += "which is not equal to the number of rows of the second mat,\n"
 		s += "which is %d. They must be equal.\n"
 		s = fmt.Sprintf(s, "Dot", m.c, n.r)
 		fmt.Println(s)
