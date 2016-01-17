@@ -1,6 +1,7 @@
 package mat
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -691,11 +692,11 @@ func BenchmarkDot(b *testing.B) {
 	}
 }
 
-func TestPrint(t *testing.T) {
+func TestToString(t *testing.T) {
 	var (
 		row = 10
 		col = 4
 	)
 	m := New(row, col).Inc()
-	m.Print()
+	fmt.Println(m.ToString())
 }

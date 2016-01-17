@@ -1211,9 +1211,11 @@ func (m *Mat) Dot(n *Mat) *Mat {
 }
 
 /*
-Print displays the mat to the stdout.
+ToString returns the string representation of a mat. This is done by putting
+every row into a line, and separating the entries of that row by a space. note
+that the last line does not contain a newline.
 */
-func (m *Mat) Print() {
+func (m *Mat) ToString() string {
 	var str string
 	for i := 0; i < m.r; i++ {
 		for j := 0; j < m.c; j++ {
@@ -1224,7 +1226,7 @@ func (m *Mat) Print() {
 			str += "\n"
 		}
 	}
-	fmt.Println(str)
+	return str
 }
 
 // /*
