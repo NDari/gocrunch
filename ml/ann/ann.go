@@ -119,5 +119,31 @@ func (n *Net) Print() {
 	}
 	str += "The bias weights:\n"
 	str += n.bias.ToString()
-	fmt.Println(str)
+	fmt.Print(str)
+}
+
+func (n *Net) feedForward() {
+	for i := 0; i < len(n.hidden); i++ {
+		if i == 0 {
+			n.hidden[i] = n.input.Dot(n.weights[i])
+			continue
+		}
+		n.hidden[i] = n.hidden[i-1].Dot(n.weights[i])
+	}
+	n.output = n.hidden[len(n.hidden)-1].Dot(n.weights[len(n.weights)-1])
+}
+
+func (n *Net) clone() *Net {
+	m := &Net{}
+	m.input = n.input.Copy()
+	for i := 0; i < len(n.hidden); i++ {
+		m.hidden = append(m.hidden, n.hidden[i].Copy())
+	}
+	m.output = n.output
+	m.bias = n.bias
+	for i := 0; i < len(n.weights); i++ {
+		m.weights = append(m.weights, n.weights[i].Copy())
+	}
+	m.numLayers = n.numLayers
+	return m
 }
