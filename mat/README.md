@@ -179,6 +179,21 @@ m.Any(positive)
 
 would be true if at least one element of the mat object is positive.
 
+#### func (*Mat) AppendCol
+
+```go
+func (m *Mat) AppendCol(v []float64) *Mat
+```
+AppendCol appends a column to the right side of a Mat. TODO: Fix this... the new
+object is not returned.
+
+#### func (*Mat) AppendRow
+
+```go
+func (m *Mat) AppendRow(v []float64) *Mat
+```
+AppendRow appends a row to the bottom of a Mat.
+
 #### func (*Mat) At
 
 ```go
@@ -210,6 +225,25 @@ func (m *Mat) Col(x int) *Mat
 Col returns a new mat object whole values are equal to a column of the original
 mat object. The number of Rows of the returned mat object is equal to the number
 of rows of the original mat, and the number of columns is equal to 1.
+
+#### func (*Mat) Concat
+
+```go
+func (m *Mat) Concat(n *Mat) *Mat
+```
+Concat concatenates the inner slices of two `[][]float64` arguments..
+
+For example, if we have:
+
+```go
+m := [[1.0, 2.0], [3.0, 4.0]] 
+n := [[5.0, 6.0], [7.0, 8.0]] 
+o := mat.Concat(m, n)
+
+mat.Print(o) // 1.0, 2.0, 5.0, 6.0
+             // 3.0, 4.0, 7.0, 8.0
+
+```
 
 #### func (*Mat) Copy
 

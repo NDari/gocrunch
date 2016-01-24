@@ -700,3 +700,61 @@ func TestToString(t *testing.T) {
 	m := New(row, col).Inc()
 	fmt.Println(m.ToString())
 }
+
+func TestAppendCol(t *testing.T) {
+	var (
+		row = 10
+		col = 4
+	)
+	m := New(row, col).Inc()
+	v := make([]float64, row)
+	m.AppendCol(v)
+	if m.c != col+1 {
+		t.Errorf("Expected number of columns to be %d, but got %d", col+1, m.c)
+	}
+}
+
+func TestAppendRow(t *testing.T) {
+	var (
+		row = 10
+		col = 4
+	)
+	m := New(row, col).Inc()
+	v := make([]float64, col)
+	m.AppendRow(v)
+	if m.r != row+1 {
+		t.Errorf("Expected number of rows to be %d, but got %d", row+1, m.r)
+	}
+}
+
+func TestConcat(t *testing.T) {
+	var (
+		row = 10
+		col = 4
+	)
+	m := New(row, col).Inc()
+	n := New(row, row).Inc()
+	m.Concat(n)
+	if m.c != row+col {
+		t.Errorf("Expected number of cols to be %d, but got %d", row+col, m.c)
+	}
+	idx1 := 0
+	idx2 := 0
+	for i := 0; i < row; i++ {
+		for j := 0; j < col+row; j++ {
+			if j < col {
+				if m.vals[i*m.c+j] != float64(idx1) {
+					t.Errorf("At row %d, column %d, expected %f got %f", i, j,
+						float64(idx1), m.vals[i*m.c+j])
+				}
+				idx1++
+				continue
+			}
+			if m.vals[i*m.c+j] != float64(idx2) {
+				t.Errorf("At row %d, column %d, expected %f got %f", i, j,
+					float64(idx2), m.vals[i*m.c+j])
+			}
+			idx2++
+		}
+	}
+}

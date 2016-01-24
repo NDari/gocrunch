@@ -195,7 +195,7 @@ func FromSlice(s [][]float64) *Mat {
 		debug.PrintStack()
 		os.Exit(1)
 	}
-	m := New(len(s), len(s[0]))
+	m := New(len(s), len(s[0]), len(s)*len(s[0])*2)
 	for i := range s {
 		for j := range s[i] {
 			m.vals[i*len(s[0])+j] = s[i][j]
@@ -1229,57 +1229,95 @@ func (m *Mat) ToString() string {
 	return str
 }
 
-// /*
-// AppendCol appends a column to the right side of a 2D slice of float64s.
-// */
-// func AppendCol(m [][]float64, v []float64) [][]float64 {
-// 	if len(m) != len(v) {
-// 		fmt.Println("\nNumgo/mat error.")
-// 		s := "In mat.%s the number of rows of the 2D slice is %d, while\n"
-// 		s += "the number of rows of the vector is %d. They must be equal.\n"
-// 		s = fmt.Sprintf(s, "AppendCol", len(m), len(v))
-// 		fmt.Println(s)
-// 		fmt.Println("Stack trace for this error:\n")
-// 		debug.PrintStack()
-// 		os.Exit(1)
-// 	}
-// 	for i := range v {
-// 		m[i] = append(m[i], v[i])
-// 	}
-// 	return m
-// }
+/*
+AppendCol appends a column to the right side of a Mat.
+TODO: Fix this... the new object is not returned.
+*/
+func (m *Mat) AppendCol(v []float64) *Mat {
+	if m.r != len(v) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the number of rows of the reciever is %d, while\n"
+		s += "the number of rows of the vector is %d. They must be equal.\n"
+		s = fmt.Sprintf(s, "AppendCol", m.r, len(v))
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	// TODO: redo this by hand, instead of taking this shortcut... or check if
+	// this is a huge bottleneck
+	q := m.ToSlice()
+	for i := range q {
+		q[i] = append(q[i], v[i])
+	}
+	m.c++
+	m.vals = append(m.vals, v...)
+	for i := 0; i < m.r; i++ {
+		for j := 0; j < m.c; j++ {
+			m.vals[i*m.c+j] = q[i][j]
+		}
+	}
+	return m
+}
 
-// /*
-// Concat concatenates the inner slices of two `[][]float64` arguments..
+/*
+AppendRow appends a row to the bottom of a Mat.
+*/
+func (m *Mat) AppendRow(v []float64) *Mat {
+	if m.c != len(v) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the number of cols of the reciever is %d, while\n"
+		s += "the number of rows of the vector is %d. They must be equal.\n"
+		s = fmt.Sprintf(s, "AppendCol", m.c, len(v))
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	m.vals = append(m.vals, v...)
+	m.r++
+	return m
+}
 
-// For example, if we have:
+/*
+Concat concatenates the inner slices of two `[][]float64` arguments..
 
-// m := [[1.0, 2.0], [3.0, 4.0]]
-// n := [[5.0, 6.0], [7.0, 8.0]]
-// o := mat.Concat(m, n)
+For example, if we have:
 
-// mat.Print(o) // 1.0, 2.0, 5.0, 6.0
-//              // 3.0, 4.0, 7.0, 8.0
+m := [[1.0, 2.0], [3.0, 4.0]]
+n := [[5.0, 6.0], [7.0, 8.0]]
+o := mat.Concat(m, n)
 
-// */
-// func Concat(m, n [][]float64) [][]float64 {
-// 	if len(m) != len(n) {
-// 		fmt.Println("\nNumgo/mat error.")
-// 		s := "In mat.%s the number of rows of the first 2D slice is %d, while\n"
-// 		s += "the number of rows of the second 2D slice is %d. They must be equal.\n"
-// 		s = fmt.Sprintf(s, "Concat", len(m), len(n))
-// 		fmt.Println(s)
-// 		fmt.Println("Stack trace for this error:\n")
-// 		debug.PrintStack()
-// 		os.Exit(1)
-// 	}
-// 	o := make([][]float64, len(m))
-// 	for i := range m {
-// 		o[i] = make([]float64, len(m[i])+len(n[i]))
-// 		o[i] = append(m[i], n[i]...)
-// 	}
-// 	return o
-// }
+mat.Print(o) // 1.0, 2.0, 5.0, 6.0
+             // 3.0, 4.0, 7.0, 8.0
+
+*/
+func (m *Mat) Concat(n *Mat) *Mat {
+	if m.r != n.r {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the number of rows of the receiver is %d, while\n"
+		s += "the number of rows of the second Mat is %d. They must be equal.\n"
+		s = fmt.Sprintf(s, "Concat", m.r, n.r)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	q := m.ToSlice()
+	t := n.Vals()
+	r := n.ToSlice()
+	m.vals = append(m.vals, t...)
+	for i := range q {
+		q[i] = append(q[i], r[i]...)
+	}
+	m.c += n.c
+	for i := 0; i < m.r; i++ {
+		for j := 0; j < m.c; j++ {
+			m.vals[i*m.c+j] = q[i][j]
+		}
+	}
+	return m
+}
 
 // /*
 // Print prints a `[][]float64` to the stdout.
