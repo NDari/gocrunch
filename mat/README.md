@@ -1,6 +1,6 @@
 # mat
 --
-    import "numgo/mat"
+    import "github.com/NDari/numgo/mat"
 
 Package mat implements a "mat" object, which behaves like a 2-dimensional array
 or list in other programming languages. Under the hood, the mat object is a flat
