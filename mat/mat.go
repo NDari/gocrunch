@@ -1318,21 +1318,3 @@ func (m *Mat) Concat(n *Mat) *Mat {
 	}
 	return m
 }
-
-// /*
-// Print prints a `[][]float64` to the stdout.
-// */
-// func Print(m [][]float64) {
-// 	w := csv.NewWriter(os.Stdout)
-// 	w.Comma = rune(' ')
-// 	w.WriteAll(ToString(m))
-// 	if err := w.Error(); err != nil {
-// 		fmt.Println("\nNumgo/mat error.")
-// 		s := "In mat.%s cannot write to stdout due to: %v\n"
-// 		s = fmt.Sprintf(s, "Print", err)
-// 		fmt.Println(s)
-// 		fmt.Println("Stack trace for this error:\n")
-// 		debug.PrintStack()
-// 		os.Exit(1)
-// 	}
-// }
