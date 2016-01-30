@@ -1,5 +1,3 @@
-## Note: Alpha package. The API may change at any time! Be warned.
-
 # numgo
 
 Numgo is a collection of libraries for numerical libraries in Go. Take a look at the packages below for more details about the specific libraries.
