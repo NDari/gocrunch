@@ -57,8 +57,8 @@ at a time. This results in some major inefficiencies, and it is recommended that
 this function be used sparingly, and not as a major component of your
 library/executable.
 
-Unlike other mat creation methods in this package, the capacity of the mat 
-object created here is the same as its length since we assume the mat to 
+Unlike other mat creation methods in this package, the capacity of the mat
+object created here is the same as its length since we assume the mat to
 be very large.
 
 #### func  FromSlice
@@ -244,6 +244,28 @@ Col returns a new mat object whole values are equal to a column of the original
 mat object. The number of Rows of the returned mat object is equal to the number
 of rows of the original mat, and the number of columns is equal to 1.
 
+
+#### func (m *Mat) Cols
+
+```go
+func (m *Mat) Cols() <-chan *Mat
+```
+Cols returns a generator which, upon invocation, returns the next column of a
+Mat in form of a Mat with 1 column, and the same number of rows of the method
+receiver. Consider the following:
+
+```go
+m := mat.New(3, 2).Inc()
+m.Print() // 0.0 1.0
+          // 2.0 3.0
+    	  // 4.0 5.0
+
+for col := range m.Cols() {
+    col.Print()
+}
+```
+
+
 #### func (m *Mat) Concat
 
 ```go
@@ -306,8 +328,6 @@ n := mat.New(6, 10)
 o := m.Dot(n)
 
 o.Dims() // (5, 10)
-
-o.At(i, j) == mat.Sum(m.Row(i).Mul(n.col(j))
 
 ```
 
@@ -385,6 +405,14 @@ func (m *Mat) Ones() *Mat
 ```
 Ones sets all values of a mat to be equal to 1.0
 
+
+#### func (m *Mat) Print
+
+```go
+func (m *Mat) Print()
+```
+Print displays the content of a Mat to the screen.
+
 #### func (m *Mat) Prod
 
 ```go
@@ -435,6 +463,27 @@ func (m *Mat) Row(x int) *Mat
 Row returns a new mat object whose values are equal to a row of the original mat
 object. The number of Rows of the returned mat object is equal to 1, and the
 number of columns is equal to the number of columns of the original mat.
+
+
+#### func (m *Mat) Rows
+
+```go
+func (m *Mat) Rows() <-chan *Mat
+```
+Rows returns a generator which, upon invocation, returns the next row of a Mat
+in form of a Mat with 1 row, and the same number of columns of the method
+receiver. Consider the following:
+
+```go
+m := mat.New(3, 2).Inc()
+m.Print() // 0.0 1.0
+          // 2.0 3.0
+    	  // 4.0 5.0
+
+for row := range m.Rows() {
+    row.Print()
+}
+```
 
 #### func (m *Mat) Scale
 
