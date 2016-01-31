@@ -44,7 +44,7 @@ type booleanFunc func(*float64) bool
 type reducerFunc func(accumulator, next *float64)
 
 /*
-New is the primary constructor for the "Mat" object. New is a veradic function,
+New is the primary constructor for the "Mat" object. New is a variadic function,
 expecting 0 to 3 ints, with differing behavior as follows:
 
 m := New()
@@ -1317,4 +1317,11 @@ func (m *Mat) Concat(n *Mat) *Mat {
 		}
 	}
 	return m
+}
+
+/*
+Print displays the content of a Mat to the screen.
+*/
+func (m *Mat) Print() {
+	fmt.Println(m.ToString())
 }
