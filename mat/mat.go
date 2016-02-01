@@ -247,8 +247,8 @@ at a time. This results in some major inefficiencies, and it is recommended
 that this function be used sparingly, and not as a major component of your
 library/executable.
 
-Unline other mat creation methods in this package, the mat object created here,
-the capacity of the mat opject created here is the same as its length since we
+Unlike other mat creation methods in this package, the mat object created here,
+the capacity of the mat object created here is the same as its length since we
 assume the mat to be very large.
 */
 func FromCSV(filename string) *Mat {
@@ -598,6 +598,41 @@ func (m *Mat) Col(x int) *Mat {
 }
 
 /*
+Cols returns a generator which, upon invocation, returns the next column of
+a Mat in form of a Mat with 1 column, and the same number of rows of the
+method receiver. Consider the following:
+
+m := mat.New(3, 2).Inc()
+m.Print() // 0.0 1.0
+          // 2.0 3.0
+		  // 4.0 5.0
+
+for col := range m.Cols() {
+	col.Print()
+}
+
+The col.Print() above prints:
+// 0.0
+// 2.0
+// 4.0
+
+and then
+// 1.0
+// 3.0
+// 5.0
+*/
+func (m *Mat) Cols() <-chan *Mat {
+	res := make(chan *Mat, m.c)
+	go func() {
+		for i := 0; i < m.c; i++ {
+			res <- m.Col(i)
+		}
+		close(res)
+	}()
+	return res
+}
+
+/*
 Row returns a new mat object whose values are equal to a row of the original
 mat object. The number of Rows of the returned mat object is equal to 1, and
 the number of columns is equal to the number of columns of the original mat.
@@ -617,6 +652,40 @@ func (m *Mat) Row(x int) *Mat {
 		v.vals[r] = m.vals[x*m.c+r]
 	}
 	return v
+}
+
+/*
+Rows returns a generator which, upon invocation, returns the next row of
+a Mat in form of a Mat with 1 row, and the same number of columns of the
+method receiver. Consider the following:
+
+m := mat.New(3, 2).Inc()
+m.Print() // 0.0 1.0
+          // 2.0 3.0
+		  // 4.0 5.0
+
+for row := range m.Rows() {
+	row.Print()
+}
+
+The col.Print() above prints:
+// 0.0 1.0
+
+and then
+// 2.0 3.0
+
+and finally
+// 4.0 5.0
+*/
+func (m *Mat) Rows() <-chan *Mat {
+	res := make(chan *Mat, m.r)
+	go func() {
+		for i := 0; i < m.r; i++ {
+			res <- m.Row(i)
+		}
+		close(res)
+	}()
+	return res
 }
 
 /*
@@ -875,7 +944,7 @@ Div is the element-wise dicition of a mat object by another which is passed
 to this method.
 
 The shape of the mat objects must be the same (same number or rows and columns)
-and the results of the element-wise divition is stored in the original
+and the results of the element-wise division is stored in the original
 mat on which the method was invoked. The dividing mat object (passed to this
 method) must not contain any elements which are equal to 0.0.
 */
@@ -1231,7 +1300,6 @@ func (m *Mat) ToString() string {
 
 /*
 AppendCol appends a column to the right side of a Mat.
-TODO: Fix this... the new object is not returned.
 */
 func (m *Mat) AppendCol(v []float64) *Mat {
 	if m.r != len(v) {
