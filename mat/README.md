@@ -245,6 +245,27 @@ Mat. The number of Rows of the returned Mat is equal to the number
 of rows of the original mat, and the number of columns is equal to 1.
 
 
+#### func (m *Mat) Cols
+
+```go
+func (m *Mat) Cols() <-chan *Mat
+```
+Cols returns a generator which, upon invocation, returns the next column of a
+Mat in form of a Mat with 1 column, and the same number of rows of the method
+receiver. Consider the following:
+
+```go
+m := mat.New(3, 2).Inc()
+m.Print() // 0.0 1.0
+          // 2.0 3.0
+    	  // 4.0 5.0
+
+for col := range m.Cols() {
+    col.Print()
+}
+```
+
+
 #### func (m *Mat) Concat
 
 ```go
@@ -442,6 +463,27 @@ func (m *Mat) Row(x int) *Mat
 Row returns a new Mat whose values are equal to a row of the original mat
 object. The number of Rows of the returned Mat is equal to 1, and the
 number of columns is equal to the number of columns of the original mat.
+
+
+#### func (m *Mat) Rows
+
+```go
+func (m *Mat) Rows() <-chan *Mat
+```
+Rows returns a generator which, upon invocation, returns the next row of a Mat
+in form of a Mat with 1 row, and the same number of columns of the method
+receiver. Consider the following:
+
+```go
+m := mat.New(3, 2).Inc()
+m.Print() // 0.0 1.0
+          // 2.0 3.0
+    	  // 4.0 5.0
+
+for row := range m.Rows() {
+    row.Print()
+}
+```
 
 #### func (m *Mat) Scale
 
