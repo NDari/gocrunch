@@ -415,7 +415,7 @@ Rand sets the values of a mat to random numbers. The range from which the random
 numbers are selected is determined based on the arguments passed.
 
 - For no arguments, the range is [0, 1)
-- For 1 argument, the range is [0, arg) for arg > 0, or (arg, 0] is arg < 0.
+- For 1 argument, the range is [0, arg) for arg > 0, or (arg, 0] if arg < 0.
 - For 2 arguments, the range is [arg1, arg2).
 
 #### func (m *Mat) Reset
