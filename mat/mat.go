@@ -622,18 +622,13 @@ and then
 // 5.0
 */
 func (m *Mat) Cols() <-chan *Mat {
-	res := make(chan *Mat)
-	i := 0
-	go func(res chan *Mat) {
-		if i == m.c-1 {
+	res := make(chan *Mat, m.c)
+	go func() {
+		for i := 0; i < m.c; i++ {
 			res <- m.Col(i)
-			close(res)
-		} else {
-			res <- m.Col(i)
-			close(res)
-			i++
 		}
-	}(res)
+		close(res)
+	}()
 	return res
 }
 
@@ -683,18 +678,13 @@ and finally
 // 4.0 5.0
 */
 func (m *Mat) Rows() <-chan *Mat {
-	res := make(chan *Mat)
-	i := 0
-	go func(res chan *Mat) {
-		if i == m.r-1 {
+	res := make(chan *Mat, m.r)
+	go func() {
+		for i := 0; i < m.r; i++ {
 			res <- m.Row(i)
-			close(res)
-		} else {
-			res <- m.Row(i)
-			close(res)
-			i++
 		}
-	}(res)
+		close(res)
+	}()
 	return res
 }
 
