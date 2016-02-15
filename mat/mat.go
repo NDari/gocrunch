@@ -1417,3 +1417,179 @@ func (m *Mat) Set(r, c int, val float64) *Mat {
 	m.vals[r*m.c+c] = val
 	return m
 }
+
+/*
+CombineWithRows combines a slice elementally with each of the rows in a Mat. The allowed
+combinations are ["add", "sub", "mul", "div"]. Consider:
+	v := make([]float64, 5)
+	for i := range v {
+		v[i] = float64(i) // v is now [0.0, 1.0, 2.0, 3.0, 4.0]
+	}
+	m := mat.New(2, 5).Inc() // note that m's number of columns is equal to len(v)
+	m.Row(0).Print() // 0.0 1.0 2.0 3.0 4.0
+	m.Row(1).Print() // 5.0 6.0 7.0 8.0 9.0
+	m.CombineWithRows("add", v)
+	m.Row(0).Print() // 0.0 2.0 4.0 6.0 8.0
+	m.Row(1).Print() // 5.0 7.0 9.0 11.0 13.0
+In other words, each element of v is added to the corresponding element of each row of
+m.
+
+Note that for the combination method of "Div", all elements of the passed slice must be
+non-zero to avoid division by zero.
+*/
+func (m *Mat) CombineWithRows(how string, v []float64) *Mat {
+	if m.c != len(v) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the number of cols of the reciever is %d, while\n"
+		s += "the number of rows of the vector is %d. They must be equal.\n"
+		s = fmt.Sprintf(s, "AddToRows", m.c, len(v))
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	switch how {
+	case "add":
+		for i := 0; i < m.r; i++ {
+			for j := 0; j < m.c; j++ {
+				m.vals[i*m.c+j] += v[j]
+			}
+		}
+	case "sub":
+		for i := 0; i < m.r; i++ {
+			for j := 0; j < m.c; j++ {
+				m.vals[i*m.c+j] -= v[j]
+			}
+		}
+	case "mul":
+		for i := 0; i < m.r; i++ {
+			for j := 0; j < m.c; j++ {
+				m.vals[i*m.c+j] *= v[j]
+			}
+		}
+	case "div":
+		for i := range v {
+			if v[i] == 0.0 {
+				fmt.Println("\nNumgo/mat error.")
+				s := "In mat.%s a zero-valued element was found in v at index %d.\n"
+				s += "Division by zero is not allowed.\n"
+				s = fmt.Sprintf(s, "CombineWithRows", i)
+				fmt.Println(s)
+				fmt.Println("Stack trace for this error:")
+				debug.PrintStack()
+				os.Exit(1)
+			}
+		}
+		for i := 0; i < m.r; i++ {
+			for j := 0; j < m.c; j++ {
+				m.vals[i*m.c+j] /= v[j]
+			}
+		}
+	default:
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the allowed combination methods are ['add', 'sub', 'mul', 'div'].\n"
+		s += "However, %s was recieved.\n"
+		s = fmt.Sprintf(s, "CombineWithRows", how)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	return m
+}
+
+/*
+CombineWithCols combines a slice elementally with each of the columns in a Mat. The allowed
+combinations are ["add", "sub", "mul", "div"]. Consider:
+	v := make([]float64, 5)
+	for i := range v {
+		v[i] = float64(i) // v is now [0.0, 1.0, 2.0, 3.0, 4.0]
+	}
+	m := mat.New(5, 2).Inc() // note that m's number of rows is equal to len(v)
+	m.Col(0).Print() // 0.0
+			 // 1.0
+			 // 2.0
+			 // 3.0
+			 // 4.0
+	m.Col(1).Print() // 5.0
+			 // 6.0
+			 // 7.0
+			 // 8.0
+			 // 9.0
+	m.CombineWithCols("add", v)
+	m.Col(0).Print() // 0.0
+	                 // 2.0
+	                 // 4.0
+	                 // 6.0
+	                 // 8.0
+	m.Col(1).Print() // 5.0
+	                 // 7.0
+	                 // 9.0
+	                 // 11.0
+	                 // 13.0
+In other words, each element of v is added to the corresponding element of each column of
+m.
+
+Note that for the combination method of "Div", all elements of the passed slice must be
+non-zero to avoid division by zero.
+*/
+func (m *Mat) CombineWithCols(how string, v []float64) *Mat {
+	if m.r != len(v) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the number of columns of the reciever is %d, while\n"
+		s += "the number of rows of the vector is %d. They must be equal.\n"
+		s = fmt.Sprintf(s, "AddToRows", m.r, len(v))
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	switch how {
+	case "add":
+		for i := 0; i < m.c; i++ {
+			for j := 0; j < m.r; j++ {
+				m.vals[j*m.c+i] += v[j]
+			}
+		}
+	case "sub":
+		for i := 0; i < m.c; i++ {
+			for j := 0; j < m.r; j++ {
+				m.vals[j*m.c+i] -= v[j]
+			}
+		}
+	case "mul":
+		for i := 0; i < m.c; i++ {
+			for j := 0; j < m.r; j++ {
+				m.vals[j*m.c+i] *= v[j]
+			}
+		}
+	case "div":
+		for i := range v {
+			if v[i] == 0.0 {
+				fmt.Println("\nNumgo/mat error.")
+				s := "In mat.%s a zero-valued element was found in v at index %d.\n"
+				s += "Division by zero is not allowed.\n"
+				s = fmt.Sprintf(s, "CombineWithRows", i)
+				fmt.Println(s)
+				fmt.Println("Stack trace for this error:")
+				debug.PrintStack()
+				os.Exit(1)
+			}
+		}
+		for i := 0; i < m.c; i++ {
+			for j := 0; j < m.r; j++ {
+				m.vals[j*m.c+i] /= v[j]
+			}
+		}
+	default:
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the allowed combination methods are ['add', 'sub', 'mul', 'div'].\n"
+		s += "However, %s was recieved.\n"
+		s = fmt.Sprintf(s, "CombineWithRows", how)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	return m
+}

@@ -766,3 +766,95 @@ func TestSet(t *testing.T) {
 		t.Errorf("Expected 12.0, got %f", m.vals[10])
 	}
 }
+
+func TestCombineWithRows(t *testing.T) {
+	v := make([]float64, 5)
+	for i := range v {
+		v[i] = float64(i)
+	}
+	v[0] = -1.0
+	m := New(2, 5).Inc()
+	n := m.Copy()
+	n.CombineWithRows("add", v)
+	for i := 0; i < m.r; i++ {
+		for j := 0; j < m.c; j++ {
+			if n.vals[i*n.c+j] != m.vals[i*m.c+j]+v[j] {
+				t.Errorf("expected %f, got %f", m.vals[i*m.c+j]+v[j], n.vals[i*n.c+j])
+			}
+		}
+	}
+	n = m.Copy()
+	n.CombineWithRows("sub", v)
+	for i := 0; i < m.r; i++ {
+		for j := 0; j < m.c; j++ {
+			if n.vals[i*n.c+j] != m.vals[i*m.c+j]-v[j] {
+				t.Errorf("expected %f, got %f", m.vals[i*m.c+j]-v[j], n.vals[i*n.c+j])
+			}
+		}
+	}
+	n = m.Copy()
+	n.CombineWithRows("mul", v)
+	for i := 0; i < m.r; i++ {
+		for j := 0; j < m.c; j++ {
+			if n.vals[i*n.c+j] != m.vals[i*m.c+j]*v[j] {
+				t.Errorf("expected %f, got %f", m.vals[i*m.c+j]*v[j], n.vals[i*n.c+j])
+			}
+		}
+	}
+	n = m.Copy()
+	n.CombineWithRows("div", v)
+	for i := 0; i < m.r; i++ {
+		for j := 0; j < m.c; j++ {
+			if n.vals[i*n.c+j] != m.vals[i*m.c+j]/v[j] {
+				t.Errorf("expected %f, got %f", m.vals[i*m.c+j]/v[j], n.vals[i*n.c+j])
+			}
+		}
+	}
+
+}
+
+func TestCombineWithCols(t *testing.T) {
+	v := make([]float64, 5)
+	for i := range v {
+		v[i] = float64(i)
+	}
+	v[0] = -1.0
+	m := New(5, 2).Inc()
+	n := m.Copy()
+	n.CombineWithCols("add", v)
+	for i := 0; i < m.c; i++ {
+		for j := 0; j < m.r; j++ {
+			if n.vals[j*n.c+i] != m.vals[j*m.c+i]+v[j] {
+				t.Errorf("expected %f, got %f", m.vals[j*m.c+i]+v[j], n.vals[j*n.c+i])
+			}
+		}
+	}
+	n = m.Copy()
+	n.CombineWithCols("sub", v)
+	for i := 0; i < m.c; i++ {
+		for j := 0; j < m.r; j++ {
+			if n.vals[j*n.c+i] != m.vals[j*m.c+i]-v[j] {
+				t.Errorf("expected %f, got %f", m.vals[j*m.c+i]-v[j], n.vals[j*n.c+i])
+			}
+		}
+	}
+	n = m.Copy()
+	n.CombineWithCols("mul", v)
+	for i := 0; i < m.c; i++ {
+		for j := 0; j < m.r; j++ {
+			if n.vals[j*n.c+i] != m.vals[j*m.c+i]*v[j] {
+				t.Errorf("expected %f, got %f", m.vals[j*m.c+i]*v[j], n.vals[j*n.c+i])
+			}
+		}
+	}
+	n = m.Copy()
+	n.CombineWithCols("div", v)
+	for i := 0; i < m.c; i++ {
+		for j := 0; j < m.r; j++ {
+			if n.vals[j*n.c+i] != m.vals[j*m.c+i]/v[j] {
+				t.Errorf("expected %f, got %f", m.vals[j*m.c+i]/v[j], n.vals[j*n.c+i])
+			}
+		}
+	}
+
+}
