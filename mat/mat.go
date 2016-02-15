@@ -1391,3 +1391,29 @@ Print displays the content of a Mat to the screen.
 func (m *Mat) Print() {
 	fmt.Println(m.ToString())
 }
+
+/*
+Set sets the value of a mat at a given row and column to the given value
+*/
+func (m *Mat) Set(r, c int, val float64) *Mat {
+	if (r >= m.r) || (r < 0) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
+		s = fmt.Sprintf(s, "Set", r, m.r)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	if (c >= m.c) || (c < 0) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the requested column %d is outside of bounds [0, %d)\n"
+		s = fmt.Sprintf(s, "Set", r, m.c)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	m.vals[r*m.c+c] = val
+	return m
+}

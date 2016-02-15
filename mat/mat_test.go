@@ -758,3 +758,11 @@ func TestConcat(t *testing.T) {
 		}
 	}
 }
+
+func TestSet(t *testing.T) {
+	m := New(10, 12).Inc()
+	m.Set(0, 10, 12)
+	if m.vals[10] != 12.0 {
+		t.Errorf("Expected 12.0, got %f", m.vals[10])
+	}
+}
