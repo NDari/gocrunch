@@ -47,27 +47,27 @@ type reducerFunc func(accumulator, next *float64)
 New is the primary constructor for the "Mat" object. New is a variadic function,
 expecting 0 to 3 ints, with differing behavior as follows:
 
-m := New()
+	m := New()
 
 m is now an empty &Mat{}, where the number of rows,
 columns and the length and capacity of the underlying
 slice are all zero. This is mostly for internal use.
 
-m := New(x)
+	m := New(x)
 
 m is a x by x (square) matrix, with the underlying
 slice of length x, and capacity 2x.
 
-m := New(x, y)
+	m := New(x, y)
 
 m is an x by y matrix, with the underlying slice of
 length rc, and capacity of 2rc. This is a good case
-for when your matrix is going to expand in the
+for when your matrix is going to expand in th
 future. There is a negligible hit to performance
 and a larger memory usage of your code. But in case
 expanding matrices, many reallocations are avoided.
 
-m := New(x, y, z)
+	m := New(x, y, z)
 
 m is a x by u matrix, with the underlying slice of
 length rc, and capacity z. This is a good choice for
@@ -247,8 +247,8 @@ at a time. This results in some major inefficiencies, and it is recommended
 that this function be used sparingly, and not as a major component of your
 library/executable.
 
-Unline other mat creation methods in this package, the mat object created here,
-the capacity of the mat opject created here is the same as its length since we
+Unlike other mat creation methods in this package, the mat object created here,
+the capacity of the mat object created here is the same as its length since we
 assume the mat to be very large.
 */
 func FromCSV(filename string) *Mat {
@@ -531,9 +531,17 @@ func (m *Mat) SetAllTo(val float64) *Mat {
 Rand sets the values of a mat to random numbers. The range from which the random
 numbers are selected is determined based on the arguments passed.
 
-- For no arguments, the range is [0, 1)
-- For 1 argument, the range is [0, arg) for arg > 0, or (arg, 0] is arg < 0.
-- For 2 arguments, the range is [arg1, arg2).
+For no arguments, such as
+	m.Rand()
+the range is [0, 1)
+
+For 1 argument, such as
+	m.Rand(arg)
+the range is [0, arg) for arg > 0, or (arg, 0] is arg < 0.
+
+For 2 arguments, such as
+	m.Rand(arg1, arg2)
+the range is [arg1, arg2).
 */
 func (m *Mat) Rand(args ...float64) *Mat {
 	switch len(args) {
@@ -598,6 +606,37 @@ func (m *Mat) Col(x int) *Mat {
 }
 
 /*
+Cols returns a generator which, upon invocation, returns the next column of
+a Mat in form of a Mat with 1 column, and the same number of rows of the
+method receiver. Consider the following:
+
+	m := mat.New(3, 2).Inc()
+	for col := range m.Cols() {
+		col.Print()
+	}
+
+The col.Print() above prints:
+	// 0.0
+	// 2.0
+	// 4.0
+
+and then
+	// 1.0
+	// 3.0
+	// 5.0
+*/
+func (m *Mat) Cols() <-chan *Mat {
+	res := make(chan *Mat, m.c)
+	go func() {
+		for i := 0; i < m.c; i++ {
+			res <- m.Col(i)
+		}
+		close(res)
+	}()
+	return res
+}
+
+/*
 Row returns a new mat object whose values are equal to a row of the original
 mat object. The number of Rows of the returned mat object is equal to 1, and
 the number of columns is equal to the number of columns of the original mat.
@@ -617,6 +656,40 @@ func (m *Mat) Row(x int) *Mat {
 		v.vals[r] = m.vals[x*m.c+r]
 	}
 	return v
+}
+
+/*
+Rows returns a generator which, upon invocation, returns the next row of
+a Mat in form of a Mat with 1 row, and the same number of columns of the
+method receiver. Consider the following:
+
+	m := mat.New(3, 2).Inc()
+	m.Print() // 0.0 1.0
+	          // 2.0 3.0
+			  // 4.0 5.0
+
+	for row := range m.Rows() {
+		row.Print()
+	}
+
+The col.Print() above prints:
+	// 0.0 1.0
+
+and then
+	// 2.0 3.0
+
+and finally
+	// 4.0 5.0
+*/
+func (m *Mat) Rows() <-chan *Mat {
+	res := make(chan *Mat, m.r)
+	go func() {
+		for i := 0; i < m.r; i++ {
+			res <- m.Row(i)
+		}
+		close(res)
+	}()
+	return res
 }
 
 /*
@@ -674,17 +747,16 @@ Filter applies a function to each element of a mat object, creating a new
 mat object from all elements for which the function returned true. For
 example consider the following function:
 
-f := func(i *float64) bool {
-	if i > 0.0 {
-		return true
-	} else {
+	positive := func(i *float64) bool {
+		if i > 0.0 {
+			return true
+		}
 		return false
 	}
-}
 
 then calling
 
-m.Filter(f)
+	m.Filter(positive)
 
 will create a new mat object which contains the positive elements of the
 original matrix. If no elements return true for a given function, nil is
@@ -708,17 +780,16 @@ func (m *Mat) Filter(f booleanFunc) *Mat {
 All checks if a supplied function is true for all elements of a mat object.
 For instance, consider
 
-positive := func(i *float64) bool {
-	if i > 0.0 {
-		return true
-	} else {
+	positive := func(i *float64) bool {
+		if i > 0.0 {
+			return true
+		}
 		return false
 	}
-}
 
 Then calling
 
-m.All(positive)
+	m.All(positive)
 
 will return true if and only if all elements in m are positive.
 */
@@ -735,18 +806,16 @@ func (m *Mat) All(f booleanFunc) bool {
 Any checks if a supplied function is true for one elements of a mat object.
 For instance,
 
-
-positive := func(i *float64) bool {
-	if i > 0.0 {
-		return true
-	} else {
+	positive := func(i *float64) bool {
+		if i > 0.0 {
+			return true
+		}
 		return false
 	}
-}
 
 Then calling
 
-m.Any(positive)
+	m.Any(positive)
 
 would be true if at least one element of the mat object is positive.
 */
@@ -875,7 +944,7 @@ Div is the element-wise dicition of a mat object by another which is passed
 to this method.
 
 The shape of the mat objects must be the same (same number or rows and columns)
-and the results of the element-wise divition is stored in the original
+and the results of the element-wise division is stored in the original
 mat on which the method was invoked. The dividing mat object (passed to this
 method) must not contain any elements which are equal to 0.0.
 */
@@ -943,9 +1012,9 @@ The first argument selects the row or column (0 or 1), and the second argument
 selects which row or column for which we want to calculate the sum. For
 example:
 
-m.Sum(0, 2)
+	m.Sum(0, 2)
 
-will calculate the sum of the 3rd row of mat m.
+will return the sum of the 3rd row of mat m.
 */
 func (m *Mat) Sum(axis, slice int) float64 {
 	if axis != 0 && axis != 1 {
@@ -1003,9 +1072,9 @@ The first argument selects the row or column (0 or 1), and the second argument
 selects which row or column for which we want to calculate the average. For
 example:
 
-m.Average(0, 2)
+	m.Average(0, 2)
 
-will calculate the average of the 3rd row of mat m.
+will return the average of the 3rd row of mat m.
 */
 func (m *Mat) Average(axis, slice int) float64 {
 	if axis != 0 && axis != 1 {
@@ -1057,9 +1126,9 @@ The first argument selects the row or column (0 or 1), and the second argument
 selects which row or column for which we want to calculate the product. For
 example:
 
-m.Prod(1, 2)
+	m.Prod(1, 2)
 
-will calculate the product of the 3rd column of mat m.
+will return the product of the 3rd column of mat m.
 */
 func (m *Mat) Prod(axis, slice int) float64 {
 	if axis != 0 && axis != 1 {
@@ -1114,9 +1183,9 @@ http://mathworld.wolfram.com/StandardDeviation.html
 
 For example:
 
-m.Std(1, 0)
+	m.Std(1, 0)
 
-will calculate the standard deviation of the first column of mat m.
+will return the standard deviation of the first column of mat m.
 */
 func (m *Mat) Std(axis, slice int) float64 {
 	if axis != 0 && axis != 1 {
@@ -1176,16 +1245,16 @@ func (m *Mat) Std(axis, slice int) float64 {
 Dot is the matrix multiplication of two mat objects. Consider the following two
 mats:
 
-m := New(5, 6)
-n := New(6, 10)
+	m := New(5, 6)
+	n := New(6, 10)
 
 then
 
-o := m.Dot(n)
+	o := m.Dot(n)
 
 is a 5 by 10 mat whose element at row i and column j is given by:
 
-Sum(m.Row(i).Mul(n.col(j))
+	Sum(m.Row(i).Mul(n.col(j))
 */
 func (m *Mat) Dot(n *Mat) *Mat {
 	if m.c != n.r {
@@ -1231,7 +1300,6 @@ func (m *Mat) ToString() string {
 
 /*
 AppendCol appends a column to the right side of a Mat.
-TODO: Fix this... the new object is not returned.
 */
 func (m *Mat) AppendCol(v []float64) *Mat {
 	if m.r != len(v) {
@@ -1284,12 +1352,10 @@ Concat concatenates the inner slices of two `[][]float64` arguments..
 
 For example, if we have:
 
-m := [[1.0, 2.0], [3.0, 4.0]]
-n := [[5.0, 6.0], [7.0, 8.0]]
-o := mat.Concat(m, n)
-
-mat.Print(o) // 1.0, 2.0, 5.0, 6.0
-             // 3.0, 4.0, 7.0, 8.0
+	m := [[1.0, 2.0], [3.0, 4.0]]
+	n := [[5.0, 6.0], [7.0, 8.0]]
+	o := mat.Concat(m, n).Print // 1.0, 2.0, 5.0, 6.0
+															// 3.0, 4.0, 7.0, 8.0
 
 */
 func (m *Mat) Concat(n *Mat) *Mat {
@@ -1324,4 +1390,206 @@ Print displays the content of a Mat to the screen.
 */
 func (m *Mat) Print() {
 	fmt.Println(m.ToString())
+}
+
+/*
+Set sets the value of a mat at a given row and column to the given value
+*/
+func (m *Mat) Set(r, c int, val float64) *Mat {
+	if (r >= m.r) || (r < 0) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
+		s = fmt.Sprintf(s, "Set", r, m.r)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	if (c >= m.c) || (c < 0) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the requested column %d is outside of bounds [0, %d)\n"
+		s = fmt.Sprintf(s, "Set", r, m.c)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	m.vals[r*m.c+c] = val
+	return m
+}
+
+/*
+CombineWithRows combines a slice elementally with each of the rows in a Mat. The allowed
+combinations are ["add", "sub", "mul", "div"]. Consider:
+	v := make([]float64, 5)
+	for i := range v {
+		v[i] = float64(i) // v is now [0.0, 1.0, 2.0, 3.0, 4.0]
+	}
+	m := mat.New(2, 5).Inc() // note that m's number of columns is equal to len(v)
+	m.Row(0).Print() // 0.0 1.0 2.0 3.0 4.0
+	m.Row(1).Print() // 5.0 6.0 7.0 8.0 9.0
+	m.CombineWithRows("add", v)
+	m.Row(0).Print() // 0.0 2.0 4.0 6.0 8.0
+	m.Row(1).Print() // 5.0 7.0 9.0 11.0 13.0
+In other words, each element of v is added to the corresponding element of each row of
+m.
+
+Note that for the combination method of "Div", all elements of the passed slice must be
+non-zero to avoid division by zero.
+*/
+func (m *Mat) CombineWithRows(how string, v []float64) *Mat {
+	if m.c != len(v) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the number of cols of the reciever is %d, while\n"
+		s += "the number of rows of the vector is %d. They must be equal.\n"
+		s = fmt.Sprintf(s, "AddToRows", m.c, len(v))
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	switch how {
+	case "add":
+		for i := 0; i < m.r; i++ {
+			for j := 0; j < m.c; j++ {
+				m.vals[i*m.c+j] += v[j]
+			}
+		}
+	case "sub":
+		for i := 0; i < m.r; i++ {
+			for j := 0; j < m.c; j++ {
+				m.vals[i*m.c+j] -= v[j]
+			}
+		}
+	case "mul":
+		for i := 0; i < m.r; i++ {
+			for j := 0; j < m.c; j++ {
+				m.vals[i*m.c+j] *= v[j]
+			}
+		}
+	case "div":
+		for i := range v {
+			if v[i] == 0.0 {
+				fmt.Println("\nNumgo/mat error.")
+				s := "In mat.%s a zero-valued element was found in v at index %d.\n"
+				s += "Division by zero is not allowed.\n"
+				s = fmt.Sprintf(s, "CombineWithRows", i)
+				fmt.Println(s)
+				fmt.Println("Stack trace for this error:")
+				debug.PrintStack()
+				os.Exit(1)
+			}
+		}
+		for i := 0; i < m.r; i++ {
+			for j := 0; j < m.c; j++ {
+				m.vals[i*m.c+j] /= v[j]
+			}
+		}
+	default:
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the allowed combination methods are ['add', 'sub', 'mul', 'div'].\n"
+		s += "However, %s was recieved.\n"
+		s = fmt.Sprintf(s, "CombineWithRows", how)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	return m
+}
+
+/*
+CombineWithCols combines a slice elementally with each of the columns in a Mat. The allowed
+combinations are ["add", "sub", "mul", "div"]. Consider:
+	v := make([]float64, 5)
+	for i := range v {
+		v[i] = float64(i) // v is now [0.0, 1.0, 2.0, 3.0, 4.0]
+	}
+	m := mat.New(5, 2).Inc() // note that m's number of rows is equal to len(v)
+	m.Col(0).Print() // 0.0
+			 // 1.0
+			 // 2.0
+			 // 3.0
+			 // 4.0
+	m.Col(1).Print() // 5.0
+			 // 6.0
+			 // 7.0
+			 // 8.0
+			 // 9.0
+	m.CombineWithCols("add", v)
+	m.Col(0).Print() // 0.0
+	                 // 2.0
+	                 // 4.0
+	                 // 6.0
+	                 // 8.0
+	m.Col(1).Print() // 5.0
+	                 // 7.0
+	                 // 9.0
+	                 // 11.0
+	                 // 13.0
+In other words, each element of v is added to the corresponding element of each column of
+m.
+
+Note that for the combination method of "Div", all elements of the passed slice must be
+non-zero to avoid division by zero.
+*/
+func (m *Mat) CombineWithCols(how string, v []float64) *Mat {
+	if m.r != len(v) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the number of columns of the reciever is %d, while\n"
+		s += "the number of rows of the vector is %d. They must be equal.\n"
+		s = fmt.Sprintf(s, "AddToRows", m.r, len(v))
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	switch how {
+	case "add":
+		for i := 0; i < m.c; i++ {
+			for j := 0; j < m.r; j++ {
+				m.vals[j*m.c+i] += v[j]
+			}
+		}
+	case "sub":
+		for i := 0; i < m.c; i++ {
+			for j := 0; j < m.r; j++ {
+				m.vals[j*m.c+i] -= v[j]
+			}
+		}
+	case "mul":
+		for i := 0; i < m.c; i++ {
+			for j := 0; j < m.r; j++ {
+				m.vals[j*m.c+i] *= v[j]
+			}
+		}
+	case "div":
+		for i := range v {
+			if v[i] == 0.0 {
+				fmt.Println("\nNumgo/mat error.")
+				s := "In mat.%s a zero-valued element was found in v at index %d.\n"
+				s += "Division by zero is not allowed.\n"
+				s = fmt.Sprintf(s, "CombineWithRows", i)
+				fmt.Println(s)
+				fmt.Println("Stack trace for this error:")
+				debug.PrintStack()
+				os.Exit(1)
+			}
+		}
+		for i := 0; i < m.c; i++ {
+			for j := 0; j < m.r; j++ {
+				m.vals[j*m.c+i] /= v[j]
+			}
+		}
+	default:
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the allowed combination methods are ['add', 'sub', 'mul', 'div'].\n"
+		s += "However, %s was recieved.\n"
+		s = fmt.Sprintf(s, "CombineWithRows", how)
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+	return m
 }
