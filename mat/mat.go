@@ -17,11 +17,17 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
+	"runtime/debug"
 	"strconv"
 )
 
-type elementFunc func(*float64)
+/*
+ElementalFunc defines the signature of a function that takes a float64, and
+returns a float64
+*/
+type ElementFunc func(float64) float64
 type booleanFunc func(*float64) bool
 type reducerFunc func(accumulator, next *float64)
 
@@ -171,13 +177,19 @@ func FromCSV(filename string) [][]float64 {
 	return m
 }
 
-///*
-//Flatten...
-//*/
-//func Flatten(m [][]float64) []float64 {
-//	// things...
-//}
-//
+/*
+Flatten turns a 2D slice of float64 into a 1D slice of float64. This is done
+by appending all rows tip to tail. The passed 2D slice is assumed to be
+non-jagged.
+*/
+func Flatten(m [][]float64) []float64 {
+	var n []float64
+	for i := range m {
+		n = append(n, m[i]...)
+	}
+	return n
+}
+
 ///*
 //Reshape changes the row and the columns of the mat object as long as the total
 //number of values contained in the mat object remains constant. The order and
@@ -250,184 +262,113 @@ func FromCSV(filename string) [][]float64 {
 //	return s
 //}
 //
-///*
-//ToCSV creates a file with the passed name, and writes the content of a mat
-//object to it, by putting each row in a single comma separated line. The
-//number of entries in each line is equal to the columns of the mat object.
-//*/
-//func (m *Mat) ToCSV(fileName string) {
-//	f, err := os.Create(fileName)
-//	if err != nil {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%v, cannot open %s due to error: %v.\n"
-//		s = fmt.Sprintf(s, "ToCSV", fileName, err)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	defer f.Close()
-//	str := ""
-//	idx := 0
-//	for i := 0; i < m.r; i++ {
-//		for j := 0; j < m.c; j++ {
-//			str += strconv.FormatFloat(m.vals[idx], 'e', 14, 64)
-//			if j+1 != m.c {
-//				str += ","
-//			}
-//			idx++
-//		}
-//		if i+1 != m.r {
-//			str += "\n"
-//		}
-//	}
-//	_, err = f.Write([]byte(str))
-//	if err != nil {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%v, cannot write to %s due to error: %v.\n"
-//		s = fmt.Sprintf(s, "ToCSV", fileName, err)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//}
-//
-///*
-//At returns a pointer to the float64 stored in the given row and column.
-//*/
-//func (m *Mat) At(r, c int) float64 {
-//	if (r >= m.r) || (r < 0) {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
-//		s = fmt.Sprintf(s, "At", r, m.r)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	if (c >= m.c) || (c < 0) {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%s the requested column %d is outside of bounds [0, %d)\n"
-//		s = fmt.Sprintf(s, "At", r, m.c)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	return m.vals[r*m.c+c]
-//}
-//
-///*
-//Map applies a given function to each element of a mat object. The given
-//function must take a pointer to a float64, and return nothing.
-//*/
-//func (m *Mat) Map(f elementFunc) *Mat {
-//	for i := 0; i < m.r*m.c; i++ {
-//		f(&m.vals[i])
-//	}
-//	return m
-//}
-//
-///*
-//Ones sets all values of a mat to be equal to 1.0
-//*/
-//func (m *Mat) Ones() *Mat {
-//	f := func(i *float64) {
-//		*i = 1.0
-//		return
-//	}
-//	return m.Map(f)
-//}
-//
-///*
-//Inc takes each element of a mat object, and starting from 0.0, sets their
-//value to be the value of the previous entry plus 1.0. In other words, the
-//first few values of a mat object after this operation would be 0.0, 1.0,
-//2.0, ...
-//*/
-//func (m *Mat) Inc() *Mat {
-//	for i := 0; i < m.r*m.c; i++ {
-//		m.vals[i] = float64(i)
-//	}
-//	return m
-//}
-//
-///*
-//Reset sets all values of a mat object to 0.0
-//*/
-//func (m *Mat) Reset() *Mat {
-//	for i := 0; i < m.r*m.c; i++ {
-//		m.vals[i] = 0.0
-//	}
-//	return m
-//}
-//
-///*
-//SetAllTo sets all values of a mat to the passed float64 value.
-//*/
-//func (m *Mat) SetAllTo(val float64) *Mat {
-//	for i := 0; i < m.r*m.c; i++ {
-//		m.vals[i] = val
-//	}
-//	return m
-//}
-//
-///*
-//Rand sets the values of a mat to random numbers. The range from which the random
-//numbers are selected is determined based on the arguments passed.
-//
-//For no arguments, such as
-//	m.Rand()
-//the range is [0, 1)
-//
-//For 1 argument, such as
-//	m.Rand(arg)
-//the range is [0, arg) for arg > 0, or (arg, 0] is arg < 0.
-//
-//For 2 arguments, such as
-//	m.Rand(arg1, arg2)
-//the range is [arg1, arg2).
-//*/
-//func (m *Mat) Rand(args ...float64) *Mat {
-//	switch len(args) {
-//	case 0:
-//		for i := 0; i < m.r*m.c; i++ {
-//			m.vals[i] = rand.Float64()
-//		}
-//	case 1:
-//		to := args[0]
-//		for i := 0; i < m.r*m.c; i++ {
-//			m.vals[i] = rand.Float64() * to
-//		}
-//	case 2:
-//		from := args[0]
-//		to := args[1]
-//		if !(from < to) {
-//			fmt.Println("\nNumgo/mat error.")
-//			s := "In mat.%s the first argument, %f, is not less than the\n"
-//			s += "second argument, %f. The first argument must be strictly\n"
-//			s += "less than the second.\n"
-//			s = fmt.Sprintf(s, "Rand", from, to)
-//			fmt.Println(s)
-//			fmt.Println("Stack trace for this error:")
-//			debug.PrintStack()
-//			os.Exit(1)
-//		}
-//		for i := 0; i < m.r*m.c; i++ {
-//			m.vals[i] = rand.Float64()*(to-from) + from
-//		}
-//	default:
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%s expected 0 to 2 arguments, but recieved %d."
-//		s = fmt.Sprintf(s, "Rand", len(args))
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	return m
-//}
+
+/*
+ToCSV writes the content of a passed 2D slice into a CSV file with the passed
+name, by putting each row in a single comma separated line. The number of
+entries in each line is equal to the length of the second dimension of the
+2D slice. This function return an error, which contains any errors encounterd
+or nil if it succeeded.
+*/
+func ToCSV(m [][]float64, fileName string) error {
+	f, err := os.Create(fileName)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	str := ""
+	r, c := len(m), len(m[0])
+	for i := 0; i < r; i++ {
+		for j := 0; j < c; j++ {
+			str += strconv.FormatFloat(m[i][j], 'e', 14, 64)
+			if j+1 != c {
+				str += ","
+			}
+		}
+		if i+1 != r {
+			str += "\n"
+		}
+	}
+	_, err = f.Write([]byte(str))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+/*
+Map applies a given function to each element of a 2D slice of float64. The
+passed function must satisfy the signature of an ElementalFunc.
+*/
+func Map(f ElementFunc, m [][]float64) {
+	for i := 0; i < len(m); i++ {
+		for j := 0; j < len(m[0]); j++ {
+			m[i][j] = f(m[i][j])
+		}
+	}
+}
+
+/*
+Rand sets the values of a 2D slice, m, to random numbers. The range from which
+the random numbers are selected is determined based on the arguments passed.
+
+For no additional arguments, such as
+	Rand(m)
+the range is [0, 1)
+
+For 1 argument, such as
+	Rand(m, arg)
+the range is [0, arg) for arg > 0, or (arg, 0] is arg < 0.
+
+For 2 arguments, such as
+	Rand(m, arg1, arg2)
+the range is [arg1, arg2).
+*/
+func Rand(m [][]float64, args ...float64) {
+	switch len(args) {
+	case 0:
+		for i := 0; i < len(m); i++ {
+			for j := 0; j < len(m[0]); j++ {
+				m[i][j] = rand.Float64()
+			}
+		}
+	case 1:
+		to := args[0]
+		for i := 0; i < len(m); i++ {
+			for j := 0; j < len(m[0]); j++ {
+				m[i][j] = rand.Float64() * to
+			}
+		}
+	case 2:
+		from := args[0]
+		to := args[1]
+		if !(from < to) {
+			fmt.Println("\nNumgo/mat error.")
+			s := "In mat.%s the first argument, %f, is not less than the\n"
+			s += "second argument, %f. The first argument must be strictly\n"
+			s += "less than the second.\n"
+			s = fmt.Sprintf(s, "Rand", from, to)
+			fmt.Println(s)
+			fmt.Println("Stack trace for this error:")
+			debug.PrintStack()
+			os.Exit(1)
+		}
+		for i := 0; i < len(m); i++ {
+			for j := 0; j < len(m[0]); j++ {
+				m[i][j] = rand.Float64()*(to-from) + from
+			}
+		}
+	default:
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s expected 0 to 2 arguments, but recieved %d."
+		s = fmt.Sprintf(s, "Rand", len(args))
+		fmt.Println(s)
+		fmt.Println("Stack trace for this error:")
+		debug.PrintStack()
+		os.Exit(1)
+	}
+}
+
 //
 ///*
 //Col returns a new mat object whole values are equal to a column of the original

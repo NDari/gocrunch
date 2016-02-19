@@ -138,6 +138,15 @@ func TestFromCSV(t *testing.T) {
 	os.Remove(filename)
 }
 
+func TestFlatten(t *testing.T) {
+	row, col := 5, 3
+	m := New(row, col)
+	n := Flatten(m)
+	if len(n) != row*col {
+		t.Errorf("expected %d, got %d", row*col, len(n))
+	}
+}
+
 //
 //func TestReshape(t *testing.T) {
 //	s := make([]float64, 120)
@@ -209,47 +218,37 @@ func TestFromCSV(t *testing.T) {
 //	}
 //}
 //
-//func TestToCSV(t *testing.T) {
-//	m := New(23, 17).Inc()
-//	filename := "tocsv_test.csv"
-//	m.ToCSV(filename)
-//	n := FromCSV(filename)
-//	if !n.Equals(m) {
-//		t.Errorf("m and n are not equal")
-//	}
-//	os.Remove(filename)
-//}
-//
-//func TestAt(t *testing.T) {
-//	rows := 17
-//	cols := 13
-//	m := New(rows, cols).Inc()
-//	idx := 0
-//	for i := 0; i < rows; i++ {
-//		for j := 0; j < cols; j++ {
-//			if m.At(i, j) != m.vals[idx] {
-//				t.Errorf("at index %d expected %f, got %f", i, m.vals[idx], m.At(i, j))
-//			}
-//			idx++
-//		}
-//	}
-//}
-//
-//func TestMap(t *testing.T) {
-//	rows := 132
-//	cols := 24
-//	f := func(i *float64) {
-//		*i = 1.0
-//		return
-//	}
-//	m := New(rows, cols)
-//	m.Map(f)
-//	for i := 0; i < rows*cols; i++ {
-//		if m.vals[i] != 1.0 {
-//			t.Errorf("At %d, expected 1.0, got %f", i, m.vals[i])
-//		}
-//	}
-//}
+func TestToCSV(t *testing.T) {
+	m := New(23, 17)
+	filename := "tocsv_test.csv"
+	ToCSV(m, filename)
+	n := FromCSV(filename)
+	if len(n) != len(m) {
+		t.Errorf("expected %d, got %d", len(m), len(n))
+	}
+	if len(n[0]) != len(m[0]) {
+		t.Errorf("expected %d, got %d", len(m[0]), len(n[0]))
+	}
+	os.Remove(filename)
+}
+
+func TestMap(t *testing.T) {
+	rows := 132
+	cols := 24
+	f := func(i float64) float64 {
+		return 1.0
+	}
+	m := New(rows, cols)
+	Map(f, m)
+	for i := 0; i < rows; i++ {
+		for j := 0; j < cols; j++ {
+			if m[i][j] != 1.0 {
+				t.Errorf("expected 1.0, got %f", m[i][j])
+			}
+		}
+	}
+}
+
 //
 //func TestOnes(t *testing.T) {
 //	rows := 13
