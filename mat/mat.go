@@ -369,145 +369,67 @@ func Rand(m [][]float64, args ...float64) {
 	}
 }
 
-//
-///*
-//Col returns a new mat object whole values are equal to a column of the original
-//mat object. The number of Rows of the returned mat object is equal to the
-//number of rows of the original mat, and the number of columns is equal to 1.
-//*/
-//func (m *Mat) Col(x int) *Mat {
-//	if (x >= m.c) || (x < 0) {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%s the requested column %d is outside of bounds [0, %d)\n"
-//		s = fmt.Sprintf(s, "Col", x, m.c)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	v := New(m.r, 1)
-//	for r := 0; r < m.r; r++ {
-//		v.vals[r] = m.vals[r*m.c+x]
-//	}
-//	return v
-//}
-//
-///*
-//Cols returns a generator which, upon invocation, returns the next column of
-//a Mat in form of a Mat with 1 column, and the same number of rows of the
-//method receiver. Consider the following:
-//
-//	m := mat.New(3, 2).Inc()
-//	for col := range m.Cols() {
-//		col.Print()
-//	}
-//
-//The col.Print() above prints:
-//	// 0.0
-//	// 2.0
-//	// 4.0
-//
-//and then
-//	// 1.0
-//	// 3.0
-//	// 5.0
-//*/
-//func (m *Mat) Cols() <-chan *Mat {
-//	res := make(chan *Mat, m.c)
-//	go func() {
-//		for i := 0; i < m.c; i++ {
-//			res <- m.Col(i)
-//		}
-//		close(res)
-//	}()
-//	return res
-//}
-//
-///*
-//Row returns a new mat object whose values are equal to a row of the original
-//mat object. The number of Rows of the returned mat object is equal to 1, and
-//the number of columns is equal to the number of columns of the original mat.
-//*/
-//func (m *Mat) Row(x int) *Mat {
-//	if (x >= m.r) || (x < 0) {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%s the requested row %d is outside of the bounds [0, %d)\n"
-//		s = fmt.Sprintf(s, "Row", x, m.r)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	v := New(1, m.c)
-//	for r := 0; r < m.c; r++ {
-//		v.vals[r] = m.vals[x*m.c+r]
-//	}
-//	return v
-//}
-//
-///*
-//Rows returns a generator which, upon invocation, returns the next row of
-//a Mat in form of a Mat with 1 row, and the same number of columns of the
-//method receiver. Consider the following:
-//
-//	m := mat.New(3, 2).Inc()
-//	m.Print() // 0.0 1.0
-//	          // 2.0 3.0
-//			  // 4.0 5.0
-//
-//	for row := range m.Rows() {
-//		row.Print()
-//	}
-//
-//The col.Print() above prints:
-//	// 0.0 1.0
-//
-//and then
-//	// 2.0 3.0
-//
-//and finally
-//	// 4.0 5.0
-//*/
-//func (m *Mat) Rows() <-chan *Mat {
-//	res := make(chan *Mat, m.r)
-//	go func() {
-//		for i := 0; i < m.r; i++ {
-//			res <- m.Row(i)
-//		}
-//		close(res)
-//	}()
-//	return res
-//}
-//
-///*
-//Equals checks to see if two mat objects are equal. That mean that the two mats
-//have the same number of rows, same number of columns, and have the same float64
-//in each entry at a given index.
-//*/
-//func (m *Mat) Equals(n *Mat) bool {
-//	if m.r != n.r {
-//		return false
-//	}
-//	if m.c != n.c {
-//		return false
-//	}
-//	for i := 0; i < m.r*m.c; i++ {
-//		if m.vals[i] != n.vals[i] {
-//			return false
-//		}
-//	}
-//	return true
-//}
-//
-///*
-//Copy returns a duplicate of a mat object. The returned copy is "deep", meaning
-//that the object can be manipulated without effecting the original mat object.
-//*/
-//func (m *Mat) Copy() *Mat {
-//	n := New(m.r, m.c)
-//	copy(n.vals, m.vals)
-//	return n
-//}
+/*
+Col returns a new mat object whole values are equal to a column of the original
+mat object. The number of Rows of the returned mat object is equal to the
+number of rows of the original mat, and the number of columns is equal to 1.
+*/
+func Col(x int, m [][]float64) []float64 {
+	if (x >= len(m[0])) || (x < -len(m[0])) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
+		s = fmt.Sprintf(s, "Col", x, len(m[0]))
+		panic(s)
+	}
+	v := make([]float64, x)
+	if x > 0 {
+		for i := range m {
+			v[i] = m[i][x]
+		}
+	} else {
+		for i := range m {
+			v[i] = m[i][len(m[0])+x]
+		}
+	}
+	return v
+}
+
+/*
+Equal checks to see if two 2D slices are equal. That mean that the two slices
+have the same number of rows, same number of columns, and have the same float64
+in each entry at a given set of indices.
+*/
+func Equal(m, n [][]float64) bool {
+	if len(m) != len(n) {
+		return false
+	}
+	for i := range m {
+		if len(m[i]) != len(n[i]) {
+			return false
+		}
+	}
+	for i := 0; i < len(m); i++ {
+		for j := 0; j < len(m[i]); j++ {
+			if m[i][j] != n[i][j] {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+/*
+Copy returns a duplicate of a 2D slice. The returned copy is "deep", meaning
+that the object can be manipulated without effecting the original.
+*/
+func Copy(m [][]float64) [][]float64 {
+	n := New(len(m), len(m[0]))
+	for i := range m {
+		copy(n[i], m[i])
+	}
+	return n
+}
+
 //
 ///*
 //T returns the transpose of the original matrix. The transpose of a mat object
