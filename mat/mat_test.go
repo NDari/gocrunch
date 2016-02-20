@@ -199,7 +199,7 @@ func TestCol(t *testing.T) {
 		}
 		for j := 0; j < row; j++ {
 			if got[j] != m[j][i] {
-				t.Errorf("expected %f, got %f", j, i, m[j][i])
+				t.Errorf("expected %f, got %f", m[j][i], got[j])
 			}
 		}
 	}
