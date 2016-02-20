@@ -1,13 +1,10 @@
 /*
-Package mat implements a "mat" object, which behaves like a 2-dimensional array
-or list in other programming languages. Under the hood, the mat object is a
-flat slice, which provides for optimal performance in Go, while the methods
-and constructors provide for a higher level of performance and abstraction
-when compared to the "2D" slices of go (slices of slices).
+Package mat implements a large set of functions which act on 2-dimensional slices
+of float64.
 
 All errors encountered in this package, such as attempting to access an
 element out of bounds are treated as critical error, and thus, the code
-immediately exits with signal 1. In such cases, the function/method in
+immediately panics. In such cases, the function/method in
 which the error was encountered is printed to the screen, in addition
 to the full stack trace, in order to help fix the issue rapidly.
 */
@@ -102,19 +99,13 @@ func isJagged(s [][]float64) bool {
 
 /*
 FromCSV creates a mat object from a CSV (comma separated values) file. Here, we
-assume that the number of rows of the resultant mat object is equal to the
+assume that the number of rows of the resultant 2D slice is equal to the
 number of lines, and the number of columns is equal to the number of entries
-in each line. As before, we make sure that each line contains the same number
+in each line making sure that each line contains the same number
 of elements.
 
 The file to be read is assumed to be very large, and hence it is read one line
-at a time. This results in some major inefficiencies, and it is recommended
-that this function be used sparingly, and not as a major component of your
-library/executable.
-
-Unlike other mat creation methods in this package, the mat object created here,
-the capacity of the mat object created here is the same as its length since we
-assume the mat to be very large.
+at a time.
 */
 func FromCSV(filename string) [][]float64 {
 	f, err := os.Open(filename)
@@ -170,7 +161,7 @@ func FromCSV(filename string) [][]float64 {
 			s := "In mat.%v, line %d in %s has %d entries. The first line\n"
 			s += "(line 1) has %d entries.\n"
 			s += "Creation of a *Mat from jagged slices is not supported.\n"
-			s = fmt.Sprintf(s, "Load", filename, err)
+			s = fmt.Sprintf(s, "FromCSV", filename, err)
 			panic(s)
 		}
 	}
@@ -190,79 +181,6 @@ func Flatten(m [][]float64) []float64 {
 	return n
 }
 
-///*
-//Reshape changes the row and the columns of the mat object as long as the total
-//number of values contained in the mat object remains constant. The order and
-//the values of the mat does not change with this function.
-//*/
-//func (m *Mat) Reshape(rows, cols int) *Mat {
-//	if rows <= 0 {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%s, the number of rows must be greater than '0', but\n"
-//		s += "recieved %d. "
-//		s = fmt.Sprintf(s, "Reshape", rows)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	if cols <= 0 {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%s, the number of columns must be greater than '0', but\n"
-//		s += "recieved %d. "
-//		s = fmt.Sprintf(s, "Reshape", cols)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	if rows*cols != m.r*m.c {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%s, The total number of entries of the old and new shape\n"
-//		s += "must match.\n"
-//		s = fmt.Sprintf(s, "Reshape")
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	} else {
-//		m.r = rows
-//		m.c = cols
-//	}
-//	return m
-//}
-//
-///*
-//Dims returns the number of rows and columns of a mat object.
-//*/
-//func (m *Mat) Dims() (int, int) {
-//	return m.r, m.c
-//}
-//
-///*
-//Vals returns the values contained in a mat object as a 1D slice of float64s.
-//*/
-//func (m *Mat) Vals() []float64 {
-//	s := make([]float64, m.r*m.c)
-//	copy(s, m.vals)
-//	return s
-//}
-//
-///*
-//ToSlice returns the values of a mat object as a 2D slice of float64s.
-//*/
-//func (m *Mat) ToSlice() [][]float64 {
-//	s := make([][]float64, m.r)
-//	for i := 0; i < m.r; i++ {
-//		s[i] = make([]float64, m.c)
-//		for j := 0; j < m.c; j++ {
-//			s[i][j] = m.vals[i*m.c+j]
-//		}
-//	}
-//	return s
-//}
-//
-
 /*
 ToCSV writes the content of a passed 2D slice into a CSV file with the passed
 name, by putting each row in a single comma separated line. The number of
@@ -278,8 +196,8 @@ func ToCSV(m [][]float64, fileName string) error {
 	defer f.Close()
 	str := ""
 	r, c := len(m), len(m[0])
-	for i := 0; i < r; i++ {
-		for j := 0; j < c; j++ {
+	for i := range m {
+		for j := range m[i] {
 			str += strconv.FormatFloat(m[i][j], 'e', 14, 64)
 			if j+1 != c {
 				str += ","
@@ -301,9 +219,71 @@ Map applies a given function to each element of a 2D slice of float64. The
 passed function must satisfy the signature of an ElementalFunc.
 */
 func Map(f ElementFunc, m [][]float64) {
-	for i := 0; i < len(m); i++ {
-		for j := 0; j < len(m[0]); j++ {
+	for i := range m {
+		for j := range m[i] {
 			m[i][j] = f(m[i][j])
+		}
+	}
+}
+
+/*
+SetAll sets all elements of a 2D slice to the passed value.
+*/
+func SetAll(m [][]float64, val float64) {
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = val
+		}
+	}
+}
+
+/*
+MulAll multiples all elements of a 2D slice by the passed value.
+*/
+func MulAll(m [][]float64, val float64) {
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] *= val
+		}
+	}
+}
+
+/*
+AddAll Adds the passed value to each element of the passed 2D slice.
+*/
+func AddAll(m [][]float64, val float64) {
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] += val
+		}
+	}
+}
+
+/*
+SubAll subtracts the passed value from each element of the passed 2D slice.
+*/
+func SubAll(m [][]float64, val float64) {
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] -= val
+		}
+	}
+}
+
+/*
+DivAll Diives each element of the 2D slice by the passed value. The passed
+value must not be 0.0, to avoid division by zero.
+*/
+func DivAll(m [][]float64, val float64) {
+	if val == 0.0 {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, the passed value cannot be 0.0\n"
+		s = fmt.Sprintf(s, "DivAll")
+		panic(s)
+	}
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] -= val
 		}
 	}
 }
@@ -322,20 +302,21 @@ the range is [0, arg) for arg > 0, or (arg, 0] is arg < 0.
 
 For 2 arguments, such as
 	Rand(m, arg1, arg2)
-the range is [arg1, arg2).
+the range is [arg1, arg2). For this case, arg1 must be less than arg2, or
+the function will panic.
 */
 func Rand(m [][]float64, args ...float64) {
 	switch len(args) {
 	case 0:
-		for i := 0; i < len(m); i++ {
-			for j := 0; j < len(m[0]); j++ {
+		for i := range m {
+			for j := range m[i] {
 				m[i][j] = rand.Float64()
 			}
 		}
 	case 1:
 		to := args[0]
-		for i := 0; i < len(m); i++ {
-			for j := 0; j < len(m[0]); j++ {
+		for i := range m {
+			for j := range m[i] {
 				m[i][j] = rand.Float64() * to
 			}
 		}
@@ -348,13 +329,10 @@ func Rand(m [][]float64, args ...float64) {
 			s += "second argument, %f. The first argument must be strictly\n"
 			s += "less than the second.\n"
 			s = fmt.Sprintf(s, "Rand", from, to)
-			fmt.Println(s)
-			fmt.Println("Stack trace for this error:")
-			debug.PrintStack()
-			os.Exit(1)
+			panic(s)
 		}
-		for i := 0; i < len(m); i++ {
-			for j := 0; j < len(m[0]); j++ {
+		for i := range m {
+			for j := range m[i] {
 				m[i][j] = rand.Float64()*(to-from) + from
 			}
 		}
@@ -381,8 +359,8 @@ func Col(x int, m [][]float64) []float64 {
 		s = fmt.Sprintf(s, "Col", x, len(m[0]))
 		panic(s)
 	}
-	v := make([]float64, x)
-	if x > 0 {
+	v := make([]float64, len(m))
+	if x >= 0 {
 		for i := range m {
 			v[i] = m[i][x]
 		}
@@ -408,8 +386,8 @@ func Equal(m, n [][]float64) bool {
 			return false
 		}
 	}
-	for i := 0; i < len(m); i++ {
-		for j := 0; j < len(m[i]); j++ {
+	for i := range m {
+		for j := range m[i] {
 			if m[i][j] != n[i][j] {
 				return false
 			}
