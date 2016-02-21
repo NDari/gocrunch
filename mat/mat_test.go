@@ -291,6 +291,51 @@ func BenchmarkCol(b *testing.B) {
 	}
 }
 
+func TestRow(t *testing.T) {
+	row, col := 3, 5
+	m := New(row, col)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*row + j)
+		}
+	}
+	for i := 0; i < row; i++ {
+		got := Row(i, m)
+		if len(got) != col {
+			t.Errorf("expected %d, got %d", row, len(got))
+		}
+		for j := 0; j < col; j++ {
+			if got[j] != m[i][j] {
+				t.Errorf("expected %f, got %f", m[j][i], got[j])
+			}
+		}
+	}
+	for i := row; i > 0; i-- {
+		got := Row(-i, m)
+		if len(got) != col {
+			t.Errorf("expected %d, got %d", row, len(got))
+		}
+		for j := 0; j < col; j++ {
+			if got[j] != m[len(m)-i][j] {
+				t.Errorf("row %d expected %f, got %f", -i, m[len(m)-i][j], got[j])
+			}
+		}
+	}
+}
+
+func BenchmarkRow(b *testing.B) {
+	m := New(1721, 311)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*1721 + j)
+		}
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = Row(211, m)
+	}
+}
+
 func TestEqual(t *testing.T) {
 	m := New(13, 12)
 	if !Equal(m, m) {
@@ -417,70 +462,96 @@ func TestAny(t *testing.T) {
 	}
 }
 
-//
-//func TestMul(t *testing.T) {
-//	m := New(10, 11).Inc()
-//	n := m.Copy()
-//	m.Mul(m)
-//	for i := 0; i < 110; i++ {
-//		if m.vals[i] != n.vals[i]*n.vals[i] {
-//			t.Errorf("expected %f, got %f", n.vals[i]*n.vals[i], m.vals[i])
-//		}
-//	}
-//}
-//
-//func BenchmarkMul(b *testing.B) {
-//	n := New(1000, 1000).Inc()
-//	m := New(1000, 1000).Inc()
-//	b.ResetTimer()
-//	for i := 0; i < b.N; i++ {
-//		m.Mul(n)
-//	}
-//}
-//
-//func TestAdd(t *testing.T) {
-//	m := New(10, 11).Inc()
-//	n := m.Copy()
-//	m.Add(m)
-//	for i := 0; i < 110; i++ {
-//		if m.vals[i] != 2.0*n.vals[i] {
-//			t.Errorf("expected %f, got %f", 2.0*n.vals[i], m.vals[i])
-//		}
-//	}
-//}
-//
-//func TestSub(t *testing.T) {
-//	m := New(10, 11).Inc()
-//	m.Sub(m)
-//	for i := 0; i < 110; i++ {
-//		if m.vals[i] != 0.0 {
-//			t.Errorf("expected 0.0, got %f", m.vals[i])
-//		}
-//	}
-//}
-//
-//func TestDiv(t *testing.T) {
-//	m := New(10, 11).Inc()
-//	m.vals[0] = 1.0
-//	m.Div(m)
-//	for i := 0; i < 110; i++ {
-//		if m.vals[i] != 1.0 {
-//			t.Errorf("expected 1.0, got %f", m.vals[i])
-//		}
-//	}
-//}
-//
-//func TestScale(t *testing.T) {
-//	m := New(12, 13).Inc()
-//	n := m.Copy()
-//	m.Scale(1.7)
-//	for i := 0; i < m.r*m.c; i++ {
-//		if m.vals[i] != 1.7*n.vals[i] {
-//			t.Errorf("At %d, expected %f, got %f", i, 1.7*n.vals[i], m.vals[i])
-//		}
-//	}
-//}
-//
+func TestMul(t *testing.T) {
+	row, col := 13, 121
+	m := New(row, col)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*10 + j)
+		}
+	}
+	n := Copy(m)
+	Mul(m, m)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != n[i][j]*n[i][j] {
+				t.Errorf("expected %f, got %f", n[i][j]*n[i][j], m[i][j])
+			}
+		}
+	}
+}
+
+func BenchmarkMul(b *testing.B) {
+	m := New(1000, 1000)
+	n := New(1000, 1000)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*1000 + j)
+			n[i][j] = 1.0
+		}
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Mul(m, n)
+	}
+}
+
+func TestAdd(t *testing.T) {
+	row, col := 13, 121
+	m := New(row, col)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*10 + j)
+		}
+	}
+	n := Copy(m)
+	Add(m, m)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != n[i][j]+n[i][j] {
+				t.Errorf("expected %f, got %f", n[i][j]+n[i][j], m[i][j])
+			}
+		}
+	}
+}
+
+func TestSub(t *testing.T) {
+	row, col := 13, 121
+	m := New(row, col)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*10 + j)
+		}
+	}
+	Sub(m, m)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != 0.0 {
+				t.Errorf("expected 0.0, got %f", m[i][j])
+			}
+		}
+	}
+}
+
+func TestDiv(t *testing.T) {
+	row, col := 13, 121
+	m := New(row, col)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*10 + j)
+		}
+	}
+	m[0][0] = 1.0
+	Div(m, m)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != 1.0 {
+				t.Errorf("expected 1.0, got %f", m[i][j])
+			}
+		}
+	}
+}
+
 //func TestSum(t *testing.T) {
 //	row := 12
 //	col := 17

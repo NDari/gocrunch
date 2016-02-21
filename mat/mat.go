@@ -2,6 +2,12 @@
 Package mat implements a large set of functions which act on 2-dimensional slices
 of float64.
 
+All 2D slices created or passed to the functions in this library are assumed to
+be non-jagged, meaning that all rows have the same number of elements. It is the
+responsibility of the called to ensure this. An easy way to do this is to use
+the various functions in this library to create 2D slices or to generate them
+from files.
+
 All errors encountered in this package, such as attempting to access an
 element out of bounds are treated as critical error, and thus, the code
 immediately panics. In such cases, the function/method in
@@ -353,15 +359,20 @@ func Rand(m [][]float64, args ...float64) {
 }
 
 /*
-Col returns a new mat object whole values are equal to a column of the original
-mat object. The number of Rows of the returned mat object is equal to the
-number of rows of the original mat, and the number of columns is equal to 1.
+Col returns a column from a 2D slice of float64. For example:
+
+	fmt.Println(m) // [[1.0, 2.3], [3.4, 1.7]]
+	Col(0, m) // [1.0, 3.4]
+
+Col also accepts negative indices. For example:
+
+	Col(-1, m) // [2.3, 1.7]
 */
 func Col(x int, m [][]float64) []float64 {
 	if (x >= len(m[0])) || (x < -len(m[0])) {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
-		s = fmt.Sprintf(s, "Col", x, len(m[0]))
+		s = fmt.Sprintf(s, "Col", x, len(m[0]), len(m[0]))
 		panic(s)
 	}
 	v := make([]float64, len(m))
@@ -373,6 +384,32 @@ func Col(x int, m [][]float64) []float64 {
 		for i := range m {
 			v[i] = m[i][len(m[0])+x]
 		}
+	}
+	return v
+}
+
+/*
+Row returns a row from a 2D slice of float64. For example:
+
+	fmt.Println(m) // [[1.0, 2.3], [3.4, 1.7]]
+	Row(0, m) // [1.0, 2.3]
+
+Row also accepts negative indices. For example:
+
+	Row(-1, m) // [3.4, 1.7]
+*/
+func Row(x int, m [][]float64) []float64 {
+	if (x >= len(m)) || (x < -len(m)) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the requested row %d is outside of bounds [-%d, %d)\n"
+		s = fmt.Sprintf(s, "Row", x, len(m), len(m))
+		panic(s)
+	}
+	v := make([]float64, len(m[0]))
+	if x >= 0 {
+		copy(v, m[x])
+	} else {
+		copy(v, m[len(m)+x])
 	}
 	return v
 }
@@ -668,50 +705,39 @@ func Div(m, n [][]float64) {
 	}
 }
 
-///*
-//Sum returns the sum of the elements along a specific row or specific column.
-//The first argument selects the row or column (0 or 1), and the second argument
-//selects which row or column for which we want to calculate the sum. For
-//example:
-//
-//	m.Sum(0, 2)
-//
-//will return the sum of the 3rd row of mat m.
-//*/
-//func (m *Mat) Sum(axis, slice int) float64 {
-//	if axis != 0 && axis != 1 {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%v, the first argument must be 0 or 1, however %d "
-//		s += "was recieved.\n"
-//		s = fmt.Sprintf(s, "Sum", axis)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	if axis == 0 {
-//		if (slice >= m.r) || (slice < 0) {
-//			fmt.Println("\nNumgo/mat error.")
-//			s := "In mat.%s the row %d is outside of bounds [0, %d)\n"
-//			s = fmt.Sprintf(s, "Sum", slice, m.r)
-//			fmt.Println(s)
-//			fmt.Println("Stack trace for this error:")
-//			debug.PrintStack()
-//			os.Exit(1)
-//		}
-//	} else if axis == 1 {
-//		if (slice >= m.c) || (slice < 0) {
-//			fmt.Println("\nNumgo/mat error.")
-//			s := "In mat.%s the column %d is outside of bounds [0, %d)\n"
-//			s = fmt.Sprintf(s, "Sum", slice, m.c)
-//			fmt.Println(s)
-//			fmt.Println("Stack trace for this error:")
-//			debug.PrintStack()
-//			os.Exit(1)
-//		}
-//	}
-//	return m.precheckedSum(axis, slice)
-//}
+/*
+SumCol returns the sum of the elements of a slice along a specific column.
+For example:
+
+	SumCol(2, m)
+
+will return the sum of the 3rd column of m. Negative indices are also
+allowed. For example:
+
+	SumCol(-1, m)
+
+will return the sum of the last column of m.
+*/
+func SumCol(x int, m [][]float64) float64 {
+	if (x >= len(m[0])) || (x < -len(m[0])) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
+		s = fmt.Sprintf(s, "Col", x, len(m[0]))
+		panic(s)
+	}
+	var sum float64
+	if x >= 0 {
+		for i := range m {
+			sum += m[i][x]
+		}
+	} else {
+		for i := range m {
+			sum += m[i][len(m[0])+x]
+		}
+	}
+	return sum
+}
+
 //
 //func (m *Mat) precheckedSum(axis, slice int) float64 {
 //	x := 0.0
