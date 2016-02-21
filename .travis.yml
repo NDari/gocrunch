@@ -4,8 +4,8 @@ go:
 - release
 
 before_script:
-- go vet mat/*.go
-- go vet -shadow=true mat/*.go
+- go tool vet mat/*.go
+- go tool vet -shadow=true mat/*.go
 
 script:
 - go test -v ./...
