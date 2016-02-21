@@ -320,10 +320,10 @@ func TestT(t *testing.T) {
 	}
 	n := T(m)
 	if len(n) != len(m[0]) {
-		t.Errorf("expected %f, got %f", len(m[0]), len(n))
+		t.Errorf("expected %d, got %d", len(m[0]), len(n))
 	}
 	if len(n[0]) != len(m) {
-		t.Errorf("expected %f, got %f", len(m), len(n[0]))
+		t.Errorf("expected %d, got %d", len(m), len(n[0]))
 	}
 }
 
