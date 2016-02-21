@@ -722,7 +722,7 @@ func SumCol(x int, m [][]float64) float64 {
 	if (x >= len(m[0])) || (x < -len(m[0])) {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
-		s = fmt.Sprintf(s, "Col", x, len(m[0]))
+		s = fmt.Sprintf(s, "SumCol", x, len(m[0]), len(m[0]))
 		panic(s)
 	}
 	var sum float64
@@ -733,6 +733,39 @@ func SumCol(x int, m [][]float64) float64 {
 	} else {
 		for i := range m {
 			sum += m[i][len(m[0])+x]
+		}
+	}
+	return sum
+}
+
+/*
+SumRow returns the sum of the elements of a slice along a specific row.
+For example:
+
+	SumRow(2, m)
+
+will return the sum of the 3rd row of m. Negative indices are also
+allowed. For example:
+
+	SumRow(-1, m)
+
+will return the sum of the last row of m.
+*/
+func SumRow(x int, m [][]float64) float64 {
+	if (x >= len(m)) || (x < -len(m)) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
+		s = fmt.Sprintf(s, "SumRow", x, len(m), len(m))
+		panic(s)
+	}
+	var sum float64
+	if x >= 0 {
+		for i := range m[x] {
+			sum += m[x][i]
+		}
+	} else {
+		for i := range m[len(m)+x] {
+			sum += m[len(m)+x][i]
 		}
 	}
 	return sum

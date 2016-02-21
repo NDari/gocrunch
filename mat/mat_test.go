@@ -552,23 +552,44 @@ func TestDiv(t *testing.T) {
 	}
 }
 
-//func TestSum(t *testing.T) {
-//	row := 12
-//	col := 17
-//	m := New(row, col).Ones()
-//	for i := 0; i < row; i++ {
-//		q := m.Sum(0, i)
-//		if q != float64(col) {
-//			t.Errorf("at row %d expected sum to be %d, got %f", i, col, q)
-//		}
-//	}
-//	for i := 0; i < col; i++ {
-//		q := m.Sum(1, i)
-//		if q != float64(row) {
-//			t.Errorf("at col %d expected sum to be %d, got %f", i, row, q)
-//		}
-//	}
-//}
+func TestSumCol(t *testing.T) {
+	row := 12
+	col := 17
+	m := New(row, col)
+	SetAll(m, 1.0)
+	for i := 0; i < col; i++ {
+		q := SumCol(i, m)
+		if q != float64(row) {
+			t.Errorf("at col %d expected sum to be %f, got %f", i, float64(row), q)
+		}
+	}
+	for i := col; i > 0; i-- {
+		q := SumCol(-i, m)
+		if q != float64(row) {
+			t.Errorf("at col %d expected sum to be %f, got %f", i, float64(row), q)
+		}
+	}
+}
+
+func TestSumRow(t *testing.T) {
+	row := 12
+	col := 17
+	m := New(row, col)
+	SetAll(m, 1.0)
+	for i := 0; i < row; i++ {
+		q := SumRow(i, m)
+		if q != float64(col) {
+			t.Errorf("at col %d expected sum to be %f, got %f", i, float64(col), q)
+		}
+	}
+	for i := row; i > 0; i-- {
+		q := SumRow(-i, m)
+		if q != float64(col) {
+			t.Errorf("at col %d expected sum to be %f, got %f", i, float64(col), q)
+		}
+	}
+}
+
 //
 //func TestAverage(t *testing.T) {
 //	row := 12
