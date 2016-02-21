@@ -25,7 +25,12 @@ ElementalFunc defines the signature of a function that takes a float64, and
 returns a float64
 */
 type ElementFunc func(float64) float64
-type booleanFunc func(*float64) bool
+
+/*
+BooleanFunc defines the signature of a function that takes a float64, and
+return a bool.
+*/
+type BooleanFunc func(float64) bool
 type reducerFunc func(accumulator, next *float64)
 
 /*
@@ -283,7 +288,7 @@ func DivAll(m [][]float64, val float64) {
 	}
 	for i := range m {
 		for j := range m[i] {
-			m[i][j] -= val
+			m[i][j] /= val
 		}
 	}
 }
@@ -408,26 +413,24 @@ func Copy(m [][]float64) [][]float64 {
 	return n
 }
 
-//
-///*
-//T returns the transpose of the original matrix. The transpose of a mat object
-//is defined in the usual manner, where every value at row x, and column y is
-//placed at row y, and column x. The number of rows and column of the transposed
-//mat are equal to the number of columns and rows of the original matrix,
-//respectively. This method creates a new mat object, and the original is
-//left intact.
-//*/
-//func (m *Mat) T() *Mat {
-//	n := New(m.c, m.r)
-//	idx := 0
-//	for i := 0; i < m.c; i++ {
-//		for j := 0; j < m.r; j++ {
-//			n.vals[idx] = m.vals[j*m.c+i]
-//			idx++
-//		}
-//	}
-//	return n
-//}
+/*
+T returns the transpose of the original 2D slice. The transpose of a 2D slice
+is defined in the usual manner, where every value at row x, and column y is
+placed at row y, and column x. The number of rows and column of the transpose
+of a slice are equal to the number of columns and rows of the original slice,
+respectively. This method creates a new 2D slice, and the original is
+left intact.
+*/
+func T(m [][]float64) [][]float64 {
+	n := New(len(m[0]), len(m))
+	for i := range m {
+		for j := range m[i] {
+			n[j][i] = m[i][j]
+		}
+	}
+	return n
+}
+
 //
 ///*
 //Filter applies a function to each element of a mat object, creating a new
@@ -450,7 +453,7 @@ func Copy(m [][]float64) [][]float64 {
 //returned. It is expected that the caller of this method checks the
 //returned value to ensure that it is not nil.
 //*/
-//func (m *Mat) Filter(f booleanFunc) *Mat {
+//func (m *Mat) Filter(f BooleanFunc) *Mat {
 //	var res []float64
 //	for i := 0; i < m.r*m.c; i++ {
 //		if f(&m.vals[i]) {
@@ -463,236 +466,208 @@ func Copy(m [][]float64) [][]float64 {
 //	return From1DSlice(res)
 //}
 //
-///*
-//All checks if a supplied function is true for all elements of a mat object.
-//For instance, consider
-//
-//	positive := func(i *float64) bool {
-//		if i > 0.0 {
-//			return true
-//		}
-//		return false
-//	}
-//
-//Then calling
-//
-//	m.All(positive)
-//
-//will return true if and only if all elements in m are positive.
-//*/
-//func (m *Mat) All(f booleanFunc) bool {
-//	for i := 0; i < m.r*m.c; i++ {
-//		if !f(&m.vals[i]) {
-//			return false
-//		}
-//	}
-//	return true
-//}
-//
-///*
-//Any checks if a supplied function is true for one elements of a mat object.
-//For instance,
-//
-//	positive := func(i *float64) bool {
-//		if i > 0.0 {
-//			return true
-//		}
-//		return false
-//	}
-//
-//Then calling
-//
-//	m.Any(positive)
-//
-//would be true if at least one element of the mat object is positive.
-//*/
-//func (m *Mat) Any(f booleanFunc) bool {
-//	for i := 0; i < m.r*m.c; i++ {
-//		if f(&m.vals[i]) {
-//			return true
-//		}
-//	}
-//	return false
-//}
-//
-///*
-//Mul is the element-wise multiplication of a mat object by another which is
-//passed to this method.
-//
-//The shape of the mat objects must be the same (same number or rows and columns)
-//and the results of the element-wise multiplication is stored in the original
-//mat on which the method was invoked.
-//*/
-//func (m *Mat) Mul(n *Mat) *Mat {
-//	if m.r != n.r {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%v, the number of the rows of the first mat is %d\n"
-//		s += "but the number of rows of the second mat is %d. They must\n"
-//		s += "match.\n"
-//		s = fmt.Sprintf(s, "Mul", m.r, n.r)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	if m.c != n.c {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%v, the number of the columns of the first mat is %d\n"
-//		s += "but the number of columns of the second mat is %d. They must\n"
-//		s += "match.\n"
-//		s = fmt.Sprintf(s, "Mul", m.c, n.c)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	for i := 0; i < m.r*m.c; i++ {
-//		m.vals[i] *= n.vals[i]
-//	}
-//	return m
-//}
-//
-///*
-//Add is the element-wise addition of a mat object with another which is passed
-//to this method.
-//
-//The shape of the mat objects must be the same (same number or rows and columns)
-//and the results of the element-wise addition is stored in the original
-//mat on which the method was invoked.
-//*/
-//func (m *Mat) Add(n *Mat) *Mat {
-//	if m.r != n.r {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%v, the number of the rows of the first mat is %d\n"
-//		s += "but the number of rows of the second mat is %d. They must\n"
-//		s += "match.\n"
-//		s = fmt.Sprintf(s, "Add", m.r, n.r)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	if m.c != n.c {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%v, the number of the columns of the first mat is %d\n"
-//		s += "but the number of columns of the second mat is %d. They must\n"
-//		s += "match.\n"
-//		s = fmt.Sprintf(s, "Add", m.c, n.c)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	for i := 0; i < m.r*m.c; i++ {
-//		m.vals[i] += n.vals[i]
-//	}
-//	return m
-//}
-//
-///*
-//Sub is the element-wise subtraction of a mat object which is passed
-//to this method from the original mat which called the method.
-//
-//The shape of the mat objects must be the same (same number or rows and columns)
-//and the results of the element-wise subtraction is stored in the original
-//mat on which the method was invoked.
-//*/
-//func (m *Mat) Sub(n *Mat) *Mat {
-//	if m.r != n.r {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%v, the number of the rows of the first mat is %d\n"
-//		s += "but the number of rows of the second mat is %d. They must\n"
-//		s += "match.\n"
-//		s = fmt.Sprintf(s, "Sub", m.r, n.r)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	if m.c != n.c {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%v, the number of the columns of the first mat is %d\n"
-//		s += "but the number of columns of the second mat is %d. They must\n"
-//		s += "match.\n"
-//		s = fmt.Sprintf(s, "Sub", m.c, n.c)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	for i := 0; i < m.r*m.c; i++ {
-//		m.vals[i] -= n.vals[i]
-//	}
-//	return m
-//}
-//
-///*
-//Div is the element-wise dicition of a mat object by another which is passed
-//to this method.
-//
-//The shape of the mat objects must be the same (same number or rows and columns)
-//and the results of the element-wise division is stored in the original
-//mat on which the method was invoked. The dividing mat object (passed to this
-//method) must not contain any elements which are equal to 0.0.
-//*/
-//func (m *Mat) Div(n *Mat) *Mat {
-//	if m.r != n.r {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%v, the number of the rows of the first mat is %d\n"
-//		s += "but the number of rows of the second mat is %d. They must\n"
-//		s += "match.\n"
-//		s = fmt.Sprintf(s, "Div", m.r, n.r)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	if m.c != n.c {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%v, the number of the columns of the first mat is %d\n"
-//		s += "but the number of columns of the second mat is %d. They must\n"
-//		s += "match.\n"
-//		s = fmt.Sprintf(s, "Div", m.c, n.c)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	zero := func(i *float64) bool {
-//		if *i == 0.0 {
-//			return true
-//		}
-//		return false
-//	}
-//	if n.Any(zero) {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%v, one or more elements of the second matrix are 0.0\n"
-//		s += "Division by zero is not allowed.\n"
-//		s = fmt.Sprintf(s, "Div", m.c, n.c)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	for i := 0; i < m.r*m.c; i++ {
-//		m.vals[i] /= n.vals[i]
-//	}
-//	return m
-//}
-//
-///*
-//Scale is the element-wise multiplication of a mat object by a scalar.
-//
-//The results of the element-wise multiplication is stored in the original
-//mat on which the method was invoked.
-//*/
-//func (m *Mat) Scale(f float64) *Mat {
-//	for i := 0; i < m.r*m.c; i++ {
-//		m.vals[i] *= f
-//	}
-//	return m
-//}
-//
+
+/*
+All checks if a supplied function is true for all elements of a mat object.
+The supplied function is expected to have the signature of a BooleanFunc, which
+takes a float64, returning a bool.
+For instance, consider
+
+	positive := func(i *float64) bool {
+		if i > 0.0 {
+			return true
+		}
+		return false
+	}
+
+Then calling
+
+	mat.All(positive, m)
+
+will return true if and only if all elements in m are positive.
+*/
+func All(f BooleanFunc, m [][]float64) bool {
+	for i := range m {
+		for j := range m[i] {
+			if !f(m[i][j]) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+/*
+Any checks if a supplied function is true for at least one elements of
+a 2D slice of float64s. The supplied function must have the signature of
+a BooleanFunc, meaning that it takes a float64, and returns a bool.
+For instance,
+
+	positive := func(i *float64) bool {
+		if i > 0.0 {
+			return true
+		}
+		return false
+	}
+
+Then calling
+
+	Any(positive, m)
+
+would be true if at least one element of the m is positive.
+*/
+func Any(f BooleanFunc, m [][]float64) bool {
+	for i := range m {
+		for j := range m[i] {
+			if f(m[i][j]) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+/*
+Mul takes each element of the first 2D slice passed to it, and multiples that
+element by the corresponding element in the second 2D slice passed to this
+function, storing the result in the first 2D slice.
+
+The shape of the 2D slices must be the same (same number or rows and columns),
+and they are assumed to be non-jagged (same number of elements in each row).
+*/
+func Mul(m, n [][]float64) {
+	if len(m) != len(n) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, the number of the rows of the first slice is %d\n"
+		s += "but the number of rows of the second slice is %d. They must\n"
+		s += "match.\n"
+		s = fmt.Sprintf(s, "Mul", len(m), len(n))
+		panic(s)
+	}
+	if len(m[0]) != len(n[0]) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, the number of the columns of the first slice is %d\n"
+		s += "but the number of columns of the second slice is %d. They must\n"
+		s += "match.\n"
+		s = fmt.Sprintf(s, "Mul", len(m[0]), len(n[0]))
+		panic(s)
+	}
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] *= n[i][j]
+		}
+	}
+}
+
+/*
+Add takes each element of the first 2D slice passed to it, and adds that
+element to the corresponding element in the second 2D slice passed to this
+function, storing the result in the first 2D slice.
+
+The shape of the 2D slices must be the same (same number or rows and columns),
+and they are assumed to be non-jagged (same number of elements in each row).
+*/
+func Add(m, n [][]float64) {
+	if len(m) != len(n) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, the number of the rows of the first slice is %d\n"
+		s += "but the number of rows of the second slice is %d. They must\n"
+		s += "match.\n"
+		s = fmt.Sprintf(s, "Add", len(m), len(n))
+		panic(s)
+	}
+	if len(m[0]) != len(n[0]) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, the number of the columns of the first slice is %d\n"
+		s += "but the number of columns of the second slice is %d. They must\n"
+		s += "match.\n"
+		s = fmt.Sprintf(s, "Add", len(m[0]), len(n[0]))
+		panic(s)
+	}
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] += n[i][j]
+		}
+	}
+}
+
+/*
+Sub takes each element of the first 2D slice passed to it, and subtracts from
+that element the corresponding element in the second 2D slice passed to this
+function, storing the result in the first 2D slice.
+
+The shape of the 2D slices must be the same (same number or rows and columns),
+and they are assumed to be non-jagged (same number of elements in each row).
+*/
+func Sub(m, n [][]float64) {
+	if len(m) != len(n) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, the number of the rows of the first slice is %d\n"
+		s += "but the number of rows of the second slice is %d. They must\n"
+		s += "match.\n"
+		s = fmt.Sprintf(s, "Sub", len(m), len(n))
+		panic(s)
+	}
+	if len(m[0]) != len(n[0]) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, the number of the columns of the first slice is %d\n"
+		s += "but the number of columns of the second slice is %d. They must\n"
+		s += "match.\n"
+		s = fmt.Sprintf(s, "Sub", len(m[0]), len(n[0]))
+		panic(s)
+	}
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] -= n[i][j]
+		}
+	}
+}
+
+/*
+Div takes each element of the first 2D slice passed to it, and divides that
+element by the corresponding element in the second 2D slice passed to this
+function, storing the result in the first 2D slice.
+
+The shape of the 2D slices must be the same (same number or rows and columns),
+and they are assumed to be non-jagged (same number of elements in each row).
+The second slice must not contain any zero-valued elements.
+*/
+func Div(m, n [][]float64) {
+	if len(m) != len(n) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, the number of the rows of the first slice is %d\n"
+		s += "but the number of rows of the second slice is %d. They must\n"
+		s += "match.\n"
+		s = fmt.Sprintf(s, "Div", len(m), len(n))
+		panic(s)
+	}
+	if len(m[0]) != len(n[0]) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, the number of the columns of the first slice is %d\n"
+		s += "but the number of columns of the second slice is %d. They must\n"
+		s += "match.\n"
+		s = fmt.Sprintf(s, "Div", len(m[0]), len(n[0]))
+		panic(s)
+	}
+	zero := func(i float64) bool {
+		if i == 0.0 {
+			return true
+		}
+		return false
+	}
+	if Any(zero, n) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, the second slice contains a zero-valued element.\n"
+		s = fmt.Sprintf(s, "Div")
+		panic(s)
+	}
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] /= n[i][j]
+		}
+	}
+}
+
 ///*
 //Sum returns the sum of the elements along a specific row or specific column.
 //The first argument selects the row or column (0 or 1), and the second argument

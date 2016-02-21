@@ -158,6 +158,64 @@ func BenchmarkSetAll(b *testing.B) {
 	}
 }
 
+func TestMulAll(t *testing.T) {
+	row, col := 13, 12
+	m := New(row, col)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*row + j)
+		}
+	}
+	MulAll(m, 0.0)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != 0.0 {
+				t.Errorf("expected 0.0, got %f", m[i][j])
+			}
+		}
+	}
+}
+
+func TestAddAll(t *testing.T) {
+	row, col := 13, 12
+	m := New(row, col)
+	AddAll(m, 1.0)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != 1.0 {
+				t.Errorf("expected 1.0, got %f", m[i][j])
+			}
+		}
+	}
+}
+
+func TestSubAll(t *testing.T) {
+	row, col := 13, 12
+	m := New(row, col)
+	SubAll(m, 1.0)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != -1.0 {
+				t.Errorf("expected -1.0, got %f", m[i][j])
+			}
+		}
+	}
+}
+
+func TestDivAll(t *testing.T) {
+	row, col := 13, 12
+	m := New(row, col)
+	SetAll(m, 10.0)
+	DivAll(m, 10.0)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != 1.0 {
+				t.Errorf("expected 1.0, got %f", m[i][j])
+			}
+		}
+	}
+}
+
 func TestRand(t *testing.T) {
 	row := 31
 	col := 42
@@ -189,9 +247,13 @@ func TestRand(t *testing.T) {
 }
 
 func TestCol(t *testing.T) {
-	row := 3
-	col := 4
+	row, col := 3, 5
 	m := New(row, col)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*row + j)
+		}
+	}
 	for i := 0; i < col; i++ {
 		got := Col(i, m)
 		if len(got) != row {
@@ -203,80 +265,76 @@ func TestCol(t *testing.T) {
 			}
 		}
 	}
+	for i := col; i > 0; i-- {
+		got := Col(-i, m)
+		if len(got) != row {
+			t.Errorf("expected %d, got %d", row, len(got))
+		}
+		for j := 0; j < row; j++ {
+			if got[j] != m[j][len(m[0])-i] {
+				t.Errorf("expected %f, got %f", m[j][len(m[0])-i], got[j])
+			}
+		}
+	}
 }
 
-//
-//func BenchmarkCol(b *testing.B) {
-//	m := New(1721, 311).Inc()
-//	b.ResetTimer()
-//	for i := 0; i < b.N; i++ {
-//		_ = m.Col(211)
-//	}
-//}
-//
-//func TestRow(t *testing.T) {
-//	row := 3
-//	col := 4
-//	m := New(row, col).Inc()
-//	idx := 0
-//	for i := 0; i < row; i++ {
-//		got := m.Row(i)
-//		for j := 0; j < col; j++ {
-//			if got.vals[j] != m.vals[idx] {
-//				t.Errorf("At index %v Col(%v), got %f, want %f", j, i,
-//					got.vals[j], m.vals[j*m.r+i])
-//			}
-//			idx++
-//		}
-//	}
-//}
-//
-//func BenchmarkRow(b *testing.B) {
-//	m := New(1721, 311).Inc()
-//	b.ResetTimer()
-//	for i := 0; i < b.N; i++ {
-//		_ = m.Row(211)
-//	}
-//}
-//
-//func TestEquals(t *testing.T) {
-//	m := New(13, 12)
-//	if !m.Equals(m) {
-//		t.Errorf("m is not equal iteself")
-//	}
-//}
-//
-//func TestCopy(t *testing.T) {
-//	m := New(13, 13).Inc()
-//	n := m.Copy()
-//	for i := 0; i < 13*13; i++ {
-//		if m.vals[i] != n.vals[i] {
-//			t.Errorf("at %d, expected %f, got %f", i, m.vals[i], n.vals[i])
-//		}
-//	}
-//}
-//
-//func TestT(t *testing.T) {
-//	m := New(12, 3).Inc()
-//	n := m.T()
-//	p := m.ToSlice()
-//	q := n.ToSlice()
-//	for i := 0; i < m.r; i++ {
-//		for j := 0; j < m.c; j++ {
-//			if p[i][j] != q[j][i] {
-//				t.Errorf("at %d, %d, expected %f, got %f", i, j, p[i][j], q[j][i])
-//			}
-//		}
-//	}
-//}
-//
-//func BenchmarkT(b *testing.B) {
-//	m := New(1000, 251).Inc()
-//	b.ResetTimer()
-//	for i := 0; i < b.N; i++ {
-//		_ = m.T()
-//	}
-//}
+func BenchmarkCol(b *testing.B) {
+	m := New(1721, 311)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*1721 + j)
+		}
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = Col(211, m)
+	}
+}
+
+func TestEqual(t *testing.T) {
+	m := New(13, 12)
+	if !Equal(m, m) {
+		t.Errorf("m is not equal iteself")
+	}
+}
+
+func TestCopy(t *testing.T) {
+	m := New(13, 13)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*13 + j)
+		}
+	}
+	n := Copy(m)
+	if !Equal(m, n) {
+		t.Errorf("not equal to its own copy")
+	}
+}
+
+func TestT(t *testing.T) {
+	m := New(12, 3)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*12 + j)
+		}
+	}
+	n := T(m)
+	if len(n) != len(m[0]) {
+		t.Errorf("expected %f, got %f", len(m[0]), len(n))
+	}
+	if len(n[0]) != len(m) {
+		t.Errorf("expected %f, got %f", len(m), len(n[0]))
+	}
+}
+
+func BenchmarkT(b *testing.B) {
+	m := New(1000, 251)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = T(m)
+	}
+}
+
 //
 //func TestFilter(t *testing.T) {
 //	m := New(100, 21).Inc()
@@ -303,51 +361,62 @@ func TestCol(t *testing.T) {
 //	}
 //}
 //
-//func TestAll(t *testing.T) {
-//	m := New(100, 21).Inc()
-//	pos := func(i *float64) bool {
-//		if *i >= 0.0 {
-//			return true
-//		}
-//		return false
-//	}
-//	if !m.All(pos) {
-//		t.Errorf("All(pos) is false for Inc()")
-//	}
-//	notOne := func(i *float64) bool {
-//		if *i != 1.0 {
-//			return true
-//		}
-//		return false
-//	}
-//	m.Ones()
-//	if m.All(notOne) {
-//		t.Errorf("m.Ones() has non-one values in it")
-//	}
-//}
-//
-//func TestAny(t *testing.T) {
-//	m := New(100, 21).Inc()
-//	neg := func(i *float64) bool {
-//		if *i < 0.0 {
-//			return true
-//		}
-//		return false
-//	}
-//	if m.Any(neg) {
-//		t.Errorf("Any(neg) is true for Inc()")
-//	}
-//	one := func(i *float64) bool {
-//		if *i == 1.0 {
-//			return true
-//		}
-//		return false
-//	}
-//	m.Ones()
-//	if !m.Any(one) {
-//		t.Errorf("m.Ones() has no values equal to 1.0 in it")
-//	}
-//}
+func TestAll(t *testing.T) {
+	m := New(100, 21)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*100 + j)
+		}
+	}
+	positive := func(i float64) bool {
+		if i >= 0.0 {
+			return true
+		}
+		return false
+	}
+	if !All(positive, m) {
+		t.Errorf("All(positive) is false, expected true")
+	}
+	notOne := func(i float64) bool {
+		if i != 1.0 {
+			return true
+		}
+		return false
+	}
+	SetAll(m, 1.0)
+	if All(notOne, m) {
+		t.Errorf("m has non-one values in it, expected none")
+	}
+}
+
+func TestAny(t *testing.T) {
+	m := New(100, 21)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*100 + j)
+		}
+	}
+	negative := func(i float64) bool {
+		if i < 0.0 {
+			return true
+		}
+		return false
+	}
+	if Any(negative, m) {
+		t.Errorf("Any(negiative) is true, expected false")
+	}
+	notOne := func(i float64) bool {
+		if i != 1.0 {
+			return true
+		}
+		return false
+	}
+	SetAll(m, 1.0)
+	if Any(notOne, m) {
+		t.Errorf("has non-one values in it, expected none")
+	}
+}
+
 //
 //func TestMul(t *testing.T) {
 //	m := New(10, 11).Inc()
