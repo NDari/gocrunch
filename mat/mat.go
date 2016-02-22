@@ -304,15 +304,15 @@ Rand sets the values of a 2D slice, m, to random numbers. The range from which
 the random numbers are selected is determined based on the arguments passed.
 
 For no additional arguments, such as
-	Rand(m)
+	mat.Rand(m)
 the range is [0, 1)
 
 For 1 argument, such as
-	Rand(m, arg)
+	mat.Rand(m, arg)
 the range is [0, arg) for arg > 0, or (arg, 0] is arg < 0.
 
 For 2 arguments, such as
-	Rand(m, arg1, arg2)
+	mat.Rand(m, arg1, arg2)
 the range is [arg1, arg2). For this case, arg1 must be less than arg2, or
 the function will panic.
 */
@@ -362,11 +362,11 @@ func Rand(m [][]float64, args ...float64) {
 Col returns a column from a 2D slice of float64. For example:
 
 	fmt.Println(m) // [[1.0, 2.3], [3.4, 1.7]]
-	Col(0, m) // [1.0, 3.4]
+	mat.Col(0, m) // [1.0, 3.4]
 
 Col also accepts negative indices. For example:
 
-	Col(-1, m) // [2.3, 1.7]
+	mat.Col(-1, m) // [2.3, 1.7]
 */
 func Col(x int, m [][]float64) []float64 {
 	if (x >= len(m[0])) || (x < -len(m[0])) {
@@ -392,11 +392,11 @@ func Col(x int, m [][]float64) []float64 {
 Row returns a row from a 2D slice of float64. For example:
 
 	fmt.Println(m) // [[1.0, 2.3], [3.4, 1.7]]
-	Row(0, m) // [1.0, 2.3]
+	mat.Row(0, m) // [1.0, 2.3]
 
 Row also accepts negative indices. For example:
 
-	Row(-1, m) // [3.4, 1.7]
+	mat.Row(-1, m) // [3.4, 1.7]
 */
 func Row(x int, m [][]float64) []float64 {
 	if (x >= len(m)) || (x < -len(m)) {
@@ -468,42 +468,6 @@ func T(m [][]float64) [][]float64 {
 	return n
 }
 
-//
-///*
-//Filter applies a function to each element of a mat object, creating a new
-//mat object from all elements for which the function returned true. For
-//example consider the following function:
-//
-//	positive := func(i *float64) bool {
-//		if i > 0.0 {
-//			return true
-//		}
-//		return false
-//	}
-//
-//then calling
-//
-//	m.Filter(positive)
-//
-//will create a new mat object which contains the positive elements of the
-//original matrix. If no elements return true for a given function, nil is
-//returned. It is expected that the caller of this method checks the
-//returned value to ensure that it is not nil.
-//*/
-//func (m *Mat) Filter(f BooleanFunc) *Mat {
-//	var res []float64
-//	for i := 0; i < m.r*m.c; i++ {
-//		if f(&m.vals[i]) {
-//			res = append(res, m.vals[i])
-//		}
-//	}
-//	if len(res) == 0 {
-//		return nil
-//	}
-//	return From1DSlice(res)
-//}
-//
-
 /*
 All checks if a supplied function is true for all elements of a mat object.
 The supplied function is expected to have the signature of a BooleanFunc, which
@@ -549,7 +513,7 @@ For instance,
 
 Then calling
 
-	Any(positive, m)
+	mat.Any(positive, m)
 
 would be true if at least one element of the m is positive.
 */
@@ -709,12 +673,12 @@ func Div(m, n [][]float64) {
 SumCol returns the sum of the elements of a slice along a specific column.
 For example:
 
-	SumCol(2, m)
+	mat.SumCol(2, m)
 
 will return the sum of the 3rd column of m. Negative indices are also
 allowed. For example:
 
-	SumCol(-1, m)
+	mat.SumCol(-1, m)
 
 will return the sum of the last column of m.
 */
@@ -742,12 +706,12 @@ func SumCol(x int, m [][]float64) float64 {
 SumRow returns the sum of the elements of a slice along a specific row.
 For example:
 
-	SumRow(2, m)
+	mat.SumRow(2, m)
 
 will return the sum of the 3rd row of m. Negative indices are also
 allowed. For example:
 
-	SumRow(-1, m)
+	mat.SumRow(-1, m)
 
 will return the sum of the last row of m.
 */
@@ -771,75 +735,75 @@ func SumRow(x int, m [][]float64) float64 {
 	return sum
 }
 
-//
-//func (m *Mat) precheckedSum(axis, slice int) float64 {
-//	x := 0.0
-//	if axis == 0 {
-//		for i := 0; i < m.c; i++ {
-//			x += m.vals[slice*m.c+i]
-//		}
-//	} else if axis == 1 {
-//		for i := 0; i < m.r; i++ {
-//			x += m.vals[i*m.c+slice]
-//		}
-//	}
-//	return x
-//}
-//
-///*
-//Average returns the average of the elements along a specific row or specific
-//column.
-//The first argument selects the row or column (0 or 1), and the second argument
-//selects which row or column for which we want to calculate the average. For
-//example:
-//
-//	m.Average(0, 2)
-//
-//will return the average of the 3rd row of mat m.
-//*/
-//func (m *Mat) Average(axis, slice int) float64 {
-//	if axis != 0 && axis != 1 {
-//		fmt.Println("\nNumgo/mat error.")
-//		s := "In mat.%v, the first argument must be 0 or 1, however %d "
-//		s += "was recieved.\n"
-//		s = fmt.Sprintf(s, "Average", axis)
-//		fmt.Println(s)
-//		fmt.Println("Stack trace for this error:")
-//		debug.PrintStack()
-//		os.Exit(1)
-//	}
-//	if axis == 0 {
-//		if (slice >= m.r) || (slice < 0) {
-//			fmt.Println("\nNumgo/mat error.")
-//			s := "In mat.%s the row %d is outside of bounds [0, %d)\n"
-//			s = fmt.Sprintf(s, "Average", slice, m.r)
-//			fmt.Println(s)
-//			fmt.Println("Stack trace for this error:")
-//			debug.PrintStack()
-//			os.Exit(1)
-//		}
-//	} else if axis == 1 {
-//		if (slice >= m.c) || (slice < 0) {
-//			fmt.Println("\nNumgo/mat error.")
-//			s := "In mat.%s the column %d is outside of bounds [0, %d)\n"
-//			s = fmt.Sprintf(s, "Average", slice, m.c)
-//			fmt.Println(s)
-//			fmt.Println("Stack trace for this error:")
-//			debug.PrintStack()
-//			os.Exit(1)
-//		}
-//	}
-//	return m.precheckedAverage(axis, slice)
-//}
-//
-//func (m *Mat) precheckedAverage(axis, slice int) float64 {
-//	sum := m.precheckedSum(axis, slice)
-//	if axis == 0 {
-//		return sum / float64(m.c)
-//	}
-//	return sum / float64(m.r)
-//}
-//
+/*
+AvgRow returns the average of the elements of a slice along a specific row.
+For example:
+
+	mat.AvgRow(2, m)
+
+will return the average of the 3rd row of m. Negative indices are also
+allowed. For example:
+
+	mat.AvgRow(-1, m)
+
+will return the average of the last row of m.
+*/
+func AvgRow(x int, m [][]float64) float64 {
+	if (x >= len(m)) || (x < -len(m)) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
+		s = fmt.Sprintf(s, "AvgRow", x, len(m), len(m))
+		panic(s)
+	}
+	var sum float64
+	if x >= 0 {
+		for i := range m[x] {
+			sum += m[x][i]
+		}
+		sum /= float64(len(m[x]))
+	} else {
+		for i := range m[len(m)+x] {
+			sum += m[len(m)+x][i]
+		}
+		sum /= float64(len(m[len(m)+x]))
+	}
+	return sum
+}
+
+/*
+AvgCol returns the average of the elements of a slice along a specific column.
+For example:
+
+	mat.AvgCol(2, m)
+
+will return the average of the 3rd column of m. Negative indices are also
+allowed. For example:
+
+	mat.AvgCol(-1, m)
+
+will return the Avrage of the last column of m.
+*/
+func AvgCol(x int, m [][]float64) float64 {
+	if (x >= len(m[0])) || (x < -len(m[0])) {
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
+		s = fmt.Sprintf(s, "AvgCol", x, len(m[0]), len(m[0]))
+		panic(s)
+	}
+	var sum float64
+	if x >= 0 {
+		for i := range m {
+			sum += m[i][x]
+		}
+	} else {
+		for i := range m {
+			sum += m[i][len(m[0])+x]
+		}
+	}
+	sum /= float64(len(m))
+	return sum
+}
+
 ///*
 //Prod returns the product of the elements along a specific row or specific
 //column.

@@ -380,32 +380,6 @@ func BenchmarkT(b *testing.B) {
 	}
 }
 
-//
-//func TestFilter(t *testing.T) {
-//	m := New(100, 21).Inc()
-//	neg := func(i *float64) bool {
-//		if *i < 0.0 {
-//			return true
-//		}
-//		return false
-//	}
-//	r := m.Filter(neg)
-//	if r != nil {
-//		t.Errorf("Found negative values in Inc()")
-//	}
-//	m.Ones()
-//	one := func(i *float64) bool {
-//		if *i == 1.0 {
-//			return true
-//		}
-//		return false
-//	}
-//	r = m.Filter(one)
-//	if len(m.vals) != len(r.vals) {
-//		t.Errorf("not all values of Ones came through the filter")
-//	}
-//}
-//
 func TestAll(t *testing.T) {
 	m := New(100, 21)
 	for i := range m {
