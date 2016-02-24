@@ -575,13 +575,31 @@ func TestSumRow(t *testing.T) {
 }
 
 func TestAvg(t *testing.T) {
-
+	row, col, val := 7, 6, 3.0
+	m := New(row, col)
+	SetAll(m, val)
+	a := Avg(m)
+	if a != val {
+		t.Errorf("expected %f, got %f", val, a)
+	}
 }
 
 func TestAvgRow(t *testing.T) {
-
+	row, col, val := 7, 6, 1.0
+	m := New(row, col)
+	SetAll(m, val)
+	a := AvgRow(1, m)
+	if a != val {
+		t.Errorf("expected %f, got %f", val, a)
+	}
 }
 
 func TestAvgCol(t *testing.T) {
-
+	row, col, val := 7, 6, 2.1
+	m := New(row, col)
+	SetAll(m, val)
+	a := AvgCol(0, m)
+	if a != val {
+		t.Errorf("expected %f, got %f", val, a)
+	}
 }
