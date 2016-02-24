@@ -526,6 +526,16 @@ func TestDiv(t *testing.T) {
 	}
 }
 
+func TestSum(t *testing.T) {
+	row, col, val := 131, 12, 2.0
+	m := New(row, col)
+	SetAll(m, val)
+	res := Sum(m)
+	if res != float64(row*col)*val {
+		t.Errorf("expected %f, got %f", float64(row*col)*val, res)
+	}
+}
+
 func TestSumCol(t *testing.T) {
 	row := 12
 	col := 17
@@ -564,256 +574,14 @@ func TestSumRow(t *testing.T) {
 	}
 }
 
-//
-//func TestAverage(t *testing.T) {
-//	row := 12
-//	col := 17
-//	m := New(row, col).Ones()
-//	for i := 0; i < row; i++ {
-//		q := m.Average(0, i)
-//		if q != 1.0 {
-//			t.Errorf("at row %d expected average to be 1.0, got %f", i, q)
-//		}
-//	}
-//	for i := 0; i < col; i++ {
-//		q := m.Average(1, i)
-//		if q != 1.0 {
-//			t.Errorf("at col %d expected average to be 1.0, got %f", i, q)
-//		}
-//	}
-//}
-//
-//func TestProd(t *testing.T) {
-//	row := 12
-//	col := 17
-//	m := New(row, col).Ones()
-//	for i := 0; i < row; i++ {
-//		q := m.Prod(0, i)
-//		if q != 1.0 {
-//			t.Errorf("at row %d expected product to be 1.0, got %f", i, q)
-//		}
-//	}
-//	for i := 0; i < col; i++ {
-//		q := m.Prod(1, i)
-//		if q != 1.0 {
-//			t.Errorf("at col %d expected product to be 1.0, got %f", i, q)
-//		}
-//	}
-//}
-//
-//func TestStd(t *testing.T) {
-//	row := 12
-//	col := 17
-//	m := New(row, col).Ones()
-//	for i := 0; i < row; i++ {
-//		q := m.Std(0, i)
-//		if q != 0.0 {
-//			t.Errorf("at row %d expected std-div to be 0.0, got %f", i, q)
-//		}
-//	}
-//	for i := 0; i < col; i++ {
-//		q := m.Std(1, i)
-//		if q != 0.0 {
-//			t.Errorf("at col %d expected product to be 0.0, got %f", i, q)
-//		}
-//	}
-//}
-//
-//func TestDot(t *testing.T) {
-//	var (
-//		row = 10
-//		col = 4
-//	)
-//	m := New(row, col).Inc()
-//	n := New(col, row).Inc()
-//	o := m.Dot(n)
-//	if o.r != row {
-//		t.Errorf("o.r: expected %d, got %d", row, o.r)
-//	}
-//	if o.c != row {
-//		t.Errorf("o.c: expected %d, got %d", row, o.c)
-//	}
-//	p := New(row, row)
-//	q := o.Dot(p)
-//	for i := 0; i < row*row; i++ {
-//		if q.vals[i] != 0.0 {
-//			t.Errorf("at index %d expected 0.0 got %f", i, q.vals[i])
-//		}
-//	}
-//}
-//
-//func BenchmarkDot(b *testing.B) {
-//	m := New(150, 130).Inc()
-//	n := New(130, 150).Inc()
-//	b.ResetTimer()
-//	for i := 0; i < b.N; i++ {
-//		_ = m.Dot(n)
-//	}
-//}
-//
-//func TestToString(t *testing.T) {
-//	var (
-//		row = 10
-//		col = 4
-//	)
-//	m := New(row, col).Inc()
-//	fmt.Println(m.ToString())
-//}
-//
-//func TestAppendCol(t *testing.T) {
-//	var (
-//		row = 10
-//		col = 4
-//	)
-//	m := New(row, col).Inc()
-//	v := make([]float64, row)
-//	m.AppendCol(v)
-//	if m.c != col+1 {
-//		t.Errorf("Expected number of columns to be %d, but got %d", col+1, m.c)
-//	}
-//}
-//
-//func TestAppendRow(t *testing.T) {
-//	var (
-//		row = 10
-//		col = 4
-//	)
-//	m := New(row, col).Inc()
-//	v := make([]float64, col)
-//	m.AppendRow(v)
-//	if m.r != row+1 {
-//		t.Errorf("Expected number of rows to be %d, but got %d", row+1, m.r)
-//	}
-//}
-//
-//func TestConcat(t *testing.T) {
-//	var (
-//		row = 10
-//		col = 4
-//	)
-//	m := New(row, col).Inc()
-//	n := New(row, row).Inc()
-//	m.Concat(n)
-//	if m.c != row+col {
-//		t.Errorf("Expected number of cols to be %d, but got %d", row+col, m.c)
-//	}
-//	idx1 := 0
-//	idx2 := 0
-//	for i := 0; i < row; i++ {
-//		for j := 0; j < col+row; j++ {
-//			if j < col {
-//				if m.vals[i*m.c+j] != float64(idx1) {
-//					t.Errorf("At row %d, column %d, expected %f got %f", i, j,
-//						float64(idx1), m.vals[i*m.c+j])
-//				}
-//				idx1++
-//				continue
-//			}
-//			if m.vals[i*m.c+j] != float64(idx2) {
-//				t.Errorf("At row %d, column %d, expected %f got %f", i, j,
-//					float64(idx2), m.vals[i*m.c+j])
-//			}
-//			idx2++
-//		}
-//	}
-//}
-//
-//func TestSet(t *testing.T) {
-//	m := New(10, 12).Inc()
-//	m.Set(0, 10, 12)
-//	if m.vals[10] != 12.0 {
-//		t.Errorf("Expected 12.0, got %f", m.vals[10])
-//	}
-//}
-//
-//func TestCombineWithRows(t *testing.T) {
-//	v := make([]float64, 5)
-//	for i := range v {
-//		v[i] = float64(i)
-//	}
-//	v[0] = -1.0
-//	m := New(2, 5).Inc()
-//	n := m.Copy()
-//	n.CombineWithRows("add", v)
-//	for i := 0; i < m.r; i++ {
-//		for j := 0; j < m.c; j++ {
-//			if n.vals[i*n.c+j] != m.vals[i*m.c+j]+v[j] {
-//				t.Errorf("expected %f, got %f", m.vals[i*m.c+j]+v[j], n.vals[i*n.c+j])
-//			}
-//		}
-//	}
-//	n = m.Copy()
-//	n.CombineWithRows("sub", v)
-//	for i := 0; i < m.r; i++ {
-//		for j := 0; j < m.c; j++ {
-//			if n.vals[i*n.c+j] != m.vals[i*m.c+j]-v[j] {
-//				t.Errorf("expected %f, got %f", m.vals[i*m.c+j]-v[j], n.vals[i*n.c+j])
-//			}
-//		}
-//	}
-//	n = m.Copy()
-//	n.CombineWithRows("mul", v)
-//	for i := 0; i < m.r; i++ {
-//		for j := 0; j < m.c; j++ {
-//			if n.vals[i*n.c+j] != m.vals[i*m.c+j]*v[j] {
-//				t.Errorf("expected %f, got %f", m.vals[i*m.c+j]*v[j], n.vals[i*n.c+j])
-//			}
-//		}
-//	}
-//	n = m.Copy()
-//	n.CombineWithRows("div", v)
-//	for i := 0; i < m.r; i++ {
-//		for j := 0; j < m.c; j++ {
-//			if n.vals[i*n.c+j] != m.vals[i*m.c+j]/v[j] {
-//				t.Errorf("expected %f, got %f", m.vals[i*m.c+j]/v[j], n.vals[i*n.c+j])
-//			}
-//		}
-//	}
-//
-//}
-//
-//func TestCombineWithCols(t *testing.T) {
-//	v := make([]float64, 5)
-//	for i := range v {
-//		v[i] = float64(i)
-//	}
-//	v[0] = -1.0
-//	m := New(5, 2).Inc()
-//	n := m.Copy()
-//	n.CombineWithCols("add", v)
-//	for i := 0; i < m.c; i++ {
-//		for j := 0; j < m.r; j++ {
-//			if n.vals[j*n.c+i] != m.vals[j*m.c+i]+v[j] {
-//				t.Errorf("expected %f, got %f", m.vals[j*m.c+i]+v[j], n.vals[j*n.c+i])
-//			}
-//		}
-//	}
-//	n = m.Copy()
-//	n.CombineWithCols("sub", v)
-//	for i := 0; i < m.c; i++ {
-//		for j := 0; j < m.r; j++ {
-//			if n.vals[j*n.c+i] != m.vals[j*m.c+i]-v[j] {
-//				t.Errorf("expected %f, got %f", m.vals[j*m.c+i]-v[j], n.vals[j*n.c+i])
-//			}
-//		}
-//	}
-//	n = m.Copy()
-//	n.CombineWithCols("mul", v)
-//	for i := 0; i < m.c; i++ {
-//		for j := 0; j < m.r; j++ {
-//			if n.vals[j*n.c+i] != m.vals[j*m.c+i]*v[j] {
-//				t.Errorf("expected %f, got %f", m.vals[j*m.c+i]*v[j], n.vals[j*n.c+i])
-//			}
-//		}
-//	}
-//	n = m.Copy()
-//	n.CombineWithCols("div", v)
-//	for i := 0; i < m.c; i++ {
-//		for j := 0; j < m.r; j++ {
-//			if n.vals[j*n.c+i] != m.vals[j*m.c+i]/v[j] {
-//				t.Errorf("expected %f, got %f", m.vals[j*m.c+i]/v[j], n.vals[j*n.c+i])
-//			}
-//		}
-//	}
-//
-//}
+func TestAvg(t *testing.T) {
+
+}
+
+func TestAvgRow(t *testing.T) {
+
+}
+
+func TestAvgCol(t *testing.T) {
+
+}
