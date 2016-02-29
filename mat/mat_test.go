@@ -206,8 +206,6 @@ func TestMul(t *testing.T) {
 			}
 		}
 	}
-	var k int
-	Mul(m, k)
 }
 
 func BenchmarkMul(b *testing.B) {
