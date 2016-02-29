@@ -158,7 +158,7 @@ func BenchmarkSetAll(b *testing.B) {
 	}
 }
 
-func TestMulAll(t *testing.T) {
+func TestMul(t *testing.T) {
 	row, col := 13, 12
 	m := New(row, col)
 	for i := range m {
@@ -166,13 +166,62 @@ func TestMulAll(t *testing.T) {
 			m[i][j] = float64(i*row + j)
 		}
 	}
-	MulAll(m, 0.0)
+	Mul(m, 0.0)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] != 0.0 {
 				t.Errorf("expected 0.0, got %f", m[i][j])
 			}
 		}
+	}
+	row, col = 11, 13
+	m = New(row, col)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*row + j)
+		}
+	}
+	v := make([]float64, col)
+	Mul(m, v)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != 0.0 {
+				t.Errorf("At row %d, col %d, expected 0.0, got %f", i, j, m[i][j])
+			}
+		}
+	}
+	row, col = 13, 121
+	m = New(row, col)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*10 + j)
+		}
+	}
+	n := Copy(m)
+	Mul(m, m)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != n[i][j]*n[i][j] {
+				t.Errorf("expected %f, got %f", n[i][j]*n[i][j], m[i][j])
+			}
+		}
+	}
+	var k int
+	Mul(m, k)
+}
+
+func BenchmarkMul(b *testing.B) {
+	m := New(1000, 1000)
+	n := New(1000, 1000)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*1000 + j)
+			n[i][j] = 1.0
+		}
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Mul(m, n)
 	}
 }
 
@@ -436,40 +485,6 @@ func TestAny(t *testing.T) {
 	}
 }
 
-func TestMul(t *testing.T) {
-	row, col := 13, 121
-	m := New(row, col)
-	for i := range m {
-		for j := range m[i] {
-			m[i][j] = float64(i*10 + j)
-		}
-	}
-	n := Copy(m)
-	Mul(m, m)
-	for i := range m {
-		for j := range m[i] {
-			if m[i][j] != n[i][j]*n[i][j] {
-				t.Errorf("expected %f, got %f", n[i][j]*n[i][j], m[i][j])
-			}
-		}
-	}
-}
-
-func BenchmarkMul(b *testing.B) {
-	m := New(1000, 1000)
-	n := New(1000, 1000)
-	for i := range m {
-		for j := range m[i] {
-			m[i][j] = float64(i*1000 + j)
-			n[i][j] = 1.0
-		}
-	}
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		Mul(m, n)
-	}
-}
-
 func TestAdd(t *testing.T) {
 	row, col := 13, 121
 	m := New(row, col)
@@ -601,5 +616,73 @@ func TestAvgCol(t *testing.T) {
 	a := AvgCol(0, m)
 	if a != val {
 		t.Errorf("expected %f, got %f", val, a)
+	}
+}
+
+func TestDot(t *testing.T) {
+	m := New(10)
+	n := New(10)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*10 + j)
+		}
+	}
+	for i := range n {
+		n[i][i] = 1.0
+	}
+	o := Dot(m, n)
+	if !Equal(o, m) {
+		t.Errorf("expected equal, got not equal")
+	}
+}
+
+func BenchmarkDot(b *testing.B) {
+	m := New(1000)
+	n := New(1000)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*10 + j)
+		}
+	}
+	for i := range n {
+		n[i][i] = 1.0
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = Dot(m, n)
+	}
+}
+
+func TestDotC(t *testing.T) {
+	m := New(10)
+	n := New(10)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*10 + j)
+		}
+	}
+	for i := range n {
+		n[i][i] = 1.0
+	}
+	o := DotC(m, n)
+	if !Equal(o, m) {
+		t.Errorf("expected equal, got not equal")
+	}
+}
+
+func BenchmarkDotC(b *testing.B) {
+	m := New(1000)
+	n := New(1000)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*10 + j)
+		}
+	}
+	for i := range n {
+		n[i][i] = 1.0
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = DotC(m, n)
 	}
 }
