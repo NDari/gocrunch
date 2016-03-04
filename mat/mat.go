@@ -1,18 +1,28 @@
 /*
-Package mat implements a large set of functions which act on 2-dimensional slices
-of float64.
+Package mat implements a large set of functions which act on one and two
+dimensional slices of float64.
 
-All 2D slices created or passed to the functions in this library are assumed to
-be non-jagged, meaning that all rows have the same number of elements. It is the
-responsibility of the called to ensure this. An easy way to do this is to use
-the various functions in this library to create 2D slices or to generate them
-from files.
+Many of the functions in this library expect either a float64, a []float64,
+or [][]float64, and do "the right thing" based on what is passed. For example,
+consider the function
+
+	mat.Dot(m, n)
+
+In this function, m can be a []float64, or [][]float64, where as n could be
+a []float64, or [][]float64. This allows the same function to be called for
+wide range of situations. This trades compile time safety for runtime errors.
+We believe that Go's fast compile time, along with the verbose errors in
+this package make up for that, however.
 
 All errors encountered in this package, such as attempting to access an
 element out of bounds are treated as critical error, and thus, the code
-immediately panics. In such cases, the function/method in
-which the error was encountered is printed to the screen, in addition
-to the full stack trace, in order to help fix the issue rapidly.
+immediately panics. In such cases, the function in which the error was
+encountered is printed to the screen along with the reason for the panic,
+in addition to the full stack trace, in order to help fix any issues
+rapidly.
+
+As mentioned, all the functions in this library act on Go primitive types,
+which allows the code to be easily modified to serve in different situations.
 */
 package mat
 
@@ -42,11 +52,15 @@ type reducerFunc func(accumulator, next *float64)
 
 /*
 New is a utility function to create 2D slices. New is a variadic function,
-expecting 1 or 2 ints, with differing behavior as follows:
+expecting 0, 1 or 2 ints, with differing behavior as follows:
+
+	m := mat.New()
+
+returns an empty [][]float64. A perhaps more useful option is:
 
 	m := mat.New(x)
 
-m is a x by x (square) 2D slice. Alternatively
+which return a x by x (square) 2D slice. Alternatively
 
 	m := mat.New(x, y)
 
@@ -97,16 +111,6 @@ func New(dims ...int) [][]float64 {
 		panic(s)
 	}
 	return m
-}
-
-func isJagged(s [][]float64) bool {
-	c := len(s[0])
-	for i := range s {
-		if len(s[i]) != c {
-			return true
-		}
-	}
-	return false
 }
 
 /*
@@ -196,8 +200,10 @@ func Flatten(m [][]float64) []float64 {
 ToCSV writes the content of a passed 2D slice into a CSV file with the passed
 name, by putting each row in a single comma separated line. The number of
 entries in each line is equal to the length of the second dimension of the
-2D slice. This function return an error, which contains any errors encounterd
-or nil if it succeeded.
+2D slice. The passed [][]float64 is assumed to be non-jagged, such that
+all rows have the same number of entries.
+This function returns an error, which contains any errors found during
+opening and writing to the file or nil if no errors were seen.
 */
 func ToCSV(m [][]float64, fileName string) error {
 	f, err := os.Create(fileName)

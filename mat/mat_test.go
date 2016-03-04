@@ -29,23 +29,6 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestIsJagged(t *testing.T) {
-	s := make([][]float64, 10)
-	for i := range s {
-		s[i] = make([]float64, i+1)
-	}
-	if !isJagged(s) {
-		t.Errorf("Jagged 2D slice passed the jagged test...")
-	}
-	q := make([][]float64, 11)
-	for i := range q {
-		q[i] = make([]float64, 5)
-	}
-	if isJagged(q) {
-		t.Errorf("Non-jagged 2D slice failed the jagged test...")
-	}
-}
-
 func TestFromCSV(t *testing.T) {
 	rows := 4
 	cols := 4
