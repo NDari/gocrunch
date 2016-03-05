@@ -177,7 +177,7 @@ func TestMul(t *testing.T) {
 	m = New(row, col)
 	for i := range m {
 		for j := range m[i] {
-			m[i][j] = float64(i*10 + j)
+			m[i][j] = float64(i*row + j)
 		}
 	}
 	n := Copy(m)
@@ -206,10 +206,162 @@ func BenchmarkMul(b *testing.B) {
 	}
 }
 
-func TestAddAll(t *testing.T) {
+func TestAdd(t *testing.T) {
 	row, col := 13, 12
 	m := New(row, col)
-	AddAll(m, 1.0)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*row + j)
+		}
+	}
+	n := Copy(m)
+	Add(m, 0.0)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != n[i][j] {
+				t.Errorf("expected %f got %f", n[i][j], m[i][j])
+			}
+		}
+	}
+	row, col = 11, 13
+	m = New(row, col)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*row + j)
+		}
+	}
+	v := make([]float64, col)
+	for i := range v {
+		v[i] = 2.0
+	}
+	n = Copy(m)
+	Add(m, v)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != n[i][j]+2.0 {
+				t.Errorf("At row %d, col %d, expected %f, got %f", i, j, n[i][j]+2.0, m[i][j])
+			}
+		}
+	}
+	row, col = 13, 121
+	m = New(row, col)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*row + j)
+		}
+	}
+	n = Copy(m)
+	Add(m, m)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != n[i][j]+n[i][j] {
+				t.Errorf("expected %f, got %f", n[i][j]*n[i][j], m[i][j])
+			}
+		}
+	}
+}
+
+func TestSub(t *testing.T) {
+	row, col := 13, 12
+	m := New(row, col)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*row + j)
+		}
+	}
+	n := Copy(m)
+	Sub(m, 0.0)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != n[i][j] {
+				t.Errorf("expected %f got %f", n[i][j], m[i][j])
+			}
+		}
+	}
+	row, col = 11, 13
+	m = New(row, col)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*row + j)
+		}
+	}
+	v := make([]float64, col)
+	for i := range v {
+		v[i] = 2.0
+	}
+	n = Copy(m)
+	Sub(m, v)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != n[i][j]-2.0 {
+				t.Errorf("At row %d, col %d, expected %f, got %f", i, j, n[i][j]-2.0, m[i][j])
+			}
+		}
+	}
+	row, col = 13, 121
+	m = New(row, col)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*row + j)
+		}
+	}
+	Sub(m, m)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != 0.0 {
+				t.Errorf("expected 0.0, got %f", m[i][j])
+			}
+		}
+	}
+
+}
+
+func TestDiv(t *testing.T) {
+	row, col := 13, 12
+	m := New(row, col)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*row + j)
+		}
+	}
+	n := Copy(m)
+	Div(m, 1.0)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != n[i][j] {
+				t.Errorf("expected %f got %f", n[i][j], m[i][j])
+			}
+		}
+	}
+	row, col = 11, 13
+	m = New(row, col)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*row + j)
+		}
+	}
+	v := make([]float64, col)
+	for i := range v {
+		v[i] = 1.0
+	}
+	n = Copy(m)
+	Div(m, v)
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != n[i][j] {
+				t.Errorf("At row %d, col %d, expected %f, got %f", i, j, n[i][j], m[i][j])
+			}
+		}
+	}
+	row, col = 13, 121
+	m = New(row, col)
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = float64(i*row + j)
+		}
+	}
+	m[0][0] = 1.0
+	Div(m, m)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] != 1.0 {
@@ -217,33 +369,7 @@ func TestAddAll(t *testing.T) {
 			}
 		}
 	}
-}
 
-func TestSubAll(t *testing.T) {
-	row, col := 13, 12
-	m := New(row, col)
-	SubAll(m, 1.0)
-	for i := range m {
-		for j := range m[i] {
-			if m[i][j] != -1.0 {
-				t.Errorf("expected -1.0, got %f", m[i][j])
-			}
-		}
-	}
-}
-
-func TestDivAll(t *testing.T) {
-	row, col := 13, 12
-	m := New(row, col)
-	SetAll(m, 10.0)
-	DivAll(m, 10.0)
-	for i := range m {
-		for j := range m[i] {
-			if m[i][j] != 1.0 {
-				t.Errorf("expected 1.0, got %f", m[i][j])
-			}
-		}
-	}
 }
 
 func TestRand(t *testing.T) {
@@ -463,62 +589,6 @@ func TestAny(t *testing.T) {
 	SetAll(m, 1.0)
 	if Any(notOne, m) {
 		t.Errorf("has non-one values in it, expected none")
-	}
-}
-
-func TestAdd(t *testing.T) {
-	row, col := 13, 121
-	m := New(row, col)
-	for i := range m {
-		for j := range m[i] {
-			m[i][j] = float64(i*10 + j)
-		}
-	}
-	n := Copy(m)
-	Add(m, m)
-	for i := range m {
-		for j := range m[i] {
-			if m[i][j] != n[i][j]+n[i][j] {
-				t.Errorf("expected %f, got %f", n[i][j]+n[i][j], m[i][j])
-			}
-		}
-	}
-}
-
-func TestSub(t *testing.T) {
-	row, col := 13, 121
-	m := New(row, col)
-	for i := range m {
-		for j := range m[i] {
-			m[i][j] = float64(i*10 + j)
-		}
-	}
-	Sub(m, m)
-	for i := range m {
-		for j := range m[i] {
-			if m[i][j] != 0.0 {
-				t.Errorf("expected 0.0, got %f", m[i][j])
-			}
-		}
-	}
-}
-
-func TestDiv(t *testing.T) {
-	row, col := 13, 121
-	m := New(row, col)
-	for i := range m {
-		for j := range m[i] {
-			m[i][j] = float64(i*10 + j)
-		}
-	}
-	m[0][0] = 1.0
-	Div(m, m)
-	for i := range m {
-		for j := range m[i] {
-			if m[i][j] != 1.0 {
-				t.Errorf("expected 1.0, got %f", m[i][j])
-			}
-		}
 	}
 }
 

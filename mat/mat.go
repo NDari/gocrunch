@@ -51,7 +51,7 @@ type BooleanFunc func(float64) bool
 type reducerFunc func(accumulator, next *float64)
 
 /*
-New is a utility function to create 2D slices. New is a variadic function,
+New is a utility function to create [][]float64s. New is a variadic function,
 expecting 0, 1 or 2 ints, with differing behavior as follows:
 
 	m := mat.New()
@@ -60,11 +60,11 @@ returns an empty [][]float64. A perhaps more useful option is:
 
 	m := mat.New(x)
 
-which return a x by x (square) 2D slice. Alternatively
+which return a x by x (square) [][]float64. Alternatively
 
 	m := mat.New(x, y)
 
-is a 2D slice with x rows and y columns.
+is a [][]float64 with x rows and y columns.
 
 */
 func New(dims ...int) [][]float64 {
@@ -76,7 +76,7 @@ func New(dims ...int) [][]float64 {
 			fmt.Println("\nNumgo/mat error.")
 			s := "In mat.%s, the number of rows must be greater than '0', but\n"
 			s += "recieved %d. "
-			s = fmt.Sprintf(s, "New", r)
+			s = fmt.Sprintf(s, "New()", r)
 			panic(s)
 		}
 		m = make([][]float64, r)
@@ -90,14 +90,14 @@ func New(dims ...int) [][]float64 {
 			fmt.Println("\nNumgo/mat error.")
 			s := "In mat.%s, the number of rows must be greater than '0', but\n"
 			s += "recieved %d. "
-			s = fmt.Sprintf(s, "New", r)
+			s = fmt.Sprintf(s, "New()", r)
 			panic(s)
 		}
 		if c <= 0 {
 			fmt.Println("\nNumgo/mat error.")
 			s := "In mat.%s, the number of columns must be greater than '0', but\n"
 			s += "recieved %d. "
-			s = fmt.Sprintf(s, "New", c)
+			s = fmt.Sprintf(s, "New()", c)
 			panic(s)
 		}
 		m = make([][]float64, r)
@@ -107,7 +107,7 @@ func New(dims ...int) [][]float64 {
 	default:
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s expected 1 or 2 arguments, but recieved %d"
-		s = fmt.Sprintf(s, "New", len(dims))
+		s = fmt.Sprintf(s, "New()", len(dims))
 		panic(s)
 	}
 	return m
@@ -115,7 +115,7 @@ func New(dims ...int) [][]float64 {
 
 /*
 FromCSV creates a mat object from a CSV (comma separated values) file. Here, we
-assume that the number of rows of the resultant 2D slice is equal to the
+assume that the number of rows of the resultant [][]float64 is equal to the
 number of lines, and the number of columns is equal to the number of entries
 in each line making sure that each line contains the same number
 of elements.
@@ -128,12 +128,12 @@ func FromCSV(filename string) [][]float64 {
 	if err != nil {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, cannot open %s due to error: %v.\n"
-		s = fmt.Sprintf(s, "FromCSV", filename, err)
+		s = fmt.Sprintf(s, "FromCSV()", filename, err)
 		panic(s)
 	}
 	defer f.Close()
 	r := csv.NewReader(f)
-	// I am going with the assumption that a 2D slice loaded from a CSV is going to
+	// I am going with the assumption that a [][]float64 loaded from a CSV is going to
 	// be large. So, we are going to read one line, and determine the number
 	// of columns based on the number of comma separated strings in that line.
 	// Then we will read the rest of the lines one at a time, checking that the
@@ -142,7 +142,7 @@ func FromCSV(filename string) [][]float64 {
 	if err != nil {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, cannot read from %s due to error: %v.\n"
-		s = fmt.Sprintf(s, "FromCSV", filename, err)
+		s = fmt.Sprintf(s, "FromCSV()", filename, err)
 		panic(s)
 	}
 	line := 1
@@ -155,7 +155,7 @@ func FromCSV(filename string) [][]float64 {
 				fmt.Println("\nNumgo/mat error.")
 				s := "In mat.%v, item %d in line %d is %s, which cannot\n"
 				s += "be converted to a float64 due to: %v"
-				s = fmt.Sprintf(s, "FromCSV", i, line, str[i], err)
+				s = fmt.Sprintf(s, "FromCSV()", i, line, str[i], err)
 				panic(s)
 			}
 		}
@@ -168,7 +168,7 @@ func FromCSV(filename string) [][]float64 {
 			}
 			fmt.Println("\nNumgo/mat error.")
 			s := "In mat.%v, cannot read from %s due to error: %v.\n"
-			s = fmt.Sprintf(s, "FromCSV", filename, err)
+			s = fmt.Sprintf(s, "FromCSV()", filename, err)
 			panic(s)
 		}
 		line++
@@ -177,15 +177,17 @@ func FromCSV(filename string) [][]float64 {
 			s := "In mat.%v, line %d in %s has %d entries. The first line\n"
 			s += "(line 1) has %d entries.\n"
 			s += "Creation of a *Mat from jagged slices is not supported.\n"
-			s = fmt.Sprintf(s, "FromCSV", filename, err)
+			s = fmt.Sprintf(s, "FromCSV()", filename, err)
 			panic(s)
 		}
 	}
 	return m
 }
 
+// TODO: Does FromCSV needs to worry about headers? return them? ignore them?
+
 /*
-Flatten turns a 2D slice of float64 into a 1D slice of float64. This is done
+Flatten turns a [][]float64 of float64 into a 1D slice of float64. This is done
 by appending all rows tip to tail.
 */
 func Flatten(m [][]float64) []float64 {
@@ -197,10 +199,10 @@ func Flatten(m [][]float64) []float64 {
 }
 
 /*
-ToCSV writes the content of a passed 2D slice into a CSV file with the passed
+ToCSV writes the content of a passed [][]float64 into a CSV file with the passed
 name, by putting each row in a single comma separated line. The number of
 entries in each line is equal to the length of the second dimension of the
-2D slice. The passed [][]float64 is assumed to be non-jagged, such that
+[][]float64. The passed [][]float64 is assumed to be non-jagged, such that
 all rows have the same number of entries.
 This function returns an error, which contains any errors found during
 opening and writing to the file or nil if no errors were seen.
@@ -231,8 +233,10 @@ func ToCSV(m [][]float64, fileName string) error {
 	return nil
 }
 
+// TODO: Does ToCSV need a header section?
+
 /*
-Map applies a given function to each element of a 2D slice of float64. The
+Map applies a given function to each element of a [][]float64 of float64. The
 passed function must satisfy the signature of an ElementalFunc.
 */
 func Map(f ElementFunc, m [][]float64) {
@@ -244,7 +248,7 @@ func Map(f ElementFunc, m [][]float64) {
 }
 
 /*
-SetAll sets all elements of a 2D slice to the passed value.
+SetAll sets all elements of a [][]float64 to the passed value.
 */
 func SetAll(m [][]float64, val float64) {
 	for i := range m {
@@ -255,23 +259,24 @@ func SetAll(m [][]float64, val float64) {
 }
 
 /*
-Mul multiples all elements of a 2D slice by the passed value. The passed value can be
-a float64, a 1D slice of float64, or a 2D slice of float64.
+Mul multiples all elements of a [][]float64 by the passed value. The passed value can be
+a float64, []float64, or a [][]float64.
 
-When the passed value is a float64, then each element of the 2D slice are multiplied
+When the passed value is a float64, then each element of the [][]float64 are multiplied
 by the passed value.
 
-If the passed value is a []float64, then each row of the 2D slice is elementally
+If the passed value is a []float64, then each row of the [][]float64 is elementally
 multipled by the corresponding entry in the passed 1D slice.
 
-
-Finally, if the passed value is a [][]float64, then Mul takes each element of the
-first 2D slice passed to it, and multiples that element by the corresponding element
-in the second 2D slice passed to this function.
-The shape of the 2D slices must be the same (same number or rows and columns),
+Finally, if the passed value is a [][]float64, then mat.Mul() takes each element of the
+first [][]float64 passed to it, and multiples that element by the corresponding element
+in the second [][]float64 passed to this function.
+The shape of the [][]float64 must be the same (same number or rows and columns),
 and they are assumed to be non-jagged (same number of elements in each row).
 
-In each case, the result of the multiplication is stored in the original 2D slice.
+In each case, the result of the multiplication is stored in the original [][]float64.
+If it is desired to keep the [][]float64 unchanged, the user can make a deep
+copy of it using mat.Copy() and pass the copy to this function instead.
 */
 func Mul(m [][]float64, val interface{}) {
 	switch v := val.(type) {
@@ -288,7 +293,7 @@ func Mul(m [][]float64, val interface{}) {
 				s := "In mat.%v, in row %d, the number of the columns of the first\n"
 				s += "slice is %d, but the length of the vector is %d. They must\n"
 				s += "match.\n"
-				s = fmt.Sprintf(s, "Mul", i, len(m[i]), len(v))
+				s = fmt.Sprintf(s, "Mul()", i, len(m[i]), len(v))
 				panic(s)
 			}
 		}
@@ -303,16 +308,16 @@ func Mul(m [][]float64, val interface{}) {
 			s := "In mat.%v, the number of the rows of the first slice is %d\n"
 			s += "but the number of rows of the second slice is %d. They must\n"
 			s += "match.\n"
-			s = fmt.Sprintf(s, "Mul", len(m), len(v))
+			s = fmt.Sprintf(s, "Mul()", len(m), len(v))
 			panic(s)
 		}
 		for i := range m {
 			if len(m[i]) != len(v[i]) {
 				fmt.Println("\nNumgo/mat error.")
-				s := "In mat.%v, column number %d of the first matrix has length %d,\n"
-				s += "while column number %d of the second 2D slice has length %d.\n"
+				s := "In mat.%v, column number %d of the first [][]float64 has length %d,\n"
+				s += "while column number %d of the second [][]float64 has length %d.\n"
 				s += "The length of each column must match.\n"
-				s = fmt.Sprintf(s, "Mul", i, len(m[i]), i, len(v[i]))
+				s = fmt.Sprintf(s, "Mul()", i, len(m[i]), i, len(v[i]))
 				panic(s)
 			}
 			for j := range m[i] {
@@ -323,53 +328,272 @@ func Mul(m [][]float64, val interface{}) {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%v, expected float64, []float64, or [][]float64 for the second\n"
 		s += "argument, but received argument of type: %v."
-		s = fmt.Sprintf(s, "Mul", reflect.TypeOf(v))
+		s = fmt.Sprintf(s, "Mul()", reflect.TypeOf(v))
 		panic(s)
 	}
 }
 
 /*
-AddAll Adds the passed value to each element of the passed 2D slice.
-*/
-func AddAll(m [][]float64, val float64) {
-	for i := range m {
-		for j := range m[i] {
-			m[i][j] += val
-		}
-	}
-}
+Add adds a passed value in the second argument to the [][]float64 in the
+first argument. The second argument can be a float64, a 1D slice
+of float64, or a [][]float64.
 
-/*
-SubAll subtracts the passed value from each element of the passed 2D slice.
-*/
-func SubAll(m [][]float64, val float64) {
-	for i := range m {
-		for j := range m[i] {
-			m[i][j] -= val
-		}
-	}
-}
+When the passed value is a float64, the passed value is added to each
+element of the [][]float64.
 
-/*
-DivAll Diives each element of the 2D slice by the passed value. The passed
-value must not be 0.0, to avoid division by zero.
+If the passed value is a []float64, then the elements of the []float64
+are  elementally added by the corresponding entries in each row of the
+[][]float64. The length of the []float64 must match the length of each
+row of the [][]float64.
+
+Finally, if the passed value is a [][]float64, then mat.Add() takes each
+element of the first [][]float64 passed to it, and adds to that element
+the corresponding element in the second [][]float64 passed to this function.
+The shape of the [][]float64s must be the same (same number or rows and columns),
+and they are assumed to be non-jagged (same number of elements in each row).
+
+In each case, the result of the Addition is stored in the original [][]float64.
+If it is desired to keep the [][]float64 unchanged, the user can make a deep
+copy of it using mat.Copy() and pass the copy to this function instead.
 */
-func DivAll(m [][]float64, val float64) {
-	if val == 0.0 {
+func Add(m [][]float64, val interface{}) {
+	switch v := val.(type) {
+	case float64:
+		for i := range m {
+			for j := range m[i] {
+				m[i][j] += v
+			}
+		}
+	case []float64:
+		for i := range m {
+			if len(v) != len(m[i]) {
+				fmt.Println("\nNumgo/mat error.")
+				s := "In mat.%v, in row %d, the number of the columns of the first\n"
+				s += "slice is %d, but the length of the vector is %d. They must\n"
+				s += "match.\n"
+				s = fmt.Sprintf(s, "Add()", i, len(m[i]), len(v))
+				panic(s)
+			}
+		}
+		for i := range m {
+			for j := range v {
+				m[i][j] += v[j]
+			}
+		}
+	case [][]float64:
+		if len(m) != len(v) {
+			fmt.Println("\nNumgo/mat error.")
+			s := "In mat.%v, the number of the rows of the first slice is %d\n"
+			s += "but the number of rows of the second slice is %d. They must\n"
+			s += "match.\n"
+			s = fmt.Sprintf(s, "Add()", len(m), len(v))
+			panic(s)
+		}
+		for i := range m {
+			if len(m[i]) != len(v[i]) {
+				fmt.Println("\nNumgo/mat error.")
+				s := "In mat.%v, column number %d of the first [][]float64 has length %d,\n"
+				s += "while column number %d of the second [][]float64 has length %d.\n"
+				s += "The length of each column must match.\n"
+				s = fmt.Sprintf(s, "Add()", i, len(m[i]), i, len(v[i]))
+				panic(s)
+			}
+			for j := range m[i] {
+				m[i][j] += v[i][j]
+			}
+		}
+	default:
 		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the passed value cannot be 0.0\n"
-		s = fmt.Sprintf(s, "DivAll")
+		s := "In mat.%v, expected float64, []float64, or [][]float64 for the second\n"
+		s += "argument, but received argument of type: %v."
+		s = fmt.Sprintf(s, "Add()", reflect.TypeOf(v))
 		panic(s)
-	}
-	for i := range m {
-		for j := range m[i] {
-			m[i][j] /= val
-		}
 	}
 }
 
 /*
-Rand sets the values of a 2D slice, m, to random numbers. The range from which
+Sub subtracts a passed value in the second argument from the [][]float64
+in the first argument. The second argument can be a float64, a 1D slice
+of float64, or a [][]float64.
+
+When the passed value is a float64, the passed value is subtracted from
+each element of the [][]float64.
+
+If the passed value is a []float64, then the elements of the []float64
+are  elementally subtracted from the corresponding entries in each row of the
+[][]float64. The length of the []float64 must match the length of each
+row of the [][]float64.
+
+Finally, if the passed value is a [][]float64, then mat.Sub() takes each
+element of the first [][]float64 passed to it, and subtracts that element
+from the corresponding element in the second [][]float64 passed to this function.
+The shape of the [][]float64 must be the same (same number or rows and columns),
+and they are assumed to be non-jagged (same number of elements in each row).
+
+In each case, the result of the subtraction is stored in the original [][]float64.
+If it is desired to keep the [][]float64 unchanged, the user can make a deep
+copy of it using mat.Copy() and pass the copy to this function instead.
+*/
+func Sub(m [][]float64, val interface{}) {
+	switch v := val.(type) {
+	case float64:
+		for i := range m {
+			for j := range m[i] {
+				m[i][j] -= v
+			}
+		}
+	case []float64:
+		for i := range m {
+			if len(v) != len(m[i]) {
+				fmt.Println("\nNumgo/mat error.")
+				s := "In mat.%v, in row %d, the number of the columns of the first\n"
+				s += "slice is %d, but the length of the vector is %d. They must\n"
+				s += "match.\n"
+				s = fmt.Sprintf(s, "Sub()", i, len(m[i]), len(v))
+				panic(s)
+			}
+		}
+		for i := range m {
+			for j := range v {
+				m[i][j] -= v[j]
+			}
+		}
+	case [][]float64:
+		if len(m) != len(v) {
+			fmt.Println("\nNumgo/mat error.")
+			s := "In mat.%v, the number of the rows of the first slice is %d\n"
+			s += "but the number of rows of the second slice is %d. They must\n"
+			s += "match.\n"
+			s = fmt.Sprintf(s, "Sub()", len(m), len(v))
+			panic(s)
+		}
+		for i := range m {
+			if len(m[i]) != len(v[i]) {
+				fmt.Println("\nNumgo/mat error.")
+				s := "In mat.%v, column number %d of the first [][]float64 has length %d,\n"
+				s += "while column number %d of the second [][]float64 has length %d.\n"
+				s += "The length of each column must match.\n"
+				s = fmt.Sprintf(s, "Sub()", i, len(m[i]), i, len(v[i]))
+				panic(s)
+			}
+			for j := range m[i] {
+				m[i][j] -= v[i][j]
+			}
+		}
+	default:
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, expected float64, []float64, or [][]float64 for the second\n"
+		s += "argument, but received argument of type: %v."
+		s = fmt.Sprintf(s, "Sub()", reflect.TypeOf(v))
+		panic(s)
+	}
+}
+
+/*
+Div devides all elements of a [][]float64 by the passed value. The passed value can be
+a float64, []float64, or a [][]float64.
+
+When the passed value is a float64, then each element of the [][]float64 is devided
+by the passed value. The passed value cannot be zero, and such condition will cause
+a panic.
+
+If the passed value is a []float64, then each row of the [][]float64 is elementally
+divided by the corresponding entry in the passed []float64. Non of the elements of
+the []float64 can be zero, and such condition will cause a panic.
+
+Finally, if the passed value is a [][]float64, then mat.Div() takes each element of the
+first [][]float64 passed to it, and devides that element by the corresponding element
+in the second [][]float64 passed to this function.
+The shape of the [][]float64 must be the same (same number or rows and columns),
+and they are assumed to be non-jagged (same number of elements in each row). As
+usual, no elements of the second [][]float64 are allowed to be 0.0, and such
+condition will cause a panic.
+
+In each case, the result of the division is stored in the original [][]float64.
+If it is desired to keep the [][]float64 unchanged, the user can make a deep
+copy of it using mat.Copy() and pass the copy to this function instead.
+*/
+func Div(m [][]float64, val interface{}) {
+	switch v := val.(type) {
+	case float64:
+		if val == 0.0 {
+			fmt.Println("\nNumgo/mat error.")
+			s := "In mat.%v, the second argument cannot be 0.0\n"
+			s = fmt.Sprintf(s, "Div()")
+			panic(s)
+		}
+		for i := range m {
+			for j := range m[i] {
+				m[i][j] /= v
+			}
+		}
+	case []float64:
+		for i := range v {
+			if v[i] == 0.0 {
+				fmt.Println("\nNumgo/mat error.")
+				s := "In mat.%v, the passed []float64 contains 0.0 at index %d.\n"
+				s = fmt.Sprintf(s, "Div()", i)
+				panic(s)
+			}
+		}
+		for i := range m {
+			if len(v) != len(m[i]) {
+				fmt.Println("\nNumgo/mat error.")
+				s := "In mat.%v, in row %d, the number of the columns of the first\n"
+				s += "slice is %d, but the length of the vector is %d. They must\n"
+				s += "match.\n"
+				s = fmt.Sprintf(s, "Sub()", i, len(m[i]), len(v))
+				panic(s)
+			}
+		}
+		for i := range m {
+			for j := range v {
+				m[i][j] /= v[j]
+			}
+		}
+	case [][]float64:
+		for i := range v {
+			for j := range v[i] {
+				if v[i][j] == 0.0 {
+					fmt.Println("\nNumgo/mat error.")
+					s := "In mat.%v, the passed [][]float64 contains 0.0 at [%d][%d].\n"
+					s = fmt.Sprintf(s, "Div()", i, j)
+					panic(s)
+				}
+			}
+		}
+		if len(m) != len(v) {
+			fmt.Println("\nNumgo/mat error.")
+			s := "In mat.%v, the number of the rows of the first slice is %d\n"
+			s += "but the number of rows of the second slice is %d. They must\n"
+			s += "match.\n"
+			s = fmt.Sprintf(s, "Sub()", len(m), len(v))
+			panic(s)
+		}
+		for i := range m {
+			if len(m[i]) != len(v[i]) {
+				fmt.Println("\nNumgo/mat error.")
+				s := "In mat.%v, column number %d of the first [][]float64 has length %d,\n"
+				s += "while column number %d of the second [][]float64 has length %d.\n"
+				s += "The length of each column must match.\n"
+				s = fmt.Sprintf(s, "Sub()", i, len(m[i]), i, len(v[i]))
+				panic(s)
+			}
+			for j := range m[i] {
+				m[i][j] /= v[i][j]
+			}
+		}
+	default:
+		fmt.Println("\nNumgo/mat error.")
+		s := "In mat.%v, expected float64, []float64, or [][]float64 for the second\n"
+		s += "argument, but received argument of type: %v."
+		s = fmt.Sprintf(s, "Sub()", reflect.TypeOf(v))
+		panic(s)
+	}
+}
+
+/*
+Rand sets the values of a [][]float64, m, to random numbers. The range from which
 the random numbers are selected is determined based on the arguments passed.
 
 For no additional arguments, such as
@@ -408,7 +632,7 @@ func Rand(m [][]float64, args ...float64) {
 			s := "In mat.%s the first argument, %f, is not less than the\n"
 			s += "second argument, %f. The first argument must be strictly\n"
 			s += "less than the second.\n"
-			s = fmt.Sprintf(s, "Rand", from, to)
+			s = fmt.Sprintf(s, "Rand()", from, to)
 			panic(s)
 		}
 		for i := range m {
@@ -419,13 +643,13 @@ func Rand(m [][]float64, args ...float64) {
 	default:
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s expected 0 to 2 arguments, but recieved %d."
-		s = fmt.Sprintf(s, "Rand", len(args))
+		s = fmt.Sprintf(s, "Rand()", len(args))
 		panic(s)
 	}
 }
 
 /*
-Col returns a column from a 2D slice of float64. For example:
+Col returns a column from a [][]float64 of float64. For example:
 
 	fmt.Println(m) // [[1.0, 2.3], [3.4, 1.7]]
 	mat.Col(0, m) // [1.0, 3.4]
@@ -438,7 +662,7 @@ func Col(x int, m [][]float64) []float64 {
 	if (x >= len(m[0])) || (x < -len(m[0])) {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
-		s = fmt.Sprintf(s, "Col", x, len(m[0]), len(m[0]))
+		s = fmt.Sprintf(s, "Col()", x, len(m[0]), len(m[0]))
 		panic(s)
 	}
 	v := make([]float64, len(m))
@@ -455,7 +679,7 @@ func Col(x int, m [][]float64) []float64 {
 }
 
 /*
-Row returns a row from a 2D slice of float64. For example:
+Row returns a row from a [][]float64 of float64. For example:
 
 	fmt.Println(m) // [[1.0, 2.3], [3.4, 1.7]]
 	mat.Row(0, m) // [1.0, 2.3]
@@ -468,7 +692,7 @@ func Row(x int, m [][]float64) []float64 {
 	if (x >= len(m)) || (x < -len(m)) {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s the requested row %d is outside of bounds [-%d, %d)\n"
-		s = fmt.Sprintf(s, "Row", x, len(m), len(m))
+		s = fmt.Sprintf(s, "Row()", x, len(m), len(m))
 		panic(s)
 	}
 	v := make([]float64, len(m[0]))
@@ -481,7 +705,7 @@ func Row(x int, m [][]float64) []float64 {
 }
 
 /*
-Equal checks to see if two 2D slices are equal. That mean that the two slices
+Equal checks to see if two [][]float64s are equal. That mean that the two slices
 have the same number of rows, same number of columns, and have the same float64
 in each entry at a given set of indices.
 */
@@ -505,7 +729,7 @@ func Equal(m, n [][]float64) bool {
 }
 
 /*
-Copy returns a duplicate of a 2D slice. The returned copy is "deep", meaning
+Copy returns a duplicate of a [][]float64. The returned copy is "deep", meaning
 that the object can be manipulated without effecting the original.
 */
 func Copy(m [][]float64) [][]float64 {
@@ -517,12 +741,12 @@ func Copy(m [][]float64) [][]float64 {
 }
 
 /*
-T returns the transpose of the original 2D slice. The transpose of a 2D slice
+T returns the transpose of the original [][]float64. The transpose of a [][]float64
 is defined in the usual manner, where every value at row x, and column y is
 placed at row y, and column x. The number of rows and column of the transpose
 of a slice are equal to the number of columns and rows of the original slice,
-respectively. This method creates a new 2D slice, and the original is
-left intact. The passed 2d slice is assumed to be non-jagged.
+respectively. This method creates a new [][]float64, and the original is
+left intact. The passed [][]float64 is assumed to be non-jagged.
 */
 func T(m [][]float64) [][]float64 {
 	n := New(len(m[0]), len(m))
@@ -566,7 +790,7 @@ func All(f BooleanFunc, m [][]float64) bool {
 
 /*
 Any checks if a supplied function is true for at least one elements of
-a 2D slice of float64s. The supplied function must have the signature of
+a [][]float64 of float64s. The supplied function must have the signature of
 a BooleanFunc, meaning that it takes a float64, and returns a bool.
 For instance,
 
@@ -595,116 +819,7 @@ func Any(f BooleanFunc, m [][]float64) bool {
 }
 
 /*
-Add takes each element of the first 2D slice passed to it, and adds that
-element to the corresponding element in the second 2D slice passed to this
-function, storing the result in the first 2D slice.
-
-The shape of the 2D slices must be the same (same number or rows and columns),
-and they are assumed to be non-jagged (same number of elements in each row).
-*/
-func Add(m, n [][]float64) {
-	if len(m) != len(n) {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the number of the rows of the first slice is %d\n"
-		s += "but the number of rows of the second slice is %d. They must\n"
-		s += "match.\n"
-		s = fmt.Sprintf(s, "Add", len(m), len(n))
-		panic(s)
-	}
-	for i := range m {
-		if len(m[i]) != len(n[i]) {
-			fmt.Println("\nNumgo/mat error.")
-			s := "In mat.%v, column number %d of the first matrix has length %d,\n"
-			s += "while column number %d of the second 2D slice has length %d.\n"
-			s += "The length of each column must match.\n"
-			s = fmt.Sprintf(s, "Add", i, len(m[i]), i, len(n[i]))
-			panic(s)
-		}
-		for j := range m[i] {
-			m[i][j] += n[i][j]
-		}
-	}
-}
-
-/*
-Sub takes each element of the first 2D slice passed to it, and subtracts from
-that element the corresponding element in the second 2D slice passed to this
-function, storing the result in the first 2D slice.
-
-The shape of the 2D slices must be the same (same number or rows and columns),
-and they are assumed to be non-jagged (same number of elements in each row).
-*/
-func Sub(m, n [][]float64) {
-	if len(m) != len(n) {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the number of the rows of the first slice is %d\n"
-		s += "but the number of rows of the second slice is %d. They must\n"
-		s += "match.\n"
-		s = fmt.Sprintf(s, "Sub", len(m), len(n))
-		panic(s)
-	}
-	for i := range m {
-		if len(m[i]) != len(n[i]) {
-			fmt.Println("\nNumgo/mat error.")
-			s := "In mat.%v, column number %d of the first matrix has length %d,\n"
-			s += "while column number %d of the second 2D slice has length %d.\n"
-			s += "The length of each column must match.\n"
-			s = fmt.Sprintf(s, "Sub", i, len(m[i]), i, len(n[i]))
-			panic(s)
-		}
-		for j := range m[i] {
-			m[i][j] -= n[i][j]
-		}
-	}
-}
-
-/*
-Div takes each element of the first 2D slice passed to it, and divides that
-element by the corresponding element in the second 2D slice passed to this
-function, storing the result in the first 2D slice.
-
-The shape of the 2D slices must be the same (same number or rows and columns),
-and they are assumed to be non-jagged (same number of elements in each row).
-The second slice must not contain any zero-valued elements.
-*/
-func Div(m, n [][]float64) {
-	if len(m) != len(n) {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the number of the rows of the first slice is %d\n"
-		s += "but the number of rows of the second slice is %d. They must\n"
-		s += "match.\n"
-		s = fmt.Sprintf(s, "Div", len(m), len(n))
-		panic(s)
-	}
-	zero := func(i float64) bool {
-		if i == 0.0 {
-			return true
-		}
-		return false
-	}
-	if Any(zero, n) {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the second slice contains a zero-valued element.\n"
-		s = fmt.Sprintf(s, "Div")
-		panic(s)
-	}
-	for i := range m {
-		if len(m[i]) != len(n[i]) {
-			fmt.Println("\nNumgo/mat error.")
-			s := "In mat.%v, column number %d of the first matrix has length %d,\n"
-			s += "while column number %d of the second 2D slice has length %d.\n"
-			s += "The length of each column must match.\n"
-			s = fmt.Sprintf(s, "Div", i, len(m[i]), i, len(n[i]))
-			panic(s)
-		}
-		for j := range m[i] {
-			m[i][j] /= n[i][j]
-		}
-	}
-}
-
-/*
-Sum returns the sum of all elements in a 2D slice of float64.
+Sum returns the sum of all elements in a [][]float64 of float64.
 */
 func Sum(m [][]float64) float64 {
 	sum := 0.0
@@ -733,7 +848,7 @@ func SumCol(x int, m [][]float64) float64 {
 	if (x >= len(m[0])) || (x < -len(m[0])) {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
-		s = fmt.Sprintf(s, "SumCol", x, len(m[0]), len(m[0]))
+		s = fmt.Sprintf(s, "SumCol()", x, len(m[0]), len(m[0]))
 		panic(s)
 	}
 	var sum float64
@@ -766,7 +881,7 @@ func SumRow(x int, m [][]float64) float64 {
 	if (x >= len(m)) || (x < -len(m)) {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
-		s = fmt.Sprintf(s, "SumRow", x, len(m), len(m))
+		s = fmt.Sprintf(s, "SumRow()", x, len(m), len(m))
 		panic(s)
 	}
 	var sum float64
@@ -783,7 +898,7 @@ func SumRow(x int, m [][]float64) float64 {
 }
 
 /*
-Avg returns the average value of all the elements in a 2D slice.
+Avg returns the average value of all the elements in a [][]float64.
 */
 func Avg(m [][]float64) float64 {
 	avg := 0.0
@@ -815,7 +930,7 @@ func AvgRow(x int, m [][]float64) float64 {
 	if (x >= len(m)) || (x < -len(m)) {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
-		s = fmt.Sprintf(s, "AvgRow", x, len(m), len(m))
+		s = fmt.Sprintf(s, "AvgRow()", x, len(m), len(m))
 		panic(s)
 	}
 	var sum float64
@@ -850,7 +965,7 @@ func AvgCol(x int, m [][]float64) float64 {
 	if (x >= len(m[0])) || (x < -len(m[0])) {
 		fmt.Println("\nNumgo/mat error.")
 		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
-		s = fmt.Sprintf(s, "AvgCol", x, len(m[0]), len(m[0]))
+		s = fmt.Sprintf(s, "AvgCol()", x, len(m[0]), len(m[0]))
 		panic(s)
 	}
 	var sum float64
@@ -899,8 +1014,8 @@ func Dot(m, n [][]float64) [][]float64 {
 
 /*
 DotC is the concurrent version of Dot(). This function spawns a goroutine
-for each row of the first 2D slice which multiplies that row by each
-column of 2nd 2D slice.
+for each row of the first [][]float64 which multiplies that row by each
+column of 2nd [][]float64.
 
 For sufficiently large slices, the performance of this function is very
 close to that of Dot(). The previous statement is intentionally ambiguous,
