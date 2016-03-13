@@ -251,10 +251,10 @@ func ToCSV(m [][]float64, fileName string) error {
 // TODO: Does ToCSV need a header section?
 
 /*
-Map applies a given function to each element of a [][]float64 of float64. The
+Foreach applies a given function to each element of a [][]float64 of float64. The
 passed function must satisfy the signature of an ElementalFunc.
 */
-func Map(f ElementFunc, m [][]float64) {
+func Foreach(f ElementFunc, m [][]float64) {
 	for i := range m {
 		for j := range m[i] {
 			m[i][j] = f(m[i][j])

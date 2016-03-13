@@ -109,14 +109,14 @@ func TestToCSV(t *testing.T) {
 	os.Remove(filename)
 }
 
-func TestMap(t *testing.T) {
+func TestForeach(t *testing.T) {
 	rows := 132
 	cols := 24
 	f := func(i float64) float64 {
 		return 1.0
 	}
 	m := New(rows, cols)
-	Map(f, m)
+	Foreach(f, m)
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
 			if m[i][j] != 1.0 {
@@ -126,14 +126,14 @@ func TestMap(t *testing.T) {
 	}
 }
 
-func BenchmarkMap(b *testing.B) {
+func BenchmarkForeach(b *testing.B) {
 	m := New(300, 1000)
 	f := func(i float64) float64 {
 		return 10.0
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Map(f, m)
+		Foreach(f, m)
 	}
 }
 
