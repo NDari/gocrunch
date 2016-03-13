@@ -29,6 +29,25 @@ func TestNew(t *testing.T) {
 	}
 }
 
+func TestI(t *testing.T) {
+	row := 10
+	m := I(row)
+	for i := range m {
+		for j := range m[i] {
+			if i == j {
+				if m[i][j] != 1.0 {
+					t.Errorf("expected 1.0, got %f", m[i][j])
+				}
+			} else {
+				if m[i][j] != 0.0 {
+					t.Errorf("expected 0.0, got %f", m[i][j])
+				}
+			}
+		}
+	}
+
+}
+
 func TestFromCSV(t *testing.T) {
 	rows := 4
 	cols := 4
@@ -118,12 +137,12 @@ func BenchmarkMap(b *testing.B) {
 	}
 }
 
-func TestSetAll(t *testing.T) {
+func TestSet(t *testing.T) {
 	row := 3
 	col := 4
 	val := 11.0
 	m := New(row, col)
-	SetAll(m, val)
+	Set(m, val)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] != val {
@@ -133,11 +152,11 @@ func TestSetAll(t *testing.T) {
 	}
 }
 
-func BenchmarkSetAll(b *testing.B) {
+func BenchmarkSet(b *testing.B) {
 	m := New(300, 1000)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		SetAll(m, 10.0)
+		Set(m, 10.0)
 	}
 }
 
@@ -558,7 +577,7 @@ func TestAll(t *testing.T) {
 		}
 		return false
 	}
-	SetAll(m, 1.0)
+	Set(m, 1.0)
 	if All(notOne, m) {
 		t.Errorf("m has non-one values in it, expected none")
 	}
@@ -586,7 +605,7 @@ func TestAny(t *testing.T) {
 		}
 		return false
 	}
-	SetAll(m, 1.0)
+	Set(m, 1.0)
 	if Any(notOne, m) {
 		t.Errorf("has non-one values in it, expected none")
 	}
@@ -595,7 +614,7 @@ func TestAny(t *testing.T) {
 func TestSum(t *testing.T) {
 	row, col, val := 131, 12, 2.0
 	m := New(row, col)
-	SetAll(m, val)
+	Set(m, val)
 	res := Sum(m)
 	if res != float64(row*col)*val {
 		t.Errorf("expected %f, got %f", float64(row*col)*val, res)
@@ -606,7 +625,7 @@ func TestSumCol(t *testing.T) {
 	row := 12
 	col := 17
 	m := New(row, col)
-	SetAll(m, 1.0)
+	Set(m, 1.0)
 	for i := 0; i < col; i++ {
 		q := SumCol(i, m)
 		if q != float64(row) {
@@ -625,7 +644,7 @@ func TestSumRow(t *testing.T) {
 	row := 12
 	col := 17
 	m := New(row, col)
-	SetAll(m, 1.0)
+	Set(m, 1.0)
 	for i := 0; i < row; i++ {
 		q := SumRow(i, m)
 		if q != float64(col) {
@@ -643,7 +662,7 @@ func TestSumRow(t *testing.T) {
 func TestAvg(t *testing.T) {
 	row, col, val := 7, 6, 3.0
 	m := New(row, col)
-	SetAll(m, val)
+	Set(m, val)
 	a := Avg(m)
 	if a != val {
 		t.Errorf("expected %f, got %f", val, a)
@@ -653,7 +672,7 @@ func TestAvg(t *testing.T) {
 func TestAvgRow(t *testing.T) {
 	row, col, val := 7, 6, 1.0
 	m := New(row, col)
-	SetAll(m, val)
+	Set(m, val)
 	a := AvgRow(1, m)
 	if a != val {
 		t.Errorf("expected %f, got %f", val, a)
@@ -663,7 +682,7 @@ func TestAvgRow(t *testing.T) {
 func TestAvgCol(t *testing.T) {
 	row, col, val := 7, 6, 2.1
 	m := New(row, col)
-	SetAll(m, val)
+	Set(m, val)
 	a := AvgCol(0, m)
 	if a != val {
 		t.Errorf("expected %f, got %f", val, a)

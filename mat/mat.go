@@ -6,13 +6,13 @@ Many of the functions in this library expect either a float64, a []float64,
 or [][]float64, and do "the right thing" based on what is passed. For example,
 consider the function
 
-	mat.Dot(m, n)
+	mat.Mul(m, n)
 
-In this function, m can be a []float64, or [][]float64, where as n could be
-a []float64, or [][]float64. This allows the same function to be called for
-wide range of situations. This trades compile time safety for runtime errors.
-We believe that Go's fast compile time, along with the verbose errors in
-this package make up for that, however.
+In this function, m can be a [][]float64, where as n could be
+a float64, []float64, or [][]float64. This allows the same function to be called
+for wide range of situations. This trades compile time safety for runtime errors.
+We believe that Go's fast compile time, along with the verbose errors in this
+package make up for that, however.
 
 All errors encountered in this package, such as attempting to access an
 element out of bounds are treated as critical error, and thus, the code
@@ -48,7 +48,6 @@ BooleanFunc defines the signature of a function that takes a float64, and
 return a bool.
 */
 type BooleanFunc func(float64) bool
-type reducerFunc func(accumulator, next *float64)
 
 /*
 New is a utility function to create [][]float64s. New is a variadic function,
@@ -73,9 +72,9 @@ func New(dims ...int) [][]float64 {
 	case 1:
 		r := dims[0]
 		if r <= 0 {
-			fmt.Println("\nNumgo/mat error.")
+			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%s, the number of rows must be greater than '0', but\n"
-			s += "recieved %d. "
+			s += "received %d. "
 			s = fmt.Sprintf(s, "New()", r)
 			panic(s)
 		}
@@ -87,16 +86,16 @@ func New(dims ...int) [][]float64 {
 		r := dims[0]
 		c := dims[1]
 		if r <= 0 {
-			fmt.Println("\nNumgo/mat error.")
+			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%s, the number of rows must be greater than '0', but\n"
-			s += "recieved %d. "
+			s += "received %d. "
 			s = fmt.Sprintf(s, "New()", r)
 			panic(s)
 		}
 		if c <= 0 {
-			fmt.Println("\nNumgo/mat error.")
+			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%s, the number of columns must be greater than '0', but\n"
-			s += "recieved %d. "
+			s += "received %d. "
 			s = fmt.Sprintf(s, "New()", c)
 			panic(s)
 		}
@@ -105,10 +104,26 @@ func New(dims ...int) [][]float64 {
 			m[i] = make([]float64, c)
 		}
 	default:
-		fmt.Println("\nNumgo/mat error.")
+		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%s expected 1 or 2 arguments, but recieved %d"
 		s = fmt.Sprintf(s, "New()", len(dims))
 		panic(s)
+	}
+	return m
+}
+
+/*
+I returns a square [][]float64 with all elements alone the diagonal equal to
+1.0, and 0.0 elsewhere. This is the identity matrix.
+*/
+func I(x int) [][]float64 {
+	m := New(x)
+	for i := range m {
+		for j := range m[i] {
+			if i == j {
+				m[i][j] = 1.0
+			}
+		}
 	}
 	return m
 }
@@ -126,7 +141,7 @@ at a time.
 func FromCSV(filename string) [][]float64 {
 	f, err := os.Open(filename)
 	if err != nil {
-		fmt.Println("\nNumgo/mat error.")
+		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%v, cannot open %s due to error: %v.\n"
 		s = fmt.Sprintf(s, "FromCSV()", filename, err)
 		panic(s)
@@ -140,7 +155,7 @@ func FromCSV(filename string) [][]float64 {
 	// number of entries in each line is the same as the first line.
 	str, err := r.Read()
 	if err != nil {
-		fmt.Println("\nNumgo/mat error.")
+		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%v, cannot read from %s due to error: %v.\n"
 		s = fmt.Sprintf(s, "FromCSV()", filename, err)
 		panic(s)
@@ -152,7 +167,7 @@ func FromCSV(filename string) [][]float64 {
 		for i := range str {
 			row[i], err = strconv.ParseFloat(str[i], 64)
 			if err != nil {
-				fmt.Println("\nNumgo/mat error.")
+				fmt.Println("\ngocrunch/mat error.")
 				s := "In mat.%v, item %d in line %d is %s, which cannot\n"
 				s += "be converted to a float64 due to: %v"
 				s = fmt.Sprintf(s, "FromCSV()", i, line, str[i], err)
@@ -166,14 +181,14 @@ func FromCSV(filename string) [][]float64 {
 			if err == io.EOF {
 				break
 			}
-			fmt.Println("\nNumgo/mat error.")
+			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%v, cannot read from %s due to error: %v.\n"
 			s = fmt.Sprintf(s, "FromCSV()", filename, err)
 			panic(s)
 		}
 		line++
 		if len(str) != len(row) {
-			fmt.Println("\nNumgo/mat error.")
+			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%v, line %d in %s has %d entries. The first line\n"
 			s += "(line 1) has %d entries.\n"
 			s += "Creation of a *Mat from jagged slices is not supported.\n"
@@ -248,9 +263,9 @@ func Map(f ElementFunc, m [][]float64) {
 }
 
 /*
-SetAll sets all elements of a [][]float64 to the passed value.
+Set sets all elements of a [][]float64 to the passed value.
 */
-func SetAll(m [][]float64, val float64) {
+func Set(m [][]float64, val float64) {
 	for i := range m {
 		for j := range m[i] {
 			m[i][j] = val
@@ -266,7 +281,7 @@ When the passed value is a float64, then each element of the [][]float64 are mul
 by the passed value.
 
 If the passed value is a []float64, then each row of the [][]float64 is elementally
-multipled by the corresponding entry in the passed 1D slice.
+multiplied by the corresponding entry in the passed 1D slice.
 
 Finally, if the passed value is a [][]float64, then mat.Mul() takes each element of the
 first [][]float64 passed to it, and multiples that element by the corresponding element
@@ -289,7 +304,7 @@ func Mul(m [][]float64, val interface{}) {
 	case []float64:
 		for i := range m {
 			if len(v) != len(m[i]) {
-				fmt.Println("\nNumgo/mat error.")
+				fmt.Println("\ngocrunch/mat error.")
 				s := "In mat.%v, in row %d, the number of the columns of the first\n"
 				s += "slice is %d, but the length of the vector is %d. They must\n"
 				s += "match.\n"
@@ -304,7 +319,7 @@ func Mul(m [][]float64, val interface{}) {
 		}
 	case [][]float64:
 		if len(m) != len(v) {
-			fmt.Println("\nNumgo/mat error.")
+			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%v, the number of the rows of the first slice is %d\n"
 			s += "but the number of rows of the second slice is %d. They must\n"
 			s += "match.\n"
@@ -313,7 +328,7 @@ func Mul(m [][]float64, val interface{}) {
 		}
 		for i := range m {
 			if len(m[i]) != len(v[i]) {
-				fmt.Println("\nNumgo/mat error.")
+				fmt.Println("\ngocrunch/mat error.")
 				s := "In mat.%v, column number %d of the first [][]float64 has length %d,\n"
 				s += "while column number %d of the second [][]float64 has length %d.\n"
 				s += "The length of each column must match.\n"
@@ -325,7 +340,7 @@ func Mul(m [][]float64, val interface{}) {
 			}
 		}
 	default:
-		fmt.Println("\nNumgo/mat error.")
+		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%v, expected float64, []float64, or [][]float64 for the second\n"
 		s += "argument, but received argument of type: %v."
 		s = fmt.Sprintf(s, "Mul()", reflect.TypeOf(v))
@@ -367,7 +382,7 @@ func Add(m [][]float64, val interface{}) {
 	case []float64:
 		for i := range m {
 			if len(v) != len(m[i]) {
-				fmt.Println("\nNumgo/mat error.")
+				fmt.Println("\ngocrunch/mat error.")
 				s := "In mat.%v, in row %d, the number of the columns of the first\n"
 				s += "slice is %d, but the length of the vector is %d. They must\n"
 				s += "match.\n"
@@ -382,7 +397,7 @@ func Add(m [][]float64, val interface{}) {
 		}
 	case [][]float64:
 		if len(m) != len(v) {
-			fmt.Println("\nNumgo/mat error.")
+			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%v, the number of the rows of the first slice is %d\n"
 			s += "but the number of rows of the second slice is %d. They must\n"
 			s += "match.\n"
@@ -391,7 +406,7 @@ func Add(m [][]float64, val interface{}) {
 		}
 		for i := range m {
 			if len(m[i]) != len(v[i]) {
-				fmt.Println("\nNumgo/mat error.")
+				fmt.Println("\ngocrunch/mat error.")
 				s := "In mat.%v, column number %d of the first [][]float64 has length %d,\n"
 				s += "while column number %d of the second [][]float64 has length %d.\n"
 				s += "The length of each column must match.\n"
@@ -403,7 +418,7 @@ func Add(m [][]float64, val interface{}) {
 			}
 		}
 	default:
-		fmt.Println("\nNumgo/mat error.")
+		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%v, expected float64, []float64, or [][]float64 for the second\n"
 		s += "argument, but received argument of type: %v."
 		s = fmt.Sprintf(s, "Add()", reflect.TypeOf(v))
@@ -445,7 +460,7 @@ func Sub(m [][]float64, val interface{}) {
 	case []float64:
 		for i := range m {
 			if len(v) != len(m[i]) {
-				fmt.Println("\nNumgo/mat error.")
+				fmt.Println("\ngocrunch/mat error.")
 				s := "In mat.%v, in row %d, the number of the columns of the first\n"
 				s += "slice is %d, but the length of the vector is %d. They must\n"
 				s += "match.\n"
@@ -460,7 +475,7 @@ func Sub(m [][]float64, val interface{}) {
 		}
 	case [][]float64:
 		if len(m) != len(v) {
-			fmt.Println("\nNumgo/mat error.")
+			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%v, the number of the rows of the first slice is %d\n"
 			s += "but the number of rows of the second slice is %d. They must\n"
 			s += "match.\n"
@@ -469,7 +484,7 @@ func Sub(m [][]float64, val interface{}) {
 		}
 		for i := range m {
 			if len(m[i]) != len(v[i]) {
-				fmt.Println("\nNumgo/mat error.")
+				fmt.Println("\ngocrunch/mat error.")
 				s := "In mat.%v, column number %d of the first [][]float64 has length %d,\n"
 				s += "while column number %d of the second [][]float64 has length %d.\n"
 				s += "The length of each column must match.\n"
@@ -481,7 +496,7 @@ func Sub(m [][]float64, val interface{}) {
 			}
 		}
 	default:
-		fmt.Println("\nNumgo/mat error.")
+		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%v, expected float64, []float64, or [][]float64 for the second\n"
 		s += "argument, but received argument of type: %v."
 		s = fmt.Sprintf(s, "Sub()", reflect.TypeOf(v))
@@ -517,7 +532,7 @@ func Div(m [][]float64, val interface{}) {
 	switch v := val.(type) {
 	case float64:
 		if val == 0.0 {
-			fmt.Println("\nNumgo/mat error.")
+			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%v, the second argument cannot be 0.0\n"
 			s = fmt.Sprintf(s, "Div()")
 			panic(s)
@@ -530,7 +545,7 @@ func Div(m [][]float64, val interface{}) {
 	case []float64:
 		for i := range v {
 			if v[i] == 0.0 {
-				fmt.Println("\nNumgo/mat error.")
+				fmt.Println("\ngocrunch/mat error.")
 				s := "In mat.%v, the passed []float64 contains 0.0 at index %d.\n"
 				s = fmt.Sprintf(s, "Div()", i)
 				panic(s)
@@ -538,7 +553,7 @@ func Div(m [][]float64, val interface{}) {
 		}
 		for i := range m {
 			if len(v) != len(m[i]) {
-				fmt.Println("\nNumgo/mat error.")
+				fmt.Println("\ngocrunch/mat error.")
 				s := "In mat.%v, in row %d, the number of the columns of the first\n"
 				s += "slice is %d, but the length of the vector is %d. They must\n"
 				s += "match.\n"
@@ -555,7 +570,7 @@ func Div(m [][]float64, val interface{}) {
 		for i := range v {
 			for j := range v[i] {
 				if v[i][j] == 0.0 {
-					fmt.Println("\nNumgo/mat error.")
+					fmt.Println("\ngocrunch/mat error.")
 					s := "In mat.%v, the passed [][]float64 contains 0.0 at [%d][%d].\n"
 					s = fmt.Sprintf(s, "Div()", i, j)
 					panic(s)
@@ -563,7 +578,7 @@ func Div(m [][]float64, val interface{}) {
 			}
 		}
 		if len(m) != len(v) {
-			fmt.Println("\nNumgo/mat error.")
+			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%v, the number of the rows of the first slice is %d\n"
 			s += "but the number of rows of the second slice is %d. They must\n"
 			s += "match.\n"
@@ -572,7 +587,7 @@ func Div(m [][]float64, val interface{}) {
 		}
 		for i := range m {
 			if len(m[i]) != len(v[i]) {
-				fmt.Println("\nNumgo/mat error.")
+				fmt.Println("\ngocrunch/mat error.")
 				s := "In mat.%v, column number %d of the first [][]float64 has length %d,\n"
 				s += "while column number %d of the second [][]float64 has length %d.\n"
 				s += "The length of each column must match.\n"
@@ -584,7 +599,7 @@ func Div(m [][]float64, val interface{}) {
 			}
 		}
 	default:
-		fmt.Println("\nNumgo/mat error.")
+		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%v, expected float64, []float64, or [][]float64 for the second\n"
 		s += "argument, but received argument of type: %v."
 		s = fmt.Sprintf(s, "Sub()", reflect.TypeOf(v))
@@ -628,7 +643,7 @@ func Rand(m [][]float64, args ...float64) {
 		from := args[0]
 		to := args[1]
 		if !(from < to) {
-			fmt.Println("\nNumgo/mat error.")
+			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%s the first argument, %f, is not less than the\n"
 			s += "second argument, %f. The first argument must be strictly\n"
 			s += "less than the second.\n"
@@ -641,7 +656,7 @@ func Rand(m [][]float64, args ...float64) {
 			}
 		}
 	default:
-		fmt.Println("\nNumgo/mat error.")
+		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%s expected 0 to 2 arguments, but recieved %d."
 		s = fmt.Sprintf(s, "Rand()", len(args))
 		panic(s)
@@ -660,7 +675,7 @@ Col also accepts negative indices. For example:
 */
 func Col(x int, m [][]float64) []float64 {
 	if (x >= len(m[0])) || (x < -len(m[0])) {
-		fmt.Println("\nNumgo/mat error.")
+		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
 		s = fmt.Sprintf(s, "Col()", x, len(m[0]), len(m[0]))
 		panic(s)
@@ -679,7 +694,7 @@ func Col(x int, m [][]float64) []float64 {
 }
 
 /*
-Row returns a row from a [][]float64 of float64. For example:
+Row returns a row from a [][]float64. For example:
 
 	fmt.Println(m) // [[1.0, 2.3], [3.4, 1.7]]
 	mat.Row(0, m) // [1.0, 2.3]
@@ -690,7 +705,7 @@ Row also accepts negative indices. For example:
 */
 func Row(x int, m [][]float64) []float64 {
 	if (x >= len(m)) || (x < -len(m)) {
-		fmt.Println("\nNumgo/mat error.")
+		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%s the requested row %d is outside of bounds [-%d, %d)\n"
 		s = fmt.Sprintf(s, "Row()", x, len(m), len(m))
 		panic(s)
@@ -819,7 +834,19 @@ func Any(f BooleanFunc, m [][]float64) bool {
 }
 
 /*
-Sum returns the sum of all elements in a [][]float64 of float64.
+Sum returns the sum of all elements in a [][]float64 of float64. It is also
+possible for this function to return the sum of a specific row or column in
+a [][]float64, by passing two additional integers to it: The first integer
+must be either 0 for picking a row, or 1 for picking a column. The second
+integer determines the specific row or column for which the sum is desired.
+This function allow the index to be negative. For example, the sum of the
+last row of a [][]float64 is given by:
+
+	sum(m, 0, -1)
+
+where as the sum of the first column is given by:
+
+	sum(m, 1, 0)
 */
 func Sum(m [][]float64) float64 {
 	sum := 0.0
@@ -846,7 +873,7 @@ will return the sum of the last column of m.
 */
 func SumCol(x int, m [][]float64) float64 {
 	if (x >= len(m[0])) || (x < -len(m[0])) {
-		fmt.Println("\nNumgo/mat error.")
+		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
 		s = fmt.Sprintf(s, "SumCol()", x, len(m[0]), len(m[0]))
 		panic(s)
@@ -879,7 +906,7 @@ will return the sum of the last row of m.
 */
 func SumRow(x int, m [][]float64) float64 {
 	if (x >= len(m)) || (x < -len(m)) {
-		fmt.Println("\nNumgo/mat error.")
+		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
 		s = fmt.Sprintf(s, "SumRow()", x, len(m), len(m))
 		panic(s)
@@ -928,7 +955,7 @@ will return the average of the last row of m.
 */
 func AvgRow(x int, m [][]float64) float64 {
 	if (x >= len(m)) || (x < -len(m)) {
-		fmt.Println("\nNumgo/mat error.")
+		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
 		s = fmt.Sprintf(s, "AvgRow()", x, len(m), len(m))
 		panic(s)
@@ -959,11 +986,11 @@ allowed. For example:
 
 	mat.AvgCol(-1, m)
 
-will return the Avrage of the last column of m.
+will return the average of the last column of m.
 */
 func AvgCol(x int, m [][]float64) float64 {
 	if (x >= len(m[0])) || (x < -len(m[0])) {
-		fmt.Println("\nNumgo/mat error.")
+		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
 		s = fmt.Sprintf(s, "AvgCol()", x, len(m[0]), len(m[0]))
 		panic(s)
@@ -985,7 +1012,7 @@ func AvgCol(x int, m [][]float64) float64 {
 func Dot(m, n [][]float64) [][]float64 {
 	//for i := range m {
 	//	if len(m) != len(n[i]) {
-	//		fmt.Println("\nNumgo/mat error.")
+	//		fmt.Println("\ngocrunch/mat error.")
 	//		s := "In mat.%s, Column %d of the 2nd argument has %d elements,\n"
 	//		s += "while the 1st argument has %d rows. They must match.\n"
 	//		s += fmt.Sprintf(s, "Dot", i, len(n[i]), len(m))
@@ -994,7 +1021,7 @@ func Dot(m, n [][]float64) [][]float64 {
 	//}
 	//for i := range n {
 	//	if len(n) != len(m[i]) {
-	//		fmt.Println("\nNumgo/mat error.")
+	//		fmt.Println("\ngocrunch/mat error.")
 	//		s := "In mat.%s, Column %d of the 1st argument has %d elements,\n"
 	//		s += "while the 2nd argument has %d rows. They must match.\n"
 	//		s += fmt.Sprintf(s, "Dot", i, len(m[i]), len(n))
