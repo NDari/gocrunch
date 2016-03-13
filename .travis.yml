@@ -1,11 +1,10 @@
 language: go
 go: 
 - 1.5.3
-- release
-- tip
+- 1.6
 
 before_script:
-- go vet ./...
+- go tool vet -test mat/*.go
 
 script:
 - go test -v ./...
