@@ -5,7 +5,7 @@ go:
 - tip
 
 before_script:
-- go tool vet -test mat/*.go
+- go vet ./...
 
 script:
 - go test -v ./...
