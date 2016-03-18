@@ -848,78 +848,66 @@ where as the sum of the first column is given by:
 
 	sum(m, 1, 0)
 */
-func Sum(m [][]float64) float64 {
+func Sum(m [][]float64, args ...int) float64 {
 	sum := 0.0
-	for i := range m {
-		for j := range m[i] {
-			sum += m[i][j]
-		}
-	}
-	return sum
-}
-
-/*
-SumCol returns the sum of the elements of a slice along a specific column.
-For example:
-
-	mat.SumCol(2, m)
-
-will return the sum of the 3rd column of m. Negative indices are also
-allowed. For example:
-
-	mat.SumCol(-1, m)
-
-will return the sum of the last column of m.
-*/
-func SumCol(x int, m [][]float64) float64 {
-	if (x >= len(m[0])) || (x < -len(m[0])) {
-		fmt.Println("\ngocrunch/mat error.")
-		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
-		s = fmt.Sprintf(s, "SumCol()", x, len(m[0]), len(m[0]))
-		panic(s)
-	}
-	var sum float64
-	if x >= 0 {
+	switch len(args) {
+	case 0:
 		for i := range m {
-			sum += m[i][x]
+			for j := range m[i] {
+				sum += m[i][j]
+			}
 		}
-	} else {
-		for i := range m {
-			sum += m[i][len(m[0])+x]
+	case 2:
+		switch args[0] {
+		case 0:
+			x := args[1]
+			if (x >= len(m)) || (x < -len(m)) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
+				s = fmt.Sprintf(s, "SumRow()", x, len(m), len(m))
+				panic(s)
+			}
+			if x >= 0 {
+				for i := range m[x] {
+					sum += m[x][i]
+				}
+			} else {
+				for i := range m[len(m)+x] {
+					sum += m[len(m)+x][i]
+				}
+			}
+		case 1:
+			x := args[1]
+			if (x >= len(m[0])) || (x < -len(m[0])) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
+				s = fmt.Sprintf(s, "Sum()", x, len(m[0]), len(m[0]))
+				panic(s)
+			}
+			if x >= 0 {
+				for i := range m {
+					sum += m[i][x]
+				}
+			} else {
+				for i := range m {
+					sum += m[i][len(m[0])+x]
+				}
+			}
+		default:
+			fmt.Println("\ngocrunch/mat error.")
+			s := "In mat.%s the first argument after the [][]float64 determines the axis.\n"
+			s += "It must be 0 for row, or 1 for column. but %d was passed."
+			s = fmt.Sprintf(s, "Sum()", args[0])
+			panic(s)
+
 		}
-	}
-	return sum
-}
-
-/*
-SumRow returns the sum of the elements of a slice along a specific row.
-For example:
-
-	mat.SumRow(2, m)
-
-will return the sum of the 3rd row of m. Negative indices are also
-allowed. For example:
-
-	mat.SumRow(-1, m)
-
-will return the sum of the last row of m.
-*/
-func SumRow(x int, m [][]float64) float64 {
-	if (x >= len(m)) || (x < -len(m)) {
+	default:
 		fmt.Println("\ngocrunch/mat error.")
-		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
-		s = fmt.Sprintf(s, "SumRow()", x, len(m), len(m))
+		s := "In mat.%s expected 0 or 2 arguments after the [][]float64 \n"
+		s += "but recieved %d"
+		s = fmt.Sprintf(s, "Sum()", len(args))
 		panic(s)
-	}
-	var sum float64
-	if x >= 0 {
-		for i := range m[x] {
-			sum += m[x][i]
-		}
-	} else {
-		for i := range m[len(m)+x] {
-			sum += m[len(m)+x][i]
-		}
+
 	}
 	return sum
 }
