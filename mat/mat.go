@@ -202,7 +202,7 @@ func FromCSV(filename string) [][]float64 {
 // TODO: Does FromCSV needs to worry about headers? return them? ignore them?
 
 /*
-Flatten turns a [][]float64 of float64 into a 1D slice of float64. This is done
+Flatten turns a [][]float64 into a 1D slice of float64. This is done
 by appending all rows tip to tail.
 */
 func Flatten(m [][]float64) []float64 {
@@ -251,7 +251,7 @@ func ToCSV(m [][]float64, fileName string) error {
 // TODO: Does ToCSV need a header section?
 
 /*
-Foreach applies a given function to each element of a [][]float64 of float64. The
+Foreach applies a given function to each element of a [][]float64. The
 passed function must satisfy the signature of an ElementalFunc.
 */
 func Foreach(f ElementFunc, m [][]float64) {
@@ -664,7 +664,7 @@ func Rand(m [][]float64, args ...float64) {
 }
 
 /*
-Col returns a column from a [][]float64 of float64. For example:
+Col returns a column from a [][]float64. For example:
 
 	fmt.Println(m) // [[1.0, 2.3], [3.4, 1.7]]
 	mat.Col(0, m) // [1.0, 3.4]
@@ -805,7 +805,7 @@ func All(f BooleanFunc, m [][]float64) bool {
 
 /*
 Any checks if a supplied function is true for at least one elements of
-a [][]float64 of float64s. The supplied function must have the signature of
+a [][]float64. The supplied function must have the signature of
 a BooleanFunc, meaning that it takes a float64, and returns a bool.
 For instance,
 
@@ -834,7 +834,7 @@ func Any(f BooleanFunc, m [][]float64) bool {
 }
 
 /*
-Sum returns the sum of all elements in a [][]float64 of float64. It is also
+Sum returns the sum of all elements in a [][]float64. It is also
 possible for this function to return the sum of a specific row or column in
 a [][]float64, by passing two additional integers to it: The first integer
 must be either 0 for picking a row, or 1 for picking a column. The second
@@ -842,11 +842,11 @@ integer determines the specific row or column for which the sum is desired.
 This function allow the index to be negative. For example, the sum of the
 last row of a [][]float64 is given by:
 
-	sum(m, 0, -1)
+	mat.Sum(m, 0, -1)
 
 where as the sum of the first column is given by:
 
-	sum(m, 1, 0)
+	mat.Sum(m, 1, 0)
 */
 func Sum(m [][]float64, args ...int) float64 {
 	sum := 0.0
@@ -913,88 +913,87 @@ func Sum(m [][]float64, args ...int) float64 {
 }
 
 /*
-Avg returns the average value of all the elements in a [][]float64.
+Avg returns the average value of all the elements in a [][]float64. It's also
+possible for this function to return the sum of a specific row or column in
+a [][]float64, by passing two additional integers to it: The first integer
+must be either 0 for picking a row, or 1 for picking a column. The second
+integer determines the specific row or column for which the average is desired.
+This function allow the index to be negative. For example, the average of the
+last row of a [][]float64 is given by:
+
+	mat.Avg(m, 0, -1)
+
+where as the sum of the first column is given by:
+
+	mat.Avg(m, 1, 0)
 */
-func Avg(m [][]float64) float64 {
+func Avg(m [][]float64, args ...int) float64 {
 	avg := 0.0
+	sum := 0.0
 	numItems := 0
-	for i := range m {
-		for j := range m[i] {
-			avg += m[i][j]
-			numItems++
+	switch len(args) {
+	case 0:
+		for i := range m {
+			for j := range m[i] {
+				sum += m[i][j]
+				numItems++
+			}
 		}
+	case 2:
+		switch args[0] {
+		case 0:
+			x := args[1]
+			if (x >= len(m)) || (x < -len(m)) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
+				s = fmt.Sprintf(s, "Avg()", x, len(m), len(m))
+				panic(s)
+			}
+			if x >= 0 {
+				for i := range m[x] {
+					sum += m[x][i]
+				}
+				numItems = len(m[x])
+			} else {
+				for i := range m[len(m)+x] {
+					sum += m[len(m)+x][i]
+				}
+				numItems = len(m[len(m)+x])
+			}
+		case 1:
+			x := args[1]
+			if (x >= len(m[0])) || (x < -len(m[0])) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
+				s = fmt.Sprintf(s, "AvgCol()", x, len(m[0]), len(m[0]))
+				panic(s)
+			}
+			if x >= 0 {
+				for i := range m {
+					sum += m[i][x]
+				}
+			} else {
+				for i := range m {
+					sum += m[i][len(m[0])+x]
+				}
+			}
+			numItems = len(m)
+		default:
+			fmt.Println("\ngocrunch/mat error.")
+			s := "In mat.%s the first argument after the [][]float64 determines the axis.\n"
+			s += "It must be 0 for row, or 1 for column. but %d was passed."
+			s = fmt.Sprintf(s, "Avg()", args[0])
+			panic(s)
+		}
+	default:
+		fmt.Println("\ngocrunch/mat error.")
+		s := "In mat.%s expected 0 or 2 arguments after the [][]float64 \n"
+		s += "but recieved %d"
+		s = fmt.Sprintf(s, "Avg()", len(args))
+		panic(s)
 	}
-	avg /= float64(numItems)
+	avg = sum / float64(numItems)
 	return avg
-}
-
-/*
-AvgRow returns the average of the elements of a slice along a specific row.
-For example:
-
-	mat.AvgRow(2, m)
-
-will return the average of the 3rd row of m. Negative indices are also
-allowed. For example:
-
-	mat.AvgRow(-1, m)
-
-will return the average of the last row of m.
-*/
-func AvgRow(x int, m [][]float64) float64 {
-	if (x >= len(m)) || (x < -len(m)) {
-		fmt.Println("\ngocrunch/mat error.")
-		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
-		s = fmt.Sprintf(s, "AvgRow()", x, len(m), len(m))
-		panic(s)
-	}
-	var sum float64
-	if x >= 0 {
-		for i := range m[x] {
-			sum += m[x][i]
-		}
-		sum /= float64(len(m[x]))
-	} else {
-		for i := range m[len(m)+x] {
-			sum += m[len(m)+x][i]
-		}
-		sum /= float64(len(m[len(m)+x]))
-	}
-	return sum
-}
-
-/*
-AvgCol returns the average of the elements of a slice along a specific column.
-For example:
-
-	mat.AvgCol(2, m)
-
-will return the average of the 3rd column of m. Negative indices are also
-allowed. For example:
-
-	mat.AvgCol(-1, m)
-
-will return the average of the last column of m.
-*/
-func AvgCol(x int, m [][]float64) float64 {
-	if (x >= len(m[0])) || (x < -len(m[0])) {
-		fmt.Println("\ngocrunch/mat error.")
-		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
-		s = fmt.Sprintf(s, "AvgCol()", x, len(m[0]), len(m[0]))
-		panic(s)
-	}
-	var sum float64
-	if x >= 0 {
-		for i := range m {
-			sum += m[i][x]
-		}
-	} else {
-		for i := range m {
-			sum += m[i][len(m[0])+x]
-		}
-	}
-	sum /= float64(len(m))
-	return sum
 }
 
 func Dot(m, n [][]float64) [][]float64 {
@@ -1033,7 +1032,10 @@ for each row of the first [][]float64 which multiplies that row by each
 column of 2nd [][]float64.
 
 For sufficiently large slices, the performance of this function is very
-close to that of Dot(). The previous statement is intentionally ambiguous,
+close to that of Dot() on single core machines, making it the preferrable
+choice when no other concurrent work is being done by the consumer of
+this function, so sufficiently large [][]float64s.
+The previous statement is intentionally ambiguous,
 and the clients of this library are encouraged to experiment for their
 particular hardware and slice sizes.
 */

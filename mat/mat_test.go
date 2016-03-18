@@ -658,23 +658,15 @@ func TestAvg(t *testing.T) {
 	if a != val {
 		t.Errorf("expected %f, got %f", val, a)
 	}
-}
-
-func TestAvgRow(t *testing.T) {
-	row, col, val := 7, 6, 1.0
-	m := New(row, col)
+	val = 2.1
 	Set(m, val)
-	a := AvgRow(1, m)
+	a = Avg(m, 1, 0)
 	if a != val {
 		t.Errorf("expected %f, got %f", val, a)
 	}
-}
-
-func TestAvgCol(t *testing.T) {
-	row, col, val := 7, 6, 2.1
-	m := New(row, col)
+	val = 1.0
 	Set(m, val)
-	a := AvgCol(0, m)
+	a = Avg(m, 0, 1)
 	if a != val {
 		t.Errorf("expected %f, got %f", val, a)
 	}
