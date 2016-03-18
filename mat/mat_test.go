@@ -619,40 +619,31 @@ func TestSum(t *testing.T) {
 	if res != float64(row*col)*val {
 		t.Errorf("expected %f, got %f", float64(row*col)*val, res)
 	}
-}
-
-func TestSumCol(t *testing.T) {
-	row := 12
-	col := 17
-	m := New(row, col)
+	row = 12
+	col = 17
+	m = New(row, col)
 	Set(m, 1.0)
 	for i := 0; i < col; i++ {
-		q := SumCol(i, m)
+		q := Sum(m, 1, i)
 		if q != float64(row) {
 			t.Errorf("at col %d expected sum to be %f, got %f", i, float64(row), q)
 		}
 	}
 	for i := col; i > 0; i-- {
-		q := SumCol(-i, m)
+		q := Sum(m, 1, -i)
 		if q != float64(row) {
 			t.Errorf("at col %d expected sum to be %f, got %f", i, float64(row), q)
 		}
 	}
-}
-
-func TestSumRow(t *testing.T) {
-	row := 12
-	col := 17
-	m := New(row, col)
 	Set(m, 1.0)
 	for i := 0; i < row; i++ {
-		q := SumRow(i, m)
+		q := Sum(m, 0, i)
 		if q != float64(col) {
 			t.Errorf("at col %d expected sum to be %f, got %f", i, float64(col), q)
 		}
 	}
 	for i := row; i > 0; i-- {
-		q := SumRow(-i, m)
+		q := Sum(m, 0, -i)
 		if q != float64(col) {
 			t.Errorf("at col %d expected sum to be %f, got %f", i, float64(col), q)
 		}
