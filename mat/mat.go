@@ -1,15 +1,28 @@
 /*
-Package mat implements a "mat" object, which behaves like a 2-dimensional array
-or list in other programming languages. Under the hood, the mat object is a
-flat slice, which provides for optimal performance in Go, while the methods
-and constructors provide for a higher level of performance and abstraction
-when compared to the "2D" slices of go (slices of slices).
+Package mat implements a large set of functions which act on one and two
+dimensional slices of float64.
+
+Many of the functions in this library expect either a float64, a []float64,
+or [][]float64, and do "the right thing" based on what is passed. For example,
+consider the function
+
+	mat.Mul(m, n)
+
+In this function, m can be a [][]float64, where as n could be
+a float64, []float64, or [][]float64. This allows the same function to be called
+for wide range of situations. This trades compile time safety for runtime errors.
+We believe that Go's fast compile time, along with the verbose errors in this
+package make up for that, however.
 
 All errors encountered in this package, such as attempting to access an
 element out of bounds are treated as critical error, and thus, the code
-immediately exits with signal 1. In such cases, the function/method in
-which the error was encountered is printed to the screen, in addition
-to the full stack trace, in order to help fix the issue rapidly.
+immediately panics. In such cases, the function in which the error was
+encountered is printed to the screen along with the reason for the panic,
+in addition to the full stack trace, in order to help fix any issues
+rapidly.
+
+As mentioned, all the functions in this library act on Go primitive types,
+which allows the code to be easily modified to serve in different situations.
 */
 package mat
 
@@ -17,767 +30,749 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"math"
 	"math/rand"
 	"os"
-	"runtime/debug"
+	"reflect"
 	"strconv"
+	"sync"
 )
 
 /*
-Mat is the main struct of this library. Mat is a essentially a 1D slice
-(a []float64) that contains two integers, representing rows and columns,
-which allow it to behave as if it was a 2D slice. This allows for higher
-performance and flexibility for the users of this library, at the expense
-of some bookkeeping that is done here.
-
-The fields of this struct are not directly accessible, and they may only
-change by the use of the various methods in this library.
+ElementalFunc defines the signature of a function that takes a float64, and
+returns a float64
 */
-type Mat struct {
-	r, c int
-	vals []float64
-}
-
-type elementFunc func(*float64)
-type booleanFunc func(*float64) bool
-type reducerFunc func(accumulator, next *float64)
+type ElementFunc func(float64) float64
 
 /*
-New is the primary constructor for the "Mat" object. New is a variadic function,
-expecting 0 to 3 ints, with differing behavior as follows:
-
-	m := New()
-
-m is now an empty &Mat{}, where the number of rows,
-columns and the length and capacity of the underlying
-slice are all zero. This is mostly for internal use.
-
-	m := New(x)
-
-m is a x by x (square) matrix, with the underlying
-slice of length x, and capacity 2x.
-
-	m := New(x, y)
-
-m is an x by y matrix, with the underlying slice of
-length rc, and capacity of 2rc. This is a good case
-for when your matrix is going to expand in th
-future. There is a negligible hit to performance
-and a larger memory usage of your code. But in case
-expanding matrices, many reallocations are avoided.
-
-	m := New(x, y, z)
-
-m is a x by u matrix, with the underlying slice of
-length rc, and capacity z. This is a good choice for
-when the size of the matrix is static, or when the
-application is memory constrained.
-
-For most cases, we recommend using the New(x) or New(x, y) options, and
-almost never the New() option.
+BooleanFunc defines the signature of a function that takes a float64, and
+return a bool.
 */
-func New(dims ...int) *Mat {
-	m := &Mat{}
+type BooleanFunc func(float64) bool
+
+/*
+New is a utility function to create [][]float64s. New is a variadic function,
+expecting 0, 1 or 2 ints, with differing behavior as follows:
+
+	m := mat.New()
+
+returns an empty [][]float64. A perhaps more useful option is:
+
+	m := mat.New(x)
+
+which return a x by x (square) [][]float64. Alternatively
+
+	m := mat.New(x, y)
+
+is a [][]float64 with x rows and y columns.
+
+*/
+func New(dims ...int) [][]float64 {
+	var m [][]float64
 	switch len(dims) {
-	case 0:
 	case 1:
 		r := dims[0]
 		if r <= 0 {
-			fmt.Println("\nNumgo/mat error.")
+			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%s, the number of rows must be greater than '0', but\n"
-			s += "recieved %d. "
-			s = fmt.Sprintf(s, "New", r)
-			fmt.Println(s)
-			fmt.Println("Stack trace for this error:")
-			debug.PrintStack()
-			os.Exit(1)
+			s += "received %d. "
+			s = fmt.Sprintf(s, "New()", r)
+			panic(s)
 		}
-		m = &Mat{
-			r,
-			r,
-			make([]float64, r*r, 2*r*r),
+		m = make([][]float64, r)
+		for i := range m {
+			m[i] = make([]float64, r)
 		}
 	case 2:
 		r := dims[0]
 		c := dims[1]
 		if r <= 0 {
-			fmt.Println("\nNumgo/mat error.")
+			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%s, the number of rows must be greater than '0', but\n"
-			s += "recieved %d. "
-			s = fmt.Sprintf(s, "New", r)
-			fmt.Println(s)
-			fmt.Println("Stack trace for this error:")
-			debug.PrintStack()
-			os.Exit(1)
+			s += "received %d. "
+			s = fmt.Sprintf(s, "New()", r)
+			panic(s)
 		}
 		if c <= 0 {
-			fmt.Println("\nNumgo/mat error.")
+			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%s, the number of columns must be greater than '0', but\n"
-			s += "recieved %d. "
-			s = fmt.Sprintf(s, "New", c)
-			fmt.Println(s)
-			fmt.Println("Stack trace for this error:")
-			debug.PrintStack()
-			os.Exit(1)
+			s += "received %d. "
+			s = fmt.Sprintf(s, "New()", c)
+			panic(s)
 		}
-		m = &Mat{
-			r,
-			c,
-			make([]float64, r*c, 2*r*c),
-		}
-	case 3:
-		r := dims[0]
-		c := dims[1]
-		capacity := dims[2]
-		if r <= 0 {
-			fmt.Println("\nNumgo/mat error.")
-			s := "In mat.%s, the number of rows must be greater than '0',\n"
-			s += "but recieved %d. "
-			s = fmt.Sprintf(s, "New", r)
-			fmt.Println(s)
-			fmt.Println("Stack trace for this error:")
-			debug.PrintStack()
-			os.Exit(1)
-		}
-		if c <= 0 {
-			fmt.Println("\nNumgo/mat error.")
-			s := "In mat.%s, the number of columns must be greater than '0',\n"
-			s += "but recieved %d. "
-			s = fmt.Sprintf(s, "New", c)
-			fmt.Println(s)
-			fmt.Println("Stack trace for this error:")
-			debug.PrintStack()
-			os.Exit(1)
-		}
-		m = &Mat{
-			r,
-			c,
-			make([]float64, r*c, capacity),
+		m = make([][]float64, r)
+		for i := range m {
+			m[i] = make([]float64, c)
 		}
 	default:
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s expected 0 to 3 arguments, but recieved %d"
-		s = fmt.Sprintf(s, "New", len(dims))
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
+		fmt.Println("\ngocrunch/mat error.")
+		s := "In mat.%s expected 1 or 2 arguments, but recieved %d"
+		s = fmt.Sprintf(s, "New()", len(dims))
+		panic(s)
 	}
 	return m
 }
 
 /*
-FromSlice generated a mat object from a [][]float64 slice. The slice is
-checked for being a non-jagged slice, where each row contains the same
-number of elements. The creation of a mat object from jagged 2D slices
-is not supported as on yet.
+I returns a square [][]float64 with all elements alone the diagonal equal to
+1.0, and 0.0 elsewhere. This is the identity matrix.
 */
-func FromSlice(s [][]float64) *Mat {
-	if s == nil {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s, an unallocated 2D slice was recieved, where the\n"
-		s += "slice is equal to nil."
-		s = fmt.Sprintf(s, "FromSlice")
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	if isJagged(s) {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s, a 'jagged' 2D slice was recieved, where the rows\n"
-		s += "(the inner slice of the 2D slice) have different lengths. The\n"
-		s += "creation of a *Mat from jagged slices is not supported.\n"
-		s = fmt.Sprintf(s, "FromSlice")
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	m := New(len(s), len(s[0]), len(s)*len(s[0])*2)
-	for i := range s {
-		for j := range s[i] {
-			m.vals[i*len(s[0])+j] = s[i][j]
+func I(x int) [][]float64 {
+	m := New(x)
+	for i := range m {
+		for j := range m[i] {
+			if i == j {
+				m[i][j] = 1.0
+			}
 		}
 	}
-	return m
-}
-
-func isJagged(s [][]float64) bool {
-	c := len(s[0])
-	for i := range s {
-		if len(s[i]) != c {
-			return true
-		}
-	}
-	return false
-}
-
-/*
-From1DSlice creates a mat object from a slice of float64s. The created mat
-object has one row, and the number of columns equal to the length of the
-1D slice from which it was created.
-*/
-func From1DSlice(s []float64) *Mat {
-	if s == nil {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s, an unallocated 1D slice was recieved, where the\n"
-		s += "slice is equal to nil."
-		s = fmt.Sprintf(s, "From1DSlice")
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	m := New(1, len(s))
-	copy(m.vals, s)
 	return m
 }
 
 /*
 FromCSV creates a mat object from a CSV (comma separated values) file. Here, we
-assume that the number of rows of the resultant mat object is equal to the
+assume that the number of rows of the resultant [][]float64 is equal to the
 number of lines, and the number of columns is equal to the number of entries
-in each line. As before, we make sure that each line contains the same number
+in each line making sure that each line contains the same number
 of elements.
 
 The file to be read is assumed to be very large, and hence it is read one line
-at a time. This results in some major inefficiencies, and it is recommended
-that this function be used sparingly, and not as a major component of your
-library/executable.
-
-Unlike other mat creation methods in this package, the mat object created here,
-the capacity of the mat object created here is the same as its length since we
-assume the mat to be very large.
+at a time.
 */
-func FromCSV(filename string) *Mat {
+func FromCSV(filename string) [][]float64 {
 	f, err := os.Open(filename)
 	if err != nil {
-		fmt.Println("\nNumgo/mat error.")
+		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%v, cannot open %s due to error: %v.\n"
-		s = fmt.Sprintf(s, "FromCSV", filename, err)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
+		s = fmt.Sprintf(s, "FromCSV()", filename, err)
+		panic(s)
 	}
 	defer f.Close()
 	r := csv.NewReader(f)
-	// I am going with the assumption that a mat loaded from a CSV is going to
+	// I am going with the assumption that a [][]float64 loaded from a CSV is going to
 	// be large. So, we are going to read one line, and determine the number
 	// of columns based on the number of comma separated strings in that line.
 	// Then we will read the rest of the lines one at a time, checking that the
-	// number of entries in each line is the same as the first line, and
-	// incrementing the number of rows each time.
+	// number of entries in each line is the same as the first line.
 	str, err := r.Read()
 	if err != nil {
-		fmt.Println("\nNumgo/mat error.")
+		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%v, cannot read from %s due to error: %v.\n"
-		s = fmt.Sprintf(s, "FromCSV", filename, err)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
+		s = fmt.Sprintf(s, "FromCSV()", filename, err)
+		panic(s)
 	}
 	line := 1
-	m := New()
-	// Start with one row, and set the number of enteries per row
-	m.r = 1
-	m.c = len(str)
-	row := make([]float64, len(str))
+	m := [][]float64{}
 	for {
+		row := make([]float64, len(str))
 		for i := range str {
 			row[i], err = strconv.ParseFloat(str[i], 64)
 			if err != nil {
-				fmt.Println("\nNumgo/mat error.")
+				fmt.Println("\ngocrunch/mat error.")
 				s := "In mat.%v, item %d in line %d is %s, which cannot\n"
 				s += "be converted to a float64 due to: %v"
-				s = fmt.Sprintf(s, "FromCSV", i, line, str[i], err)
-				fmt.Println(s)
-				fmt.Println("Stack trace for this error:")
-				debug.PrintStack()
-				os.Exit(1)
+				s = fmt.Sprintf(s, "FromCSV()", i, line, str[i], err)
+				panic(s)
 			}
 		}
-		m.vals = append(m.vals, row...)
-		// Read the next line. If there is one, increment the number of rows
+		m = append(m, row)
+		// Read the next line. If there is one.
 		str, err = r.Read()
 		if err != nil {
 			if err == io.EOF {
 				break
 			}
-			fmt.Println("\nNumgo/mat error.")
+			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%v, cannot read from %s due to error: %v.\n"
-			s = fmt.Sprintf(s, "FromCSV", filename, err)
-			fmt.Println(s)
-			fmt.Println("Stack trace for this error:")
-			debug.PrintStack()
-			os.Exit(1)
+			s = fmt.Sprintf(s, "FromCSV()", filename, err)
+			panic(s)
 		}
 		line++
 		if len(str) != len(row) {
-			fmt.Println("\nNumgo/mat error.")
+			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%v, line %d in %s has %d entries. The first line\n"
-			s += "(line 1) has %d entries.\n"
-			s += "Creation of a *Mat from jagged slices is not supported.\n"
-			s = fmt.Sprintf(s, "Load", filename, err)
-			fmt.Println(s)
-			fmt.Println("Stack trace for this error:")
-			debug.PrintStack()
-			os.Exit(1)
+			s += "(line 0) has %d entries.\n"
+			s += "All lines must have the same number of comma separated entries."
+			s = fmt.Sprintf(s, "FromCSV()", line, filename, len(str), len(row))
+			panic(s)
 		}
-		m.r++
 	}
 	return m
 }
 
 /*
-Reshape changes the row and the columns of the mat object as long as the total
-number of values contained in the mat object remains constant. The order and
-the values of the mat does not change with this function.
+Flatten turns a [][]float64 into a 1D slice of float64. This is done
+by appending all rows tip to tail.
 */
-func (m *Mat) Reshape(rows, cols int) *Mat {
-	if rows <= 0 {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s, the number of rows must be greater than '0', but\n"
-		s += "recieved %d. "
-		s = fmt.Sprintf(s, "Reshape", rows)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
+func Flatten(m [][]float64) []float64 {
+	var n []float64
+	for i := range m {
+		n = append(n, m[i]...)
 	}
-	if cols <= 0 {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s, the number of columns must be greater than '0', but\n"
-		s += "recieved %d. "
-		s = fmt.Sprintf(s, "Reshape", cols)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	if rows*cols != m.r*m.c {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s, The total number of entries of the old and new shape\n"
-		s += "must match.\n"
-		s = fmt.Sprintf(s, "Reshape")
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	} else {
-		m.r = rows
-		m.c = cols
-	}
-	return m
+	return n
 }
 
 /*
-Dims returns the number of rows and columns of a mat object.
+ToCSV writes the content of a passed [][]float64 into a CSV file with the passed
+name, by putting each row in a single comma separated line. The number of
+entries in each line is equal to the length of the second dimension of the
+[][]float64. The passed [][]float64 is assumed to be non-jagged, such that
+all rows have the same number of entries.
+This function returns an error, which contains any errors found during
+opening and writing to the file or nil if no errors were seen.
 */
-func (m *Mat) Dims() (int, int) {
-	return m.r, m.c
-}
-
-/*
-Vals returns the values contained in a mat object as a 1D slice of float64s.
-*/
-func (m *Mat) Vals() []float64 {
-	s := make([]float64, m.r*m.c)
-	copy(s, m.vals)
-	return s
-}
-
-/*
-ToSlice returns the values of a mat object as a 2D slice of float64s.
-*/
-func (m *Mat) ToSlice() [][]float64 {
-	s := make([][]float64, m.r)
-	for i := 0; i < m.r; i++ {
-		s[i] = make([]float64, m.c)
-		for j := 0; j < m.c; j++ {
-			s[i][j] = m.vals[i*m.c+j]
-		}
-	}
-	return s
-}
-
-/*
-ToCSV creates a file with the passed name, and writes the content of a mat
-object to it, by putting each row in a single comma separated line. The
-number of entries in each line is equal to the columns of the mat object.
-*/
-func (m *Mat) ToCSV(fileName string) {
+func ToCSV(m [][]float64, fileName string) error {
 	f, err := os.Create(fileName)
 	if err != nil {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, cannot open %s due to error: %v.\n"
-		s = fmt.Sprintf(s, "ToCSV", fileName, err)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
+		return err
 	}
 	defer f.Close()
 	str := ""
-	idx := 0
-	for i := 0; i < m.r; i++ {
-		for j := 0; j < m.c; j++ {
-			str += strconv.FormatFloat(m.vals[idx], 'e', 14, 64)
-			if j+1 != m.c {
+	r, c := len(m), len(m[0])
+	for i := range m {
+		for j := range m[i] {
+			str += strconv.FormatFloat(m[i][j], 'e', 14, 64)
+			if j+1 != c {
 				str += ","
 			}
-			idx++
 		}
-		if i+1 != m.r {
+		if i+1 != r {
 			str += "\n"
 		}
 	}
 	_, err = f.Write([]byte(str))
 	if err != nil {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, cannot write to %s due to error: %v.\n"
-		s = fmt.Sprintf(s, "ToCSV", fileName, err)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
+		return err
 	}
+	return nil
 }
 
 /*
-At returns a pointer to the float64 stored in the given row and column.
+Foreach applies a given function to each element of a [][]float64. The
+passed function must satisfy the signature of an ElementalFunc.
 */
-func (m *Mat) At(r, c int) float64 {
-	if (r >= m.r) || (r < 0) {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
-		s = fmt.Sprintf(s, "At", r, m.r)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
+func Foreach(f ElementFunc, m [][]float64) {
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = f(m[i][j])
+		}
 	}
-	if (c >= m.c) || (c < 0) {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s the requested column %d is outside of bounds [0, %d)\n"
-		s = fmt.Sprintf(s, "At", r, m.c)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	return m.vals[r*m.c+c]
 }
 
 /*
-Map applies a given function to each element of a mat object. The given
-function must take a pointer to a float64, and return nothing.
+Set sets all elements of a [][]float64 to the passed value.
 */
-func (m *Mat) Map(f elementFunc) *Mat {
-	for i := 0; i < m.r*m.c; i++ {
-		f(&m.vals[i])
+func Set(m [][]float64, val float64) {
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = val
+		}
 	}
-	return m
 }
 
 /*
-Ones sets all values of a mat to be equal to 1.0
+Mul multiples all elements of a [][]float64 by the passed value. The passed value can be
+a float64, []float64, or a [][]float64.
+
+When the passed value is a float64, then each element of the [][]float64 are multiplied
+by the passed value.
+
+If the passed value is a []float64, then each row of the [][]float64 is elementally
+multiplied by the corresponding entry in the passed 1D slice.
+
+Finally, if the passed value is a [][]float64, then mat.Mul() takes each element of the
+first [][]float64 passed to it, and multiples that element by the corresponding element
+in the second [][]float64 passed to this function.
+The shape of the [][]float64 must be the same (same number or rows and columns),
+and they are assumed to be non-jagged (same number of elements in each row).
+
+In each case, the result of the multiplication is stored in the original [][]float64.
+If it is desired to keep the [][]float64 unchanged, the user can make a deep
+copy of it using mat.Copy() and pass the copy to this function instead.
 */
-func (m *Mat) Ones() *Mat {
-	f := func(i *float64) {
-		*i = 1.0
-		return
+func Mul(m [][]float64, val interface{}) {
+	switch v := val.(type) {
+	case float64:
+		for i := range m {
+			for j := range m[i] {
+				m[i][j] *= v
+			}
+		}
+	case []float64:
+		for i := range m {
+			if len(v) != len(m[i]) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%v, in row %d, the number of the columns of the first\n"
+				s += "slice is %d, but the length of the vector is %d. They must\n"
+				s += "match.\n"
+				s = fmt.Sprintf(s, "Mul()", i, len(m[i]), len(v))
+				panic(s)
+			}
+		}
+		for i := range m {
+			for j := range v {
+				m[i][j] *= v[j]
+			}
+		}
+	case [][]float64:
+		if len(m) != len(v) {
+			fmt.Println("\ngocrunch/mat error.")
+			s := "In mat.%v, the number of the rows of the first slice is %d\n"
+			s += "but the number of rows of the second slice is %d. They must\n"
+			s += "match.\n"
+			s = fmt.Sprintf(s, "Mul()", len(m), len(v))
+			panic(s)
+		}
+		for i := range m {
+			if len(m[i]) != len(v[i]) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%v, column number %d of the first [][]float64 has length %d,\n"
+				s += "while column number %d of the second [][]float64 has length %d.\n"
+				s += "The length of each column must match.\n"
+				s = fmt.Sprintf(s, "Mul()", i, len(m[i]), i, len(v[i]))
+				panic(s)
+			}
+			for j := range m[i] {
+				m[i][j] *= v[i][j]
+			}
+		}
+	default:
+		fmt.Println("\ngocrunch/mat error.")
+		s := "In mat.%v, expected float64, []float64, or [][]float64 for the second\n"
+		s += "argument, but received argument of type: %v."
+		s = fmt.Sprintf(s, "Mul()", reflect.TypeOf(v))
+		panic(s)
 	}
-	return m.Map(f)
 }
 
 /*
-Inc takes each element of a mat object, and starting from 0.0, sets their
-value to be the value of the previous entry plus 1.0. In other words, the
-first few values of a mat object after this operation would be 0.0, 1.0,
-2.0, ...
+Add adds a passed value in the second argument to the [][]float64 in the
+first argument. The second argument can be a float64, a 1D slice
+of float64, or a [][]float64.
+
+When the passed value is a float64, the passed value is added to each
+element of the [][]float64.
+
+If the passed value is a []float64, then the elements of the []float64
+are  elementally added by the corresponding entries in each row of the
+[][]float64. The length of the []float64 must match the length of each
+row of the [][]float64.
+
+Finally, if the passed value is a [][]float64, then mat.Add() takes each
+element of the first [][]float64 passed to it, and adds to that element
+the corresponding element in the second [][]float64 passed to this function.
+The shape of the [][]float64s must be the same (same number or rows and columns),
+and they are assumed to be non-jagged (same number of elements in each row).
+
+In each case, the result of the Addition is stored in the original [][]float64.
+If it is desired to keep the [][]float64 unchanged, the user can make a deep
+copy of it using mat.Copy() and pass the copy to this function instead.
 */
-func (m *Mat) Inc() *Mat {
-	for i := 0; i < m.r*m.c; i++ {
-		m.vals[i] = float64(i)
+func Add(m [][]float64, val interface{}) {
+	switch v := val.(type) {
+	case float64:
+		for i := range m {
+			for j := range m[i] {
+				m[i][j] += v
+			}
+		}
+	case []float64:
+		for i := range m {
+			if len(v) != len(m[i]) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%v, in row %d, the number of the columns of the first\n"
+				s += "slice is %d, but the length of the vector is %d. They must\n"
+				s += "match.\n"
+				s = fmt.Sprintf(s, "Add()", i, len(m[i]), len(v))
+				panic(s)
+			}
+		}
+		for i := range m {
+			for j := range v {
+				m[i][j] += v[j]
+			}
+		}
+	case [][]float64:
+		if len(m) != len(v) {
+			fmt.Println("\ngocrunch/mat error.")
+			s := "In mat.%v, the number of the rows of the first slice is %d\n"
+			s += "but the number of rows of the second slice is %d. They must\n"
+			s += "match.\n"
+			s = fmt.Sprintf(s, "Add()", len(m), len(v))
+			panic(s)
+		}
+		for i := range m {
+			if len(m[i]) != len(v[i]) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%v, column number %d of the first [][]float64 has length %d,\n"
+				s += "while column number %d of the second [][]float64 has length %d.\n"
+				s += "The length of each column must match.\n"
+				s = fmt.Sprintf(s, "Add()", i, len(m[i]), i, len(v[i]))
+				panic(s)
+			}
+			for j := range m[i] {
+				m[i][j] += v[i][j]
+			}
+		}
+	default:
+		fmt.Println("\ngocrunch/mat error.")
+		s := "In mat.%v, expected float64, []float64, or [][]float64 for the second\n"
+		s += "argument, but received argument of type: %v."
+		s = fmt.Sprintf(s, "Add()", reflect.TypeOf(v))
+		panic(s)
 	}
-	return m
 }
 
 /*
-Reset sets all values of a mat object to 0.0
+Sub subtracts a passed value in the second argument from the [][]float64
+in the first argument. The second argument can be a float64, a 1D slice
+of float64, or a [][]float64.
+
+When the passed value is a float64, the passed value is subtracted from
+each element of the [][]float64.
+
+If the passed value is a []float64, then the elements of the []float64
+are  elementally subtracted from the corresponding entries in each row of the
+[][]float64. The length of the []float64 must match the length of each
+row of the [][]float64.
+
+Finally, if the passed value is a [][]float64, then mat.Sub() takes each
+element of the first [][]float64 passed to it, and subtracts that element
+from the corresponding element in the second [][]float64 passed to this function.
+The shape of the [][]float64 must be the same (same number or rows and columns),
+and they are assumed to be non-jagged (same number of elements in each row).
+
+In each case, the result of the subtraction is stored in the original [][]float64.
+If it is desired to keep the [][]float64 unchanged, the user can make a deep
+copy of it using mat.Copy() and pass the copy to this function instead.
 */
-func (m *Mat) Reset() *Mat {
-	for i := 0; i < m.r*m.c; i++ {
-		m.vals[i] = 0.0
+func Sub(m [][]float64, val interface{}) {
+	switch v := val.(type) {
+	case float64:
+		for i := range m {
+			for j := range m[i] {
+				m[i][j] -= v
+			}
+		}
+	case []float64:
+		for i := range m {
+			if len(v) != len(m[i]) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%v, in row %d, the number of the columns of the first\n"
+				s += "slice is %d, but the length of the vector is %d. They must\n"
+				s += "match.\n"
+				s = fmt.Sprintf(s, "Sub()", i, len(m[i]), len(v))
+				panic(s)
+			}
+		}
+		for i := range m {
+			for j := range v {
+				m[i][j] -= v[j]
+			}
+		}
+	case [][]float64:
+		if len(m) != len(v) {
+			fmt.Println("\ngocrunch/mat error.")
+			s := "In mat.%v, the number of the rows of the first slice is %d\n"
+			s += "but the number of rows of the second slice is %d. They must\n"
+			s += "match.\n"
+			s = fmt.Sprintf(s, "Sub()", len(m), len(v))
+			panic(s)
+		}
+		for i := range m {
+			if len(m[i]) != len(v[i]) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%v, column number %d of the first [][]float64 has length %d,\n"
+				s += "while column number %d of the second [][]float64 has length %d.\n"
+				s += "The length of each column must match.\n"
+				s = fmt.Sprintf(s, "Sub()", i, len(m[i]), i, len(v[i]))
+				panic(s)
+			}
+			for j := range m[i] {
+				m[i][j] -= v[i][j]
+			}
+		}
+	default:
+		fmt.Println("\ngocrunch/mat error.")
+		s := "In mat.%v, expected float64, []float64, or [][]float64 for the second\n"
+		s += "argument, but received argument of type: %v."
+		s = fmt.Sprintf(s, "Sub()", reflect.TypeOf(v))
+		panic(s)
 	}
-	return m
 }
 
 /*
-SetAllTo sets all values of a mat to the passed float64 value.
+Div devides all elements of a [][]float64 by the passed value. The passed value can be
+a float64, []float64, or a [][]float64.
+
+When the passed value is a float64, then each element of the [][]float64 is devided
+by the passed value. The passed value cannot be zero, and such condition will cause
+a panic.
+
+If the passed value is a []float64, then each row of the [][]float64 is elementally
+divided by the corresponding entry in the passed []float64. Non of the elements of
+the []float64 can be zero, and such condition will cause a panic.
+
+Finally, if the passed value is a [][]float64, then mat.Div() takes each element of the
+first [][]float64 passed to it, and devides that element by the corresponding element
+in the second [][]float64 passed to this function.
+The shape of the [][]float64 must be the same (same number or rows and columns),
+and they are assumed to be non-jagged (same number of elements in each row). As
+usual, no elements of the second [][]float64 are allowed to be 0.0, and such
+condition will cause a panic.
+
+In each case, the result of the division is stored in the original [][]float64.
+If it is desired to keep the [][]float64 unchanged, the user can make a deep
+copy of it using mat.Copy() and pass the copy to this function instead.
 */
-func (m *Mat) SetAllTo(val float64) *Mat {
-	for i := 0; i < m.r*m.c; i++ {
-		m.vals[i] = val
+func Div(m [][]float64, val interface{}) {
+	switch v := val.(type) {
+	case float64:
+		if val == 0.0 {
+			fmt.Println("\ngocrunch/mat error.")
+			s := "In mat.%v, the second argument cannot be 0.0\n"
+			s = fmt.Sprintf(s, "Div()")
+			panic(s)
+		}
+		for i := range m {
+			for j := range m[i] {
+				m[i][j] /= v
+			}
+		}
+	case []float64:
+		for i := range v {
+			if v[i] == 0.0 {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%v, the passed []float64 contains 0.0 at index %d.\n"
+				s = fmt.Sprintf(s, "Div()", i)
+				panic(s)
+			}
+		}
+		for i := range m {
+			if len(v) != len(m[i]) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%v, in row %d, the number of the columns of the first\n"
+				s += "slice is %d, but the length of the vector is %d. They must\n"
+				s += "match.\n"
+				s = fmt.Sprintf(s, "Sub()", i, len(m[i]), len(v))
+				panic(s)
+			}
+		}
+		for i := range m {
+			for j := range v {
+				m[i][j] /= v[j]
+			}
+		}
+	case [][]float64:
+		for i := range v {
+			for j := range v[i] {
+				if v[i][j] == 0.0 {
+					fmt.Println("\ngocrunch/mat error.")
+					s := "In mat.%v, the passed [][]float64 contains 0.0 at [%d][%d].\n"
+					s = fmt.Sprintf(s, "Div()", i, j)
+					panic(s)
+				}
+			}
+		}
+		if len(m) != len(v) {
+			fmt.Println("\ngocrunch/mat error.")
+			s := "In mat.%v, the number of the rows of the first slice is %d\n"
+			s += "but the number of rows of the second slice is %d. They must\n"
+			s += "match.\n"
+			s = fmt.Sprintf(s, "Sub()", len(m), len(v))
+			panic(s)
+		}
+		for i := range m {
+			if len(m[i]) != len(v[i]) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%v, column number %d of the first [][]float64 has length %d,\n"
+				s += "while column number %d of the second [][]float64 has length %d.\n"
+				s += "The length of each column must match.\n"
+				s = fmt.Sprintf(s, "Sub()", i, len(m[i]), i, len(v[i]))
+				panic(s)
+			}
+			for j := range m[i] {
+				m[i][j] /= v[i][j]
+			}
+		}
+	default:
+		fmt.Println("\ngocrunch/mat error.")
+		s := "In mat.%v, expected float64, []float64, or [][]float64 for the second\n"
+		s += "argument, but received argument of type: %v."
+		s = fmt.Sprintf(s, "Sub()", reflect.TypeOf(v))
+		panic(s)
 	}
-	return m
 }
 
 /*
-Rand sets the values of a mat to random numbers. The range from which the random
-numbers are selected is determined based on the arguments passed.
+Rand sets the values of a [][]float64, m, to random numbers. The range from which
+the random numbers are selected is determined based on the arguments passed.
 
-For no arguments, such as
-	m.Rand()
+For no additional arguments, such as
+	mat.Rand(m)
 the range is [0, 1)
 
 For 1 argument, such as
-	m.Rand(arg)
+	mat.Rand(m, arg)
 the range is [0, arg) for arg > 0, or (arg, 0] is arg < 0.
 
 For 2 arguments, such as
-	m.Rand(arg1, arg2)
-the range is [arg1, arg2).
+	mat.Rand(m, arg1, arg2)
+the range is [arg1, arg2). For this case, arg1 must be less than arg2, or
+the function will panic.
 */
-func (m *Mat) Rand(args ...float64) *Mat {
+func Rand(m [][]float64, args ...float64) {
 	switch len(args) {
 	case 0:
-		for i := 0; i < m.r*m.c; i++ {
-			m.vals[i] = rand.Float64()
+		for i := range m {
+			for j := range m[i] {
+				m[i][j] = rand.Float64()
+			}
 		}
 	case 1:
 		to := args[0]
-		for i := 0; i < m.r*m.c; i++ {
-			m.vals[i] = rand.Float64() * to
+		for i := range m {
+			for j := range m[i] {
+				m[i][j] = rand.Float64() * to
+			}
 		}
 	case 2:
 		from := args[0]
 		to := args[1]
 		if !(from < to) {
-			fmt.Println("\nNumgo/mat error.")
+			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%s the first argument, %f, is not less than the\n"
 			s += "second argument, %f. The first argument must be strictly\n"
 			s += "less than the second.\n"
-			s = fmt.Sprintf(s, "Rand", from, to)
-			fmt.Println(s)
-			fmt.Println("Stack trace for this error:")
-			debug.PrintStack()
-			os.Exit(1)
+			s = fmt.Sprintf(s, "Rand()", from, to)
+			panic(s)
 		}
-		for i := 0; i < m.r*m.c; i++ {
-			m.vals[i] = rand.Float64()*(to-from) + from
+		for i := range m {
+			for j := range m[i] {
+				m[i][j] = rand.Float64()*(to-from) + from
+			}
 		}
 	default:
-		fmt.Println("\nNumgo/mat error.")
+		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%s expected 0 to 2 arguments, but recieved %d."
-		s = fmt.Sprintf(s, "Rand", len(args))
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
+		s = fmt.Sprintf(s, "Rand()", len(args))
+		panic(s)
 	}
-	return m
 }
 
 /*
-Col returns a new mat object whole values are equal to a column of the original
-mat object. The number of Rows of the returned mat object is equal to the
-number of rows of the original mat, and the number of columns is equal to 1.
+Col returns a column from a [][]float64. For example:
+
+	fmt.Println(m) // [[1.0, 2.3], [3.4, 1.7]]
+	mat.Col(0, m) // [1.0, 3.4]
+
+Col also accepts negative indices. For example:
+
+	mat.Col(-1, m) // [2.3, 1.7]
 */
-func (m *Mat) Col(x int) *Mat {
-	if (x >= m.c) || (x < 0) {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s the requested column %d is outside of bounds [0, %d)\n"
-		s = fmt.Sprintf(s, "Col", x, m.c)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
+func Col(x int, m [][]float64) []float64 {
+	if (x >= len(m[0])) || (x < -len(m[0])) {
+		fmt.Println("\ngocrunch/mat error.")
+		s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
+		s = fmt.Sprintf(s, "Col()", x, len(m[0]), len(m[0]))
+		panic(s)
 	}
-	v := New(m.r, 1)
-	for r := 0; r < m.r; r++ {
-		v.vals[r] = m.vals[r*m.c+x]
+	v := make([]float64, len(m))
+	if x >= 0 {
+		for i := range m {
+			v[i] = m[i][x]
+		}
+	} else {
+		for i := range m {
+			v[i] = m[i][len(m[0])+x]
+		}
 	}
 	return v
 }
 
 /*
-Cols returns a generator which, upon invocation, returns the next column of
-a Mat in form of a Mat with 1 column, and the same number of rows of the
-method receiver. Consider the following:
+Row returns a row from a [][]float64. For example:
 
-	m := mat.New(3, 2).Inc()
-	for col := range m.Cols() {
-		col.Print()
-	}
+	fmt.Println(m) // [[1.0, 2.3], [3.4, 1.7]]
+	mat.Row(0, m) // [1.0, 2.3]
 
-The col.Print() above prints:
-	// 0.0
-	// 2.0
-	// 4.0
+Row also accepts negative indices. For example:
 
-and then
-	// 1.0
-	// 3.0
-	// 5.0
+	mat.Row(-1, m) // [3.4, 1.7]
 */
-func (m *Mat) Cols() <-chan *Mat {
-	res := make(chan *Mat, m.c)
-	go func() {
-		for i := 0; i < m.c; i++ {
-			res <- m.Col(i)
-		}
-		close(res)
-	}()
-	return res
-}
-
-/*
-Row returns a new mat object whose values are equal to a row of the original
-mat object. The number of Rows of the returned mat object is equal to 1, and
-the number of columns is equal to the number of columns of the original mat.
-*/
-func (m *Mat) Row(x int) *Mat {
-	if (x >= m.r) || (x < 0) {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s the requested row %d is outside of the bounds [0, %d)\n"
-		s = fmt.Sprintf(s, "Row", x, m.r)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
+func Row(x int, m [][]float64) []float64 {
+	if (x >= len(m)) || (x < -len(m)) {
+		fmt.Println("\ngocrunch/mat error.")
+		s := "In mat.%s the requested row %d is outside of bounds [-%d, %d)\n"
+		s = fmt.Sprintf(s, "Row()", x, len(m), len(m))
+		panic(s)
 	}
-	v := New(1, m.c)
-	for r := 0; r < m.c; r++ {
-		v.vals[r] = m.vals[x*m.c+r]
+	v := make([]float64, len(m[0]))
+	if x >= 0 {
+		copy(v, m[x])
+	} else {
+		copy(v, m[len(m)+x])
 	}
 	return v
 }
 
 /*
-Rows returns a generator which, upon invocation, returns the next row of
-a Mat in form of a Mat with 1 row, and the same number of columns of the
-method receiver. Consider the following:
-
-	m := mat.New(3, 2).Inc()
-	m.Print() // 0.0 1.0
-	          // 2.0 3.0
-			  // 4.0 5.0
-
-	for row := range m.Rows() {
-		row.Print()
-	}
-
-The col.Print() above prints:
-	// 0.0 1.0
-
-and then
-	// 2.0 3.0
-
-and finally
-	// 4.0 5.0
-*/
-func (m *Mat) Rows() <-chan *Mat {
-	res := make(chan *Mat, m.r)
-	go func() {
-		for i := 0; i < m.r; i++ {
-			res <- m.Row(i)
-		}
-		close(res)
-	}()
-	return res
-}
-
-/*
-Equals checks to see if two mat objects are equal. That mean that the two mats
+Equal checks to see if two [][]float64s are equal. That mean that the two slices
 have the same number of rows, same number of columns, and have the same float64
-in each entry at a given index.
+in each entry at a given set of indices.
 */
-func (m *Mat) Equals(n *Mat) bool {
-	if m.r != n.r {
+func Equal(m, n [][]float64) bool {
+	if len(m) != len(n) {
 		return false
 	}
-	if m.c != n.c {
-		return false
-	}
-	for i := 0; i < m.r*m.c; i++ {
-		if m.vals[i] != n.vals[i] {
+	for i := range m {
+		if len(m[i]) != len(n[i]) {
 			return false
+		}
+	}
+	for i := range m {
+		for j := range m[i] {
+			if m[i][j] != n[i][j] {
+				return false
+			}
 		}
 	}
 	return true
 }
 
 /*
-Copy returns a duplicate of a mat object. The returned copy is "deep", meaning
-that the object can be manipulated without effecting the original mat object.
+Copy returns a duplicate of a [][]float64. The returned copy is "deep", meaning
+that the object can be manipulated without effecting the original.
 */
-func (m *Mat) Copy() *Mat {
-	n := New(m.r, m.c)
-	copy(n.vals, m.vals)
+func Copy(m [][]float64) [][]float64 {
+	n := New(len(m), len(m[0]))
+	for i := range m {
+		copy(n[i], m[i])
+	}
 	return n
 }
 
 /*
-T returns the transpose of the original matrix. The transpose of a mat object
+T returns the transpose of the original [][]float64. The transpose of a [][]float64
 is defined in the usual manner, where every value at row x, and column y is
-placed at row y, and column x. The number of rows and column of the transposed
-mat are equal to the number of columns and rows of the original matrix,
-respectively. This method creates a new mat object, and the original is
-left intact.
+placed at row y, and column x. The number of rows and column of the transpose
+of a slice are equal to the number of columns and rows of the original slice,
+respectively. This method creates a new [][]float64, and the original is
+left intact. The passed [][]float64 is assumed to be non-jagged.
 */
-func (m *Mat) T() *Mat {
-	n := New(m.c, m.r)
-	idx := 0
-	for i := 0; i < m.c; i++ {
-		for j := 0; j < m.r; j++ {
-			n.vals[idx] = m.vals[j*m.c+i]
-			idx++
+func T(m [][]float64) [][]float64 {
+	n := New(len(m[0]), len(m))
+	for i := range m {
+		for j := range m[i] {
+			n[j][i] = m[i][j]
 		}
 	}
 	return n
-}
-
-/*
-Filter applies a function to each element of a mat object, creating a new
-mat object from all elements for which the function returned true. For
-example consider the following function:
-
-	positive := func(i *float64) bool {
-		if i > 0.0 {
-			return true
-		}
-		return false
-	}
-
-then calling
-
-	m.Filter(positive)
-
-will create a new mat object which contains the positive elements of the
-original matrix. If no elements return true for a given function, nil is
-returned. It is expected that the caller of this method checks the
-returned value to ensure that it is not nil.
-*/
-func (m *Mat) Filter(f booleanFunc) *Mat {
-	var res []float64
-	for i := 0; i < m.r*m.c; i++ {
-		if f(&m.vals[i]) {
-			res = append(res, m.vals[i])
-		}
-	}
-	if len(res) == 0 {
-		return nil
-	}
-	return From1DSlice(res)
 }
 
 /*
 All checks if a supplied function is true for all elements of a mat object.
+The supplied function is expected to have the signature of a BooleanFunc, which
+takes a float64, returning a bool.
 For instance, consider
 
 	positive := func(i *float64) bool {
@@ -789,21 +784,25 @@ For instance, consider
 
 Then calling
 
-	m.All(positive)
+	mat.All(positive, m)
 
 will return true if and only if all elements in m are positive.
 */
-func (m *Mat) All(f booleanFunc) bool {
-	for i := 0; i < m.r*m.c; i++ {
-		if !f(&m.vals[i]) {
-			return false
+func All(f BooleanFunc, m [][]float64) bool {
+	for i := range m {
+		for j := range m[i] {
+			if !f(m[i][j]) {
+				return false
+			}
 		}
 	}
 	return true
 }
 
 /*
-Any checks if a supplied function is true for one elements of a mat object.
+Any checks if a supplied function is true for at least one elements of
+a [][]float64. The supplied function must have the signature of
+a BooleanFunc, meaning that it takes a float64, and returns a bool.
 For instance,
 
 	positive := func(i *float64) bool {
@@ -815,781 +814,247 @@ For instance,
 
 Then calling
 
-	m.Any(positive)
+	mat.Any(positive, m)
 
-would be true if at least one element of the mat object is positive.
+would be true if at least one element of the m is positive.
 */
-func (m *Mat) Any(f booleanFunc) bool {
-	for i := 0; i < m.r*m.c; i++ {
-		if f(&m.vals[i]) {
-			return true
+func Any(f BooleanFunc, m [][]float64) bool {
+	for i := range m {
+		for j := range m[i] {
+			if f(m[i][j]) {
+				return true
+			}
 		}
 	}
 	return false
 }
 
 /*
-Mul is the element-wise multiplication of a mat object by another which is
-passed to this method.
+Sum returns the sum of all elements in a [][]float64. It is also
+possible for this function to return the sum of a specific row or column in
+a [][]float64, by passing two additional integers to it: The first integer
+must be either 0 for picking a row, or 1 for picking a column. The second
+integer determines the specific row or column for which the sum is desired.
+This function allow the index to be negative. For example, the sum of the
+last row of a [][]float64 is given by:
 
-The shape of the mat objects must be the same (same number or rows and columns)
-and the results of the element-wise multiplication is stored in the original
-mat on which the method was invoked.
+	mat.Sum(m, 0, -1)
+
+where as the sum of the first column is given by:
+
+	mat.Sum(m, 1, 0)
 */
-func (m *Mat) Mul(n *Mat) *Mat {
-	if m.r != n.r {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the number of the rows of the first mat is %d\n"
-		s += "but the number of rows of the second mat is %d. They must\n"
-		s += "match.\n"
-		s = fmt.Sprintf(s, "Mul", m.r, n.r)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	if m.c != n.c {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the number of the columns of the first mat is %d\n"
-		s += "but the number of columns of the second mat is %d. They must\n"
-		s += "match.\n"
-		s = fmt.Sprintf(s, "Mul", m.c, n.c)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	for i := 0; i < m.r*m.c; i++ {
-		m.vals[i] *= n.vals[i]
-	}
-	return m
-}
-
-/*
-Add is the element-wise addition of a mat object with another which is passed
-to this method.
-
-The shape of the mat objects must be the same (same number or rows and columns)
-and the results of the element-wise addition is stored in the original
-mat on which the method was invoked.
-*/
-func (m *Mat) Add(n *Mat) *Mat {
-	if m.r != n.r {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the number of the rows of the first mat is %d\n"
-		s += "but the number of rows of the second mat is %d. They must\n"
-		s += "match.\n"
-		s = fmt.Sprintf(s, "Add", m.r, n.r)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	if m.c != n.c {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the number of the columns of the first mat is %d\n"
-		s += "but the number of columns of the second mat is %d. They must\n"
-		s += "match.\n"
-		s = fmt.Sprintf(s, "Add", m.c, n.c)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	for i := 0; i < m.r*m.c; i++ {
-		m.vals[i] += n.vals[i]
-	}
-	return m
-}
-
-/*
-Sub is the element-wise subtraction of a mat object which is passed
-to this method from the original mat which called the method.
-
-The shape of the mat objects must be the same (same number or rows and columns)
-and the results of the element-wise subtraction is stored in the original
-mat on which the method was invoked.
-*/
-func (m *Mat) Sub(n *Mat) *Mat {
-	if m.r != n.r {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the number of the rows of the first mat is %d\n"
-		s += "but the number of rows of the second mat is %d. They must\n"
-		s += "match.\n"
-		s = fmt.Sprintf(s, "Sub", m.r, n.r)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	if m.c != n.c {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the number of the columns of the first mat is %d\n"
-		s += "but the number of columns of the second mat is %d. They must\n"
-		s += "match.\n"
-		s = fmt.Sprintf(s, "Sub", m.c, n.c)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	for i := 0; i < m.r*m.c; i++ {
-		m.vals[i] -= n.vals[i]
-	}
-	return m
-}
-
-/*
-Div is the element-wise dicition of a mat object by another which is passed
-to this method.
-
-The shape of the mat objects must be the same (same number or rows and columns)
-and the results of the element-wise division is stored in the original
-mat on which the method was invoked. The dividing mat object (passed to this
-method) must not contain any elements which are equal to 0.0.
-*/
-func (m *Mat) Div(n *Mat) *Mat {
-	if m.r != n.r {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the number of the rows of the first mat is %d\n"
-		s += "but the number of rows of the second mat is %d. They must\n"
-		s += "match.\n"
-		s = fmt.Sprintf(s, "Div", m.r, n.r)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	if m.c != n.c {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the number of the columns of the first mat is %d\n"
-		s += "but the number of columns of the second mat is %d. They must\n"
-		s += "match.\n"
-		s = fmt.Sprintf(s, "Div", m.c, n.c)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	zero := func(i *float64) bool {
-		if *i == 0.0 {
-			return true
-		}
-		return false
-	}
-	if n.Any(zero) {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, one or more elements of the second matrix are 0.0\n"
-		s += "Division by zero is not allowed.\n"
-		s = fmt.Sprintf(s, "Div", m.c, n.c)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	for i := 0; i < m.r*m.c; i++ {
-		m.vals[i] /= n.vals[i]
-	}
-	return m
-}
-
-/*
-Scale is the element-wise multiplication of a mat object by a scalar.
-
-The results of the element-wise multiplication is stored in the original
-mat on which the method was invoked.
-*/
-func (m *Mat) Scale(f float64) *Mat {
-	for i := 0; i < m.r*m.c; i++ {
-		m.vals[i] *= f
-	}
-	return m
-}
-
-/*
-Sum returns the sum of the elements along a specific row or specific column.
-The first argument selects the row or column (0 or 1), and the second argument
-selects which row or column for which we want to calculate the sum. For
-example:
-
-	m.Sum(0, 2)
-
-will return the sum of the 3rd row of mat m.
-*/
-func (m *Mat) Sum(axis, slice int) float64 {
-	if axis != 0 && axis != 1 {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the first argument must be 0 or 1, however %d "
-		s += "was recieved.\n"
-		s = fmt.Sprintf(s, "Sum", axis)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	if axis == 0 {
-		if (slice >= m.r) || (slice < 0) {
-			fmt.Println("\nNumgo/mat error.")
-			s := "In mat.%s the row %d is outside of bounds [0, %d)\n"
-			s = fmt.Sprintf(s, "Sum", slice, m.r)
-			fmt.Println(s)
-			fmt.Println("Stack trace for this error:")
-			debug.PrintStack()
-			os.Exit(1)
-		}
-	} else if axis == 1 {
-		if (slice >= m.c) || (slice < 0) {
-			fmt.Println("\nNumgo/mat error.")
-			s := "In mat.%s the column %d is outside of bounds [0, %d)\n"
-			s = fmt.Sprintf(s, "Sum", slice, m.c)
-			fmt.Println(s)
-			fmt.Println("Stack trace for this error:")
-			debug.PrintStack()
-			os.Exit(1)
-		}
-	}
-	return m.precheckedSum(axis, slice)
-}
-
-func (m *Mat) precheckedSum(axis, slice int) float64 {
-	x := 0.0
-	if axis == 0 {
-		for i := 0; i < m.c; i++ {
-			x += m.vals[slice*m.c+i]
-		}
-	} else if axis == 1 {
-		for i := 0; i < m.r; i++ {
-			x += m.vals[i*m.c+slice]
-		}
-	}
-	return x
-}
-
-/*
-Average returns the average of the elements along a specific row or specific
-column.
-The first argument selects the row or column (0 or 1), and the second argument
-selects which row or column for which we want to calculate the average. For
-example:
-
-	m.Average(0, 2)
-
-will return the average of the 3rd row of mat m.
-*/
-func (m *Mat) Average(axis, slice int) float64 {
-	if axis != 0 && axis != 1 {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the first argument must be 0 or 1, however %d "
-		s += "was recieved.\n"
-		s = fmt.Sprintf(s, "Average", axis)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	if axis == 0 {
-		if (slice >= m.r) || (slice < 0) {
-			fmt.Println("\nNumgo/mat error.")
-			s := "In mat.%s the row %d is outside of bounds [0, %d)\n"
-			s = fmt.Sprintf(s, "Average", slice, m.r)
-			fmt.Println(s)
-			fmt.Println("Stack trace for this error:")
-			debug.PrintStack()
-			os.Exit(1)
-		}
-	} else if axis == 1 {
-		if (slice >= m.c) || (slice < 0) {
-			fmt.Println("\nNumgo/mat error.")
-			s := "In mat.%s the column %d is outside of bounds [0, %d)\n"
-			s = fmt.Sprintf(s, "Average", slice, m.c)
-			fmt.Println(s)
-			fmt.Println("Stack trace for this error:")
-			debug.PrintStack()
-			os.Exit(1)
-		}
-	}
-	return m.precheckedAverage(axis, slice)
-}
-
-func (m *Mat) precheckedAverage(axis, slice int) float64 {
-	sum := m.precheckedSum(axis, slice)
-	if axis == 0 {
-		return sum / float64(m.c)
-	}
-	return sum / float64(m.r)
-}
-
-/*
-Prod returns the product of the elements along a specific row or specific
-column.
-The first argument selects the row or column (0 or 1), and the second argument
-selects which row or column for which we want to calculate the product. For
-example:
-
-	m.Prod(1, 2)
-
-will return the product of the 3rd column of mat m.
-*/
-func (m *Mat) Prod(axis, slice int) float64 {
-	if axis != 0 && axis != 1 {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the first argument must be 0 or 1, however %d "
-		s += "was recieved.\n"
-		s = fmt.Sprintf(s, "Prod", axis)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	if axis == 0 {
-		if (slice >= m.r) || (slice < 0) {
-			fmt.Println("\nNumgo/mat error.")
-			s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
-			s = fmt.Sprintf(s, "Prod", slice, m.r)
-			fmt.Println(s)
-			fmt.Println("Stack trace for this error:")
-			debug.PrintStack()
-			os.Exit(1)
-		}
-	} else if axis == 1 {
-		if (slice >= m.c) || (slice < 0) {
-			fmt.Println("\nNumgo/mat error.")
-			s := "In mat.%s the column %d is outside of bounds [0, %d)\n"
-			s = fmt.Sprintf(s, "Prod", slice, m.c)
-			fmt.Println(s)
-			fmt.Println("Stack trace for this error:")
-			debug.PrintStack()
-			os.Exit(1)
-		}
-	}
-	x := 1.0
-	if axis == 0 {
-		for i := 0; i < m.c; i++ {
-			x *= m.vals[slice*m.c+i]
-		}
-	} else if axis == 1 {
-		for i := 0; i < m.r; i++ {
-			x *= m.vals[i*m.c+slice]
-		}
-	}
-	return x
-}
-
-/*
-Std returns the standard deviation of the elements along a specific row
-or specific column. The standard deviation is defined as the square root of
-the mean distance of each element from the mean. Look at:
-http://mathworld.wolfram.com/StandardDeviation.html
-
-For example:
-
-	m.Std(1, 0)
-
-will return the standard deviation of the first column of mat m.
-*/
-func (m *Mat) Std(axis, slice int) float64 {
-	if axis != 0 && axis != 1 {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%v, the first argument must be 0 or 1, however %d "
-		s += "was recieved.\n"
-		s = fmt.Sprintf(s, "Std", axis)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	if axis == 0 {
-		if (slice >= m.r) || (slice < 0) {
-			fmt.Println("\nNumgo/mat error.")
-			s := "In mat.%s the row %d is outside of bounds [0, %d)\n"
-			s = fmt.Sprintf(s, "Std", slice, m.r)
-			fmt.Println(s)
-			fmt.Println("Stack trace for this error:")
-			debug.PrintStack()
-			os.Exit(1)
-		}
-	} else if axis == 1 {
-		if (slice >= m.c) || (slice < 0) {
-			fmt.Println("\nNumgo/mat error.")
-			s := "In mat.%s the column %d is outside of bounds [0, %d)\n"
-			s = fmt.Sprintf(s, "Std", slice, m.c)
-			fmt.Println(s)
-			fmt.Println("Stack trace for this error:")
-			debug.PrintStack()
-			os.Exit(1)
-		}
-	}
-	avg := m.precheckedAverage(axis, slice)
-	var s []float64
-	if axis == 0 {
-		s = make([]float64, m.c)
-		for i := 0; i < m.c; i++ {
-			s[i] = avg - m.vals[slice*m.c+i]
-			s[i] *= s[i]
-		}
-	} else {
-		s = make([]float64, m.r)
-		for i := 0; i < m.r; i++ {
-			s[i] = avg - m.vals[i*m.c+slice]
-			s[i] *= s[i]
-		}
-	}
+func Sum(m [][]float64, args ...int) float64 {
 	sum := 0.0
-	for i := range s {
-		sum += s[i]
-	}
-	return math.Sqrt(sum / float64(len(s)))
-}
-
-/*
-Dot is the matrix multiplication of two mat objects. Consider the following two
-mats:
-
-	m := New(5, 6)
-	n := New(6, 10)
-
-then
-
-	o := m.Dot(n)
-
-is a 5 by 10 mat whose element at row i and column j is given by:
-
-	Sum(m.Row(i).Mul(n.col(j))
-*/
-func (m *Mat) Dot(n *Mat) *Mat {
-	if m.c != n.r {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s the number of columns of the first mat is %d\n"
-		s += "which is not equal to the number of rows of the second mat,\n"
-		s += "which is %d. They must be equal.\n"
-		s = fmt.Sprintf(s, "Dot", m.c, n.r)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	o := New(m.r, n.c)
-	for i := 0; i < m.r; i++ {
-		for j := 0; j < n.c; j++ {
-			for k := 0; k < m.c; k++ {
-				o.vals[i*o.c+j] += (m.vals[i*m.c+k] * n.vals[k*n.c+j])
+	switch len(args) {
+	case 0:
+		for i := range m {
+			for j := range m[i] {
+				sum += m[i][j]
 			}
 		}
-	}
-	return o
-}
-
-/*
-ToString returns the string representation of a mat. This is done by putting
-every row into a line, and separating the entries of that row by a space. note
-that the last line does not contain a newline.
-*/
-func (m *Mat) ToString() string {
-	var str string
-	for i := 0; i < m.r; i++ {
-		for j := 0; j < m.c; j++ {
-			str += strconv.FormatFloat(m.vals[i*m.c+j], 'f', 14, 64)
-			str += " "
-		}
-		if i+1 <= m.r {
-			str += "\n"
-		}
-	}
-	return str
-}
-
-/*
-AppendCol appends a column to the right side of a Mat.
-*/
-func (m *Mat) AppendCol(v []float64) *Mat {
-	if m.r != len(v) {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s the number of rows of the reciever is %d, while\n"
-		s += "the number of rows of the vector is %d. They must be equal.\n"
-		s = fmt.Sprintf(s, "AppendCol", m.r, len(v))
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	// TODO: redo this by hand, instead of taking this shortcut... or check if
-	// this is a huge bottleneck
-	q := m.ToSlice()
-	for i := range q {
-		q[i] = append(q[i], v[i])
-	}
-	m.c++
-	m.vals = append(m.vals, v...)
-	for i := 0; i < m.r; i++ {
-		for j := 0; j < m.c; j++ {
-			m.vals[i*m.c+j] = q[i][j]
-		}
-	}
-	return m
-}
-
-/*
-AppendRow appends a row to the bottom of a Mat.
-*/
-func (m *Mat) AppendRow(v []float64) *Mat {
-	if m.c != len(v) {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s the number of cols of the reciever is %d, while\n"
-		s += "the number of rows of the vector is %d. They must be equal.\n"
-		s = fmt.Sprintf(s, "AppendCol", m.c, len(v))
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	m.vals = append(m.vals, v...)
-	m.r++
-	return m
-}
-
-/*
-Concat concatenates the inner slices of two `[][]float64` arguments..
-
-For example, if we have:
-
-	m := [[1.0, 2.0], [3.0, 4.0]]
-	n := [[5.0, 6.0], [7.0, 8.0]]
-	o := mat.Concat(m, n).Print // 1.0, 2.0, 5.0, 6.0
-															// 3.0, 4.0, 7.0, 8.0
-
-*/
-func (m *Mat) Concat(n *Mat) *Mat {
-	if m.r != n.r {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s the number of rows of the receiver is %d, while\n"
-		s += "the number of rows of the second Mat is %d. They must be equal.\n"
-		s = fmt.Sprintf(s, "Concat", m.r, n.r)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	q := m.ToSlice()
-	t := n.Vals()
-	r := n.ToSlice()
-	m.vals = append(m.vals, t...)
-	for i := range q {
-		q[i] = append(q[i], r[i]...)
-	}
-	m.c += n.c
-	for i := 0; i < m.r; i++ {
-		for j := 0; j < m.c; j++ {
-			m.vals[i*m.c+j] = q[i][j]
-		}
-	}
-	return m
-}
-
-/*
-Print displays the content of a Mat to the screen.
-*/
-func (m *Mat) Print() {
-	fmt.Println(m.ToString())
-}
-
-/*
-Set sets the value of a mat at a given row and column to the given value
-*/
-func (m *Mat) Set(r, c int, val float64) *Mat {
-	if (r >= m.r) || (r < 0) {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s the requested row %d is outside of bounds [0, %d)\n"
-		s = fmt.Sprintf(s, "Set", r, m.r)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	if (c >= m.c) || (c < 0) {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s the requested column %d is outside of bounds [0, %d)\n"
-		s = fmt.Sprintf(s, "Set", r, m.c)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	m.vals[r*m.c+c] = val
-	return m
-}
-
-/*
-CombineWithRows combines a slice elementally with each of the rows in a Mat. The allowed
-combinations are ["add", "sub", "mul", "div"]. Consider:
-	v := make([]float64, 5)
-	for i := range v {
-		v[i] = float64(i) // v is now [0.0, 1.0, 2.0, 3.0, 4.0]
-	}
-	m := mat.New(2, 5).Inc() // note that m's number of columns is equal to len(v)
-	m.Row(0).Print() // 0.0 1.0 2.0 3.0 4.0
-	m.Row(1).Print() // 5.0 6.0 7.0 8.0 9.0
-	m.CombineWithRows("add", v)
-	m.Row(0).Print() // 0.0 2.0 4.0 6.0 8.0
-	m.Row(1).Print() // 5.0 7.0 9.0 11.0 13.0
-In other words, each element of v is added to the corresponding element of each row of
-m.
-
-Note that for the combination method of "Div", all elements of the passed slice must be
-non-zero to avoid division by zero.
-*/
-func (m *Mat) CombineWithRows(how string, v []float64) *Mat {
-	if m.c != len(v) {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s the number of cols of the reciever is %d, while\n"
-		s += "the number of rows of the vector is %d. They must be equal.\n"
-		s = fmt.Sprintf(s, "AddToRows", m.c, len(v))
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	switch how {
-	case "add":
-		for i := 0; i < m.r; i++ {
-			for j := 0; j < m.c; j++ {
-				m.vals[i*m.c+j] += v[j]
+	case 2:
+		switch args[0] {
+		case 0:
+			x := args[1]
+			if (x >= len(m)) || (x < -len(m)) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
+				s = fmt.Sprintf(s, "SumRow()", x, len(m), len(m))
+				panic(s)
 			}
-		}
-	case "sub":
-		for i := 0; i < m.r; i++ {
-			for j := 0; j < m.c; j++ {
-				m.vals[i*m.c+j] -= v[j]
+			if x >= 0 {
+				for i := range m[x] {
+					sum += m[x][i]
+				}
+			} else {
+				for i := range m[len(m)+x] {
+					sum += m[len(m)+x][i]
+				}
 			}
-		}
-	case "mul":
-		for i := 0; i < m.r; i++ {
-			for j := 0; j < m.c; j++ {
-				m.vals[i*m.c+j] *= v[j]
+		case 1:
+			x := args[1]
+			if (x >= len(m[0])) || (x < -len(m[0])) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
+				s = fmt.Sprintf(s, "Sum()", x, len(m[0]), len(m[0]))
+				panic(s)
 			}
-		}
-	case "div":
-		for i := range v {
-			if v[i] == 0.0 {
-				fmt.Println("\nNumgo/mat error.")
-				s := "In mat.%s a zero-valued element was found in v at index %d.\n"
-				s += "Division by zero is not allowed.\n"
-				s = fmt.Sprintf(s, "CombineWithRows", i)
-				fmt.Println(s)
-				fmt.Println("Stack trace for this error:")
-				debug.PrintStack()
-				os.Exit(1)
+			if x >= 0 {
+				for i := range m {
+					sum += m[i][x]
+				}
+			} else {
+				for i := range m {
+					sum += m[i][len(m[0])+x]
+				}
 			}
-		}
-		for i := 0; i < m.r; i++ {
-			for j := 0; j < m.c; j++ {
-				m.vals[i*m.c+j] /= v[j]
-			}
+		default:
+			fmt.Println("\ngocrunch/mat error.")
+			s := "In mat.%s the first argument after the [][]float64 determines the axis.\n"
+			s += "It must be 0 for row, or 1 for column. but %d was passed."
+			s = fmt.Sprintf(s, "Sum()", args[0])
+			panic(s)
+
 		}
 	default:
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s the allowed combination methods are ['add', 'sub', 'mul', 'div'].\n"
-		s += "However, %s was recieved.\n"
-		s = fmt.Sprintf(s, "CombineWithRows", how)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
+		fmt.Println("\ngocrunch/mat error.")
+		s := "In mat.%s expected 0 or 2 arguments after the [][]float64 \n"
+		s += "but recieved %d"
+		s = fmt.Sprintf(s, "Sum()", len(args))
+		panic(s)
+
 	}
-	return m
+	return sum
 }
 
 /*
-CombineWithCols combines a slice elementally with each of the columns in a Mat. The allowed
-combinations are ["add", "sub", "mul", "div"]. Consider:
-	v := make([]float64, 5)
-	for i := range v {
-		v[i] = float64(i) // v is now [0.0, 1.0, 2.0, 3.0, 4.0]
-	}
-	m := mat.New(5, 2).Inc() // note that m's number of rows is equal to len(v)
-	m.Col(0).Print() // 0.0
-			 // 1.0
-			 // 2.0
-			 // 3.0
-			 // 4.0
-	m.Col(1).Print() // 5.0
-			 // 6.0
-			 // 7.0
-			 // 8.0
-			 // 9.0
-	m.CombineWithCols("add", v)
-	m.Col(0).Print() // 0.0
-	                 // 2.0
-	                 // 4.0
-	                 // 6.0
-	                 // 8.0
-	m.Col(1).Print() // 5.0
-	                 // 7.0
-	                 // 9.0
-	                 // 11.0
-	                 // 13.0
-In other words, each element of v is added to the corresponding element of each column of
-m.
+Avg returns the average value of all the elements in a [][]float64. It's also
+possible for this function to return the sum of a specific row or column in
+a [][]float64, by passing two additional integers to it: The first integer
+must be either 0 for picking a row, or 1 for picking a column. The second
+integer determines the specific row or column for which the average is desired.
+This function allow the index to be negative. For example, the average of the
+last row of a [][]float64 is given by:
 
-Note that for the combination method of "Div", all elements of the passed slice must be
-non-zero to avoid division by zero.
+	mat.Avg(m, 0, -1)
+
+where as the sum of the first column is given by:
+
+	mat.Avg(m, 1, 0)
 */
-func (m *Mat) CombineWithCols(how string, v []float64) *Mat {
-	if m.r != len(v) {
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s the number of columns of the reciever is %d, while\n"
-		s += "the number of rows of the vector is %d. They must be equal.\n"
-		s = fmt.Sprintf(s, "AddToRows", m.r, len(v))
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
-	}
-	switch how {
-	case "add":
-		for i := 0; i < m.c; i++ {
-			for j := 0; j < m.r; j++ {
-				m.vals[j*m.c+i] += v[j]
+func Avg(m [][]float64, args ...int) float64 {
+	avg := 0.0
+	sum := 0.0
+	numItems := 0
+	switch len(args) {
+	case 0:
+		for i := range m {
+			for j := range m[i] {
+				sum += m[i][j]
+				numItems++
 			}
 		}
-	case "sub":
-		for i := 0; i < m.c; i++ {
-			for j := 0; j < m.r; j++ {
-				m.vals[j*m.c+i] -= v[j]
+	case 2:
+		switch args[0] {
+		case 0:
+			x := args[1]
+			if (x >= len(m)) || (x < -len(m)) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
+				s = fmt.Sprintf(s, "Avg()", x, len(m), len(m))
+				panic(s)
 			}
-		}
-	case "mul":
-		for i := 0; i < m.c; i++ {
-			for j := 0; j < m.r; j++ {
-				m.vals[j*m.c+i] *= v[j]
+			if x >= 0 {
+				for i := range m[x] {
+					sum += m[x][i]
+				}
+				numItems = len(m[x])
+			} else {
+				for i := range m[len(m)+x] {
+					sum += m[len(m)+x][i]
+				}
+				numItems = len(m[len(m)+x])
 			}
-		}
-	case "div":
-		for i := range v {
-			if v[i] == 0.0 {
-				fmt.Println("\nNumgo/mat error.")
-				s := "In mat.%s a zero-valued element was found in v at index %d.\n"
-				s += "Division by zero is not allowed.\n"
-				s = fmt.Sprintf(s, "CombineWithRows", i)
-				fmt.Println(s)
-				fmt.Println("Stack trace for this error:")
-				debug.PrintStack()
-				os.Exit(1)
+		case 1:
+			x := args[1]
+			if (x >= len(m[0])) || (x < -len(m[0])) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
+				s = fmt.Sprintf(s, "AvgCol()", x, len(m[0]), len(m[0]))
+				panic(s)
 			}
-		}
-		for i := 0; i < m.c; i++ {
-			for j := 0; j < m.r; j++ {
-				m.vals[j*m.c+i] /= v[j]
+			if x >= 0 {
+				for i := range m {
+					sum += m[i][x]
+				}
+			} else {
+				for i := range m {
+					sum += m[i][len(m[0])+x]
+				}
 			}
+			numItems = len(m)
+		default:
+			fmt.Println("\ngocrunch/mat error.")
+			s := "In mat.%s the first argument after the [][]float64 determines the axis.\n"
+			s += "It must be 0 for row, or 1 for column. but %d was passed."
+			s = fmt.Sprintf(s, "Avg()", args[0])
+			panic(s)
 		}
 	default:
-		fmt.Println("\nNumgo/mat error.")
-		s := "In mat.%s the allowed combination methods are ['add', 'sub', 'mul', 'div'].\n"
-		s += "However, %s was recieved.\n"
-		s = fmt.Sprintf(s, "CombineWithRows", how)
-		fmt.Println(s)
-		fmt.Println("Stack trace for this error:")
-		debug.PrintStack()
-		os.Exit(1)
+		fmt.Println("\ngocrunch/mat error.")
+		s := "In mat.%s expected 0 or 2 arguments after the [][]float64 \n"
+		s += "but recieved %d"
+		s = fmt.Sprintf(s, "Avg()", len(args))
+		panic(s)
 	}
-	return m
+	avg = sum / float64(numItems)
+	return avg
+}
+
+/*
+Dot is the matrix product of two [][]float64. In essence, this means that
+each row of the first [][]float64 is multiplied by each column of the
+second [][]float64, which creates the first row of the result.
+
+For the sake of simplicity, it is assumed that both passed [][]float64s are
+non-jagged, meaning that each row has the same number of entries as any
+other row in both [][]float64, and each column has the same number of entries
+as any other column in both [][]float64s passed to this function.
+*/
+func Dot(m, n [][]float64) [][]float64 {
+	if len(m) != len(n[0]) {
+		fmt.Println("\ngocrunch/mat error.")
+		s := "In mat.%s, first column the 2nd argument has %d elements,\n"
+		s += "while the 1st argument has %d rows. They must match.\n"
+		s += fmt.Sprintf(s, "Dot()", len(n[0]), len(m))
+		panic(s)
+	}
+	res := New(len(m), len(n[0]))
+	for i := range m {
+		for j := range n[0] {
+			for k := range m[i] {
+				res[i][j] += m[i][k] * n[k][j]
+			}
+		}
+	}
+	return res
+}
+
+/*
+DotC is the concurrent version of Dot(). This function spawns a goroutine
+for each row of the first [][]float64 which multiplies that row by each
+column of 2nd [][]float64.
+
+For sufficiently large slices, the performance of this function is very
+close to that of Dot() on single core machines, making it the preferable
+choice when no other concurrent work is being done by the consumer of
+this function, so sufficiently large [][]float64s.
+The previous statement is intentionally ambiguous,
+and the clients of this library are encouraged to experiment for their
+particular hardware and slice sizes.
+*/
+func DotC(m, n [][]float64) [][]float64 {
+	if len(m) != len(n[0]) {
+		fmt.Println("\ngocrunch/mat error.")
+		s := "In mat.%s, first column the 2nd argument has %d elements,\n"
+		s += "while the 1st argument has %d rows. They must match.\n"
+		s += fmt.Sprintf(s, "DotC()", len(n[0]), len(m))
+		panic(s)
+	}
+	res := New(len(m), len(n[0]))
+	var wg sync.WaitGroup
+	for i := range m {
+		wg.Add(1)
+		go func(i int) {
+			for j := range n[0] {
+				for k := range m[i] {
+					res[i][j] += m[i][k] * n[k][j]
+				}
+			}
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	return res
 }
