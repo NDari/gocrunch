@@ -9,8 +9,9 @@ Many of the functions in this library expect either a float64, a []float64,
 or [][]float64, and do "the right thing" based on what is passed. For example,
 consider the function
 
-	mat.Mul(m, n)
-
+```go
+mat.Mul(m, n)
+```
 In this function, m can be a [][]float64, where as n could be
 a float64, []float64, or [][]float64. This allows the same function to be called
 for wide range of situations. This trades compile time safety for runtime errors.
@@ -31,39 +32,46 @@ which allows the code to be easily modified to serve in different situations.
 
 Create a square matrix, and a non-square matrix:
 
-  m, n := mat.New(10), mat.New(10, 5)
-
+```go
+m, n := mat.New(10), mat.New(10, 5)
+```
 Create an Identity matrix:
 
-  q := mat.I(10)
-
+```go
+q := mat.I(10)
+```
 Set all values of m to 11.0:
 
-  mat.Set(m, 11.0)
-
+```go
+mat.Set(m, 11.0)
+```
 Check if all elements of m are set to 11.0:
 
-  isEleven := func(i float64) float64 {
-    if i == 11.0 {
-      return true
-    }
-    return false
+```go
+isEleven := func(i float64) float64 {
+  if i == 11.0 {
+    return true
   }
+  return false
+}
 
-  if !mat.All(m, isEleven) {
-    log.Fatal("Non-11 values found!")
-  }
-
+if !mat.All(m, isEleven) {
+  log.Fatal("Non-11 values found!")
+}
+```
 Calculate the  dot product of m with the identity matrix:
 
-  m2 := mat.Dot(m, q)
-
+```go
+m2 := mat.Dot(m, q)
+```
 Check if m and m2 are equal:
 
-  if !mat.Equal(m, m2) {
-    log.Fatal("We have a problem...")
-  }
-  
+ ```go
+if !mat.Equal(m, m2) {
+  log.Fatal("We have a problem...")
+}
+
+ ``` 
 ## Documentation
 
 Full documentation is at [this page.](https://godoc.org/github.com/NDari/gocrunch/mat)
