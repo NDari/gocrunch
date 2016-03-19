@@ -199,8 +199,6 @@ func FromCSV(filename string) [][]float64 {
 	return m
 }
 
-// TODO: Does FromCSV needs to worry about headers? return them? ignore them?
-
 /*
 Flatten turns a [][]float64 into a 1D slice of float64. This is done
 by appending all rows tip to tail.
@@ -247,8 +245,6 @@ func ToCSV(m [][]float64, fileName string) error {
 	}
 	return nil
 }
-
-// TODO: Does ToCSV need a header section?
 
 /*
 Foreach applies a given function to each element of a [][]float64. The
@@ -1031,7 +1027,7 @@ for each row of the first [][]float64 which multiplies that row by each
 column of 2nd [][]float64.
 
 For sufficiently large slices, the performance of this function is very
-close to that of Dot() on single core machines, making it the preferrable
+close to that of Dot() on single core machines, making it the preferable
 choice when no other concurrent work is being done by the consumer of
 this function, so sufficiently large [][]float64s.
 The previous statement is intentionally ambiguous,
@@ -1045,7 +1041,6 @@ func DotC(m, n [][]float64) [][]float64 {
 		s += "while the 1st argument has %d rows. They must match.\n"
 		s += fmt.Sprintf(s, "DotC()", len(n[0]), len(m))
 		panic(s)
-		// TODO: Add length checking.
 	}
 	res := New(len(m), len(n[0]))
 	var wg sync.WaitGroup
