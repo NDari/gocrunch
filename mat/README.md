@@ -75,3 +75,8 @@ if !mat.Equal(m, m2) {
 ## Documentation
 
 Full documentation is at [this page.](https://godoc.org/github.com/NDari/gocrunch/mat)
+
+## Badges
+
+![](https://img.shields.io/badge/license-MIT-blue.svg)
+![](https://img.shields.io/badge/status-stable-green.svg)
