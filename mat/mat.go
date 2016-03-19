@@ -190,9 +190,9 @@ func FromCSV(filename string) [][]float64 {
 		if len(str) != len(row) {
 			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%v, line %d in %s has %d entries. The first line\n"
-			s += "(line 1) has %d entries.\n"
-			s += "Creation of a *Mat from jagged slices is not supported.\n"
-			s = fmt.Sprintf(s, "FromCSV()", filename, err)
+			s += "(line 0) has %d entries.\n"
+			s += "All lines must have the same number of comma separated entries."
+			s = fmt.Sprintf(s, "FromCSV()", line, filename, len(str), len(row))
 			panic(s)
 		}
 	}
@@ -996,25 +996,24 @@ func Avg(m [][]float64, args ...int) float64 {
 	return avg
 }
 
+/*
+Dot is the matrix product of two [][]float64. In essence, this means that
+each row of the first [][]float64 is multiplied by each column of the
+second [][]float64, which creates the first row of the result.
+
+For the sake of simplicity, it is assumed that both passed [][]float64s are
+non-jagged, meaning that each row has the same number of entries as any
+other row in both [][]float64, and each column has the same number of entries
+as any other column in both [][]float64s passed to this function.
+*/
 func Dot(m, n [][]float64) [][]float64 {
-	//for i := range m {
-	//	if len(m) != len(n[i]) {
-	//		fmt.Println("\ngocrunch/mat error.")
-	//		s := "In mat.%s, Column %d of the 2nd argument has %d elements,\n"
-	//		s += "while the 1st argument has %d rows. They must match.\n"
-	//		s += fmt.Sprintf(s, "Dot", i, len(n[i]), len(m))
-	//		panic(s)
-	//	}
-	//}
-	//for i := range n {
-	//	if len(n) != len(m[i]) {
-	//		fmt.Println("\ngocrunch/mat error.")
-	//		s := "In mat.%s, Column %d of the 1st argument has %d elements,\n"
-	//		s += "while the 2nd argument has %d rows. They must match.\n"
-	//		s += fmt.Sprintf(s, "Dot", i, len(m[i]), len(n))
-	//		panic(s)
-	//	}
-	//}
+	if len(m) != len(n[0]) {
+		fmt.Println("\ngocrunch/mat error.")
+		s := "In mat.%s, first column the 2nd argument has %d elements,\n"
+		s += "while the 1st argument has %d rows. They must match.\n"
+		s += fmt.Sprintf(s, "Dot()", len(n[0]), len(m))
+		panic(s)
+	}
 	res := New(len(m), len(n[0]))
 	for i := range m {
 		for j := range n[0] {
@@ -1040,7 +1039,14 @@ and the clients of this library are encouraged to experiment for their
 particular hardware and slice sizes.
 */
 func DotC(m, n [][]float64) [][]float64 {
-	// TODO: Add length checking.
+	if len(m) != len(n[0]) {
+		fmt.Println("\ngocrunch/mat error.")
+		s := "In mat.%s, first column the 2nd argument has %d elements,\n"
+		s += "while the 1st argument has %d rows. They must match.\n"
+		s += fmt.Sprintf(s, "DotC()", len(n[0]), len(m))
+		panic(s)
+		// TODO: Add length checking.
+	}
 	res := New(len(m), len(n[0]))
 	var wg sync.WaitGroup
 	for i := range m {
