@@ -1,6 +1,6 @@
 /*
-Package mat implements a large set of functions which act on one and two
-dimensional slices of float64.
+Package mat implements a large set of functions which act on two dimensional
+slices of float64.
 
 Many of the functions in this library expect either a float64, a []float64,
 or [][]float64, and do "the right thing" based on what is passed. For example,
@@ -8,7 +8,7 @@ consider the function
 
 	mat.Mul(m, n)
 
-In this function, m can be a [][]float64, where as n could be
+In this function, m is a [][]float64, where as n could be
 a float64, []float64, or [][]float64. This allows the same function to be called
 for wide range of situations. This trades compile time safety for runtime errors.
 We believe that Go's fast compile time, along with the verbose errors in this
