@@ -739,3 +739,14 @@ func BenchmarkDotC(b *testing.B) {
 		_ = DotC(m, n)
 	}
 }
+
+func TestAppendCol(t *testing.T) {
+	v := make([]float64, 10)
+	m := New(10, 5)
+	AppendCol(m, v)
+	for i := range m {
+		if len(m[i]) != 6 {
+			t.Errorf("expected length of 6, got %d", len(m))
+		}
+	}
+}
