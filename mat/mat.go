@@ -33,12 +33,13 @@ import (
 	"math/rand"
 	"os"
 	"reflect"
+	"runtime/debug"
 	"strconv"
 	"sync"
 )
 
 /*
-ElementalFunc defines the signature of a function that takes a float64, and
+ElementFunc defines the signature of a function that takes a float64, and
 returns a float64
 */
 type ElementFunc func(float64) float64
@@ -1014,11 +1015,12 @@ other row in both [][]float64, and each column has the same number of entries
 as any other column in both [][]float64s passed to this function.
 */
 func Dot(m, n [][]float64) [][]float64 {
-	if len(m) != len(n[0]) {
+	if len(m[0]) != len(n) {
 		fmt.Println("\ngocrunch/mat error.")
-		s := "In mat.%s, first column the 2nd argument has %d elements,\n"
-		s += "while the 1st argument has %d rows. They must match.\n"
-		s += fmt.Sprintf(s, "Dot()", len(n[0]), len(m))
+		s := "The number of elements in the first row of the first argument is %d,\n"
+		s += "while the lenof the second argument is %d. They must match.\n"
+		s += fmt.Sprintf(s, "DotC()", len(m[0]), len(n))
+		debug.PrintStack()
 		panic(s)
 	}
 	res := New(len(m), len(n[0]))
@@ -1046,11 +1048,12 @@ and the clients of this library are encouraged to experiment for their
 particular hardware and slice sizes.
 */
 func DotC(m, n [][]float64) [][]float64 {
-	if len(m) != len(n[0]) {
+	if len(m[0]) != len(n) {
 		fmt.Println("\ngocrunch/mat error.")
-		s := "In mat.%s, first column the 2nd argument has %d elements,\n"
-		s += "while the 1st argument has %d rows. They must match.\n"
-		s += fmt.Sprintf(s, "DotC()", len(n[0]), len(m))
+		s := "The number of elements in the first row of the first argument is %d,\n"
+		s += "while the len of the second argument is %d. They must match.\n"
+		s += fmt.Sprintf(s, "DotC()", len(m[0]), len(n))
+		debug.PrintStack()
 		panic(s)
 	}
 	res := New(len(m), len(n[0]))
@@ -1068,4 +1071,22 @@ func DotC(m, n [][]float64) [][]float64 {
 	}
 	wg.Wait()
 	return res
+}
+
+/*
+AppendCol appends a []float64 to the right side of a [][]float64. The
+length of the []float64 must match the length of the [][]float64.
+*/
+func AppendCol(m [][]float64, v []float64) {
+	if len(v) != len(m) {
+		fmt.Println("\ngocrunch/mat error.")
+		s := "The length of the first argument is %d,\n"
+		s += "while the len of the second argument is %d. They must match.\n"
+		s += fmt.Sprintf(s, "DotC()", len(m), len(v))
+		debug.PrintStack()
+		panic(s)
+	}
+	for i := range v {
+		m[i] = append(m[i], v[i])
+	}
 }

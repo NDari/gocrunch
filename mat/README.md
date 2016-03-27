@@ -71,10 +71,12 @@ if !mat.Equal(m, m2) {
   log.Fatal("We have a problem...")
 }
 
- ``` 
+ ```
 ## Documentation
 
-Full documentation is at [this page.](https://godoc.org/github.com/NDari/gocrunch/mat)
+Full documentation is at below
+
+[![GoDoc](https://godoc.org/github.com/NDari/gocrunch/mat?status.svg)](https://godoc.org/github.com/NDari/gocrunch/mat)
 
 ## Badges
 
