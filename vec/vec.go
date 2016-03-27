@@ -25,3 +25,26 @@ As mentioned, all the functions in this library act on Go primitive types,
 which allows the code to be easily modified to serve in different situations.
 */
 package vec
+
+func Pop(v []float64) (float64, []float64) {
+	return v[len(v)-1], v[:len(v)-1]
+}
+
+func Push(v []float64, x float64) []float64 {
+	v = append(v, x)
+	return v
+}
+
+func Shift(v []float64) (float64, []float64) {
+	return v[0], v[1:]
+}
+
+func Unshift(v []float64, x float64) []float64 {
+	v = append([]float64{x}, a...)
+	return v
+}
+
+func Cut(v []float64, from, to int) []float64 {
+	v = append(v[:from], v[to:]...)
+	return v
+}
