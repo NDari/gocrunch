@@ -39,7 +39,7 @@ import (
 )
 
 /*
-ElementalFunc defines the signature of a function that takes a float64, and
+ElementFunc defines the signature of a function that takes a float64, and
 returns a float64
 */
 type ElementFunc func(float64) float64
