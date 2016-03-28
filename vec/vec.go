@@ -27,7 +27,8 @@ which allows the code to be easily modified to serve in different situations.
 package vec
 
 func Pop(v []float64) (float64, []float64) {
-	return v[len(v)-1], v[:len(v)-1]
+	x, v := v[len(v)-1], v[:len(v)-1]
+	return x, v
 }
 
 func Push(v []float64, x float64) []float64 {
@@ -36,7 +37,8 @@ func Push(v []float64, x float64) []float64 {
 }
 
 func Shift(v []float64) (float64, []float64) {
-	return v[0], v[1:]
+	x, v := v[0], v[1:]
+	return x, v
 }
 
 func Unshift(v []float64, x float64) []float64 {
