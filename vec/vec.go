@@ -42,11 +42,69 @@ func Shift(v []float64) (float64, []float64) {
 }
 
 func Unshift(v []float64, x float64) []float64 {
-	v = append([]float64{x}, a...)
+	v = append([]float64{x}, v...)
 	return v
 }
 
 func Cut(v []float64, from, to int) []float64 {
 	v = append(v[:from], v[to:]...)
 	return v
+}
+
+func Equal(v, w []float64) bool {
+	if len(v) != len(w) {
+		return false
+	}
+	for i := range v {
+		if v[i] != w[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func Set(v []float64, val float64) {
+	for i := range v {
+		v[i] = val
+	}
+}
+
+func Foreach(v []float64, f func(float64) float64) {
+	for i := range v {
+		v[i] = f(v[i])
+	}
+}
+
+func All(v []float64, f func(float64) bool) bool {
+	for i := range v {
+		if !f(v[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+func Any(v []float64, f func(float64) bool) bool {
+	for i := range v {
+		if f(v[i]) {
+			return true
+		}
+	}
+	return false
+}
+
+func Sum(v []float64) float64 {
+	sum := 0.0
+	for i := range v {
+		sum += v[i]
+	}
+	return sum
+}
+
+func Avg(v []float64) float64 {
+	sum := 0.0
+	for i := range v {
+		sum += v[i]
+	}
+	return sum / float64(len(v))
 }
