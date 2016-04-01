@@ -2,6 +2,7 @@ package vec
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 )
 
@@ -14,6 +15,20 @@ func TestPop(t *testing.T) {
 	if len(v) != 1 {
 		t.Errorf("expected length of 1, got %d", len(v))
 	}
+	x, v = Pop(v)
+	var wg sync.WaitGroup
+	go func() {
+		defer func() {
+			r := recover()
+			if r == nil {
+				t.Errorf("Expected a panic for pop on empty []float64")
+			}
+		}()
+		wg.Add(1)
+		defer wg.Done()
+		x, v = Pop(v)
+	}()
+	wg.Wait()
 }
 
 func TestPush(t *testing.T) {
@@ -41,6 +56,23 @@ func TestShift(t *testing.T) {
 	if v[0] != 2.0 {
 		t.Errorf("expected first element to be 2.0, got %f", v[0])
 	}
+	x, v = Shift(v)
+	x, v = Shift(v)
+	x, v = Shift(v)
+	var wg sync.WaitGroup
+	go func() {
+		defer func() {
+			r := recover()
+			if r == nil {
+				t.Errorf("Expected a panic for shift on empty []float64")
+			}
+		}()
+		wg.Add(1)
+		defer wg.Done()
+		x, v = Shift(v)
+	}()
+	wg.Wait()
+
 }
 
 func TestSUnshift(t *testing.T) {
