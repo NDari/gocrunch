@@ -87,7 +87,7 @@ func Unshift(v []float64, x float64) []float64 {
 Cut removes a range of enteries from a []float64. This function can be used
 in one of two ways. First is providing a single int, such as:
 	vec.Cut(v, x)
-which means that all elements of v whose index is larger than x will be
+which means that all elements of v whose index is x or larger will be
 dropped. The second method of using this function is as:
 	vec.Cut(v, 2, 4)
 which means that the second and 3rd elements of v are dropped.

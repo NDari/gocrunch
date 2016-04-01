@@ -1,6 +1,9 @@
 package vec
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestPop(t *testing.T) {
 	v := make([]float64, 2)
@@ -49,4 +52,13 @@ func TestSUnshift(t *testing.T) {
 	if v[0] != 0.0 {
 		t.Errorf("expected first element to be 0.0, got %f", v[0])
 	}
+}
+
+func TestCut(t *testing.T) {
+	v := []float64{1.0, 2.0, 3.0, 4.0, 5.0, 6.0}
+	v = Cut(v, 2)
+	fmt.Println(v)
+	v = []float64{1.0, 2.0, 3.0, 4.0, 5.0, 6.0}
+	v = Cut(v, 2, 4)
+	fmt.Println(v)
 }
