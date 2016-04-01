@@ -94,7 +94,8 @@ func Cut(v []float64, args ...int) []float64 {
 }
 
 /*
-Equal
+Equal checks if two []float64s are equal, by checking that they have the same length,
+and the same enteries in each index.
 */
 func Equal(v, w []float64) bool {
 	if len(v) != len(w) {
@@ -109,7 +110,7 @@ func Equal(v, w []float64) bool {
 }
 
 /*
-Set
+Set stes all elements in a []float64 to the passed value.
 */
 func Set(v []float64, val float64) {
 	for i := range v {
@@ -118,7 +119,8 @@ func Set(v []float64, val float64) {
 }
 
 /*
-Foreach
+Foreach applies a function to each element of a []float64, storing the result
+in the same index. Thus the []float64 is modified by Foreach().
 */
 func Foreach(v []float64, f func(float64) float64) {
 	for i := range v {
@@ -127,7 +129,21 @@ func Foreach(v []float64, f func(float64) float64) {
 }
 
 /*
-All
+All checks to see if all elements of a []float64 return true for a passed
+function. If not, All() returns false. consider:
+
+	negative := func(i float64) bool {
+		if i < 0.0 {
+			return true
+		}
+		return false
+	}
+	v := make([]float64, 10)
+	vec.Set(v, -12.0)
+	allNegatives := vev.All(v, negative) // true
+
+To check if any element of a []float64 pass a certain function, look
+at vec.Any().
 */
 func All(v []float64, f func(float64) bool) bool {
 	for i := range v {
@@ -139,7 +155,21 @@ func All(v []float64, f func(float64) bool) bool {
 }
 
 /*
-Any
+Any checks to see if any element of a []float64 returns true for a passed
+function. If no elements return true, then Any() will return false. Consider:
+
+	negative := func(i float64) bool {
+		if i < 0.0 {
+			return true
+		}
+		return false
+	}
+	v := make([]float64, 10)
+	vec.Set(v, 12.0)
+	anyNegatives := vev.Any(v, negative) // false
+
+To check if all elements of a []float64 pass a certain function, look
+at vec.All().
 */
 func Any(v []float64, f func(float64) bool) bool {
 	for i := range v {
@@ -151,7 +181,7 @@ func Any(v []float64, f func(float64) bool) bool {
 }
 
 /*
-Sum
+Sum adds all elements in a []float64.
 */
 func Sum(v []float64) float64 {
 	sum := 0.0
@@ -162,7 +192,18 @@ func Sum(v []float64) float64 {
 }
 
 /*
-Avg
+Prod multiplies all elements in a []float64.
+*/
+func Prod(v []float64) float64 {
+	prod := 1.0
+	for i := range v {
+		prod *= v[i]
+	}
+	return prod
+}
+
+/*
+Avg returns the average value of a []float64
 */
 func Avg(v []float64) float64 {
 	sum := 0.0
