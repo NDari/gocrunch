@@ -5,7 +5,7 @@ gocrunch is a collection of libraries for numerical libraries in Go. Take a look
 ## Directories
 
 - [gocrunch/mat](https://github.com/NDari/gocrunch/tree/master/mat): Package mat implements functions that create or act upon `[][]float64`.
-- [gocrunch/vec](https://github.com/NDari/gocrunch/tree/master/vec): Package mat implements functions that act upon `[]float64`.
+- [gocrunch/vec](https://github.com/NDari/gocrunch/tree/master/vec): Package vec implements functions that act upon `[]float64`.
 
 ## Badges
 
