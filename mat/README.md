@@ -50,14 +50,14 @@ Check if all elements of m are set to 11.0:
 
 ```go
 isEleven := func(i float64) float64 {
-  if i == 11.0 {
-    return true
-  }
-  return false
+    if i == 11.0 {
+        return true
+    }
+    return false
 }
 
 if !mat.All(m, isEleven) {
-  log.Fatal("Non-11 values found!")
+    log.Fatal("Non-11 values found!")
 }
 ```
 Calculate the  dot product of m with the identity matrix:
@@ -69,7 +69,7 @@ Check if m and m2 are equal:
 
  ```go
 if !mat.Equal(m, m2) {
-  log.Fatal("We have a problem...")
+    log.Fatal("We have a problem...")
 }
 
  ```

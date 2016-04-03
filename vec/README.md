@@ -41,14 +41,14 @@ Check if all elements of v are set to 11.0:
 
 ```go
 isEleven := func(i float64) float64 {
-  if i == 11.0 {
-    return true
-  }
-  return false
+    if i == 11.0 {
+        return true
+    }
+    return false
 }
 
 if !vec.All(m, isEleven) {
-  log.Fatal("Non-11 values found!")
+    log.Fatal("Non-11 values found!")
 }
 ```
 make a copy and check if they are equal:
@@ -57,7 +57,7 @@ make a copy and check if they are equal:
 v2 := make([]float64, 10)
 copy(v1, v) // builtin copy function
 if vec.Equal(v2, v) {
-  fmt.Println("yay")
+    fmt.Println("yay")
 }
 ```
 Add 2.0 to all elements of v:
