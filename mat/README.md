@@ -3,7 +3,8 @@
     import "github.com/NDari/gocrunch/mat"
 
 Package mat implements a large set of functions which act on one and two
-dimensional slices of float64.
+dimensional slices of float64. For functions that act on one dimentional
+slices of float64, look at the `gocrunch/vec` package.
 
 Many of the functions in this library expect either a float64, a []float64,
 or [][]float64, and do "the right thing" based on what is passed. For example,

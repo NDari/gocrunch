@@ -1,4 +1,4 @@
-# mat
+# vec
 --
     import "github.com/NDari/gocrunch/vec"
 
@@ -47,7 +47,7 @@ isEleven := func(i float64) float64 {
   return false
 }
 
-if !mat.All(m, isEleven) {
+if !vec.All(m, isEleven) {
   log.Fatal("Non-11 values found!")
 }
 ```
