@@ -32,16 +32,23 @@ import (
 	"reflect"
 )
 
+var (
+	errStrings = []string{
+		"\ngocrunch/vec error.\nIn vec.%s, cannot use %s on an empty []float64.\n",
+		"\ngocrunch/vec error.\nIn vec.%s, %d is outside of range [0, %d).\n",
+		"\ngocrunch/vec error.\nIn vec.%s, %d is outside of range (%d, %d).\n",
+		"\ngocrunch/vec error.\nIn vec.%s, second arg, %d is not greater than third arg, %d.\n",
+		"\ngocrunch/vec error.\nIn vec.%s, incorrect number of arguments recieved.\n",
+	}
+)
+
 /*
 Pop takes a []float64, and "pops" the last entry, returning it along with the
 modified []float64. The other elements of the []float64 remain intact.
 */
 func Pop(v []float64) (float64, []float64) {
 	if len(v) == 0 {
-		fmt.Println("\ngocrunch/vec error.")
-		s := "In vec.%s, cannot use Pop() on an empty []float64.\n"
-		s = fmt.Sprintf(s, "Pop()")
-		panic(s)
+		panic(fmt.Sprintf(errStrings[0], "Pop()", "Pop()"))
 	}
 	x, v := v[len(v)-1], v[:len(v)-1]
 	return x, v
@@ -64,10 +71,7 @@ however their order is changed (the second element is now the first, etc).
 */
 func Shift(v []float64) (float64, []float64) {
 	if len(v) == 0 {
-		fmt.Println("\ngocrunch/vec error.")
-		s := "In vec.%s, cannot use Shift() on an empty []float64.\n"
-		s = fmt.Sprintf(s, "Shift()")
-		panic(s)
+		panic(fmt.Sprintf(errStrings[0], "Shift()", "Shift()"))
 	}
 	x, v := v[0], v[1:]
 	return x, v
@@ -95,15 +99,23 @@ which means that the second and 3rd elements of v are dropped.
 func Cut(v []float64, args ...int) []float64 {
 	switch len(args) {
 	case 1:
+		if args[0] < 0 || args[0] >= len(v) {
+			panic(fmt.Sprintf(errStrings[1], "Cut()", args[0], len(v)))
+		}
 		v = v[:args[0]]
 	case 2:
+		if args[0] < 0 || args[0] >= len(v) {
+			panic(fmt.Sprintf(errStrings[1], "Cut()", args[0], len(v)))
+		}
+		if args[1] >= len(v) {
+			panic(fmt.Sprintf(errStrings[2], "Cut()", args[1], args[0], len(v)))
+		}
+		if args[1] <= args[0] {
+			panic(fmt.Sprintf(errStrings[3], "Cut()", args[1], args[0]))
+		}
 		v = append(v[:args[0]], v[args[1]:]...)
 	default:
-		fmt.Println("\ngocrunch/vec error.")
-		s := "In vec.%s, 1 or 2 ints must be passed in addition to the slice.\n"
-		s += "However, %d ints were passed.\n"
-		s = fmt.Sprintf(s, "Cut()", len(args))
-		panic(s)
+		panic(fmt.Sprintf(errStrings[4], "Cut()"))
 	}
 	return v
 }

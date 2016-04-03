@@ -7,25 +7,25 @@ import (
 )
 
 func TestPop(t *testing.T) {
-	v := make([]float64, 2)
+	v := make([]float64, 1)
 	x, v := Pop(v)
-	if x != 0 {
+	if x != 0.0 {
 		t.Errorf("expected 0, got %f", x)
 	}
-	if len(v) != 1 {
-		t.Errorf("expected length of 1, got %d", len(v))
+	if len(v) != 0 {
+		t.Errorf("expected length of 0, got %d", len(v))
 	}
-	x, v = Pop(v)
 	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
 		defer func() {
 			r := recover()
-			if r == nil {
-				t.Errorf("Expected a panic for pop on empty []float64")
+			expectedErr := fmt.Sprintf(errStrings[0], "Pop()", "Pop()")
+			if r != expectedErr {
+				t.Errorf("Expected %s, got %v", expectedErr, r)
 			}
+			wg.Done()
 		}()
-		wg.Add(1)
-		defer wg.Done()
 		x, v = Pop(v)
 	}()
 	wg.Wait()
@@ -60,19 +60,19 @@ func TestShift(t *testing.T) {
 	x, v = Shift(v)
 	x, v = Shift(v)
 	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
 		defer func() {
 			r := recover()
-			if r == nil {
-				t.Errorf("Expected a panic for shift on empty []float64")
+			expectedErr := fmt.Sprintf(errStrings[0], "Shift()", "Shift()")
+			if r != expectedErr {
+				t.Errorf("Expected %s, got %v", expectedErr, r)
 			}
+			wg.Done()
 		}()
-		wg.Add(1)
-		defer wg.Done()
 		x, v = Shift(v)
 	}()
 	wg.Wait()
-
 }
 
 func TestSUnshift(t *testing.T) {
@@ -89,8 +89,91 @@ func TestSUnshift(t *testing.T) {
 func TestCut(t *testing.T) {
 	v := []float64{1.0, 2.0, 3.0, 4.0, 5.0, 6.0}
 	v = Cut(v, 2)
-	fmt.Println(v)
 	v = []float64{1.0, 2.0, 3.0, 4.0, 5.0, 6.0}
 	v = Cut(v, 2, 4)
-	fmt.Println(v)
+	var wg sync.WaitGroup
+	v = []float64{1.0, 2.0, 3.0, 4.0, 5.0, 6.0}
+	wg.Add(1)
+	go func() {
+		defer func() {
+			r := recover()
+			expectedErr := fmt.Sprintf(errStrings[1], "Cut()", -1, len(v))
+			if r != expectedErr {
+				t.Errorf("Expected %s, got %v", expectedErr, r)
+			}
+			wg.Done()
+		}()
+		v = Cut(v, -1)
+	}()
+
+	v = []float64{1.0, 2.0, 3.0, 4.0, 5.0, 6.0}
+	wg.Add(1)
+	go func() {
+		defer func() {
+			r := recover()
+			expectedErr := fmt.Sprintf(errStrings[1], "Cut()", len(v), len(v))
+			if r != expectedErr {
+				t.Errorf("Expected %s, got %v", expectedErr, r)
+			}
+			wg.Done()
+		}()
+		v = Cut(v, len(v))
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer func() {
+			r := recover()
+			expectedErr := fmt.Sprintf(errStrings[1], "Cut()", -1, len(v))
+			if r != expectedErr {
+				t.Errorf("Expected %s, got %v", expectedErr, r)
+			}
+			wg.Done()
+		}()
+		v = Cut(v, -1, 1)
+	}()
+
+	v = []float64{1.0, 2.0, 3.0, 4.0, 5.0, 6.0}
+	wg.Add(1)
+	go func() {
+		defer func() {
+			r := recover()
+			expectedErr := fmt.Sprintf(errStrings[1], "Cut()", len(v), len(v))
+			if r != expectedErr {
+				t.Errorf("Expected %s, got %v", expectedErr, r)
+			}
+			wg.Done()
+		}()
+		v = Cut(v, len(v), 1)
+	}()
+
+	v = []float64{1.0, 2.0, 3.0, 4.0, 5.0, 6.0}
+	wg.Add(1)
+	go func() {
+		defer func() {
+			r := recover()
+			expectedErr := fmt.Sprintf(errStrings[2], "Cut()", len(v)+1, 1, len(v))
+			if r != expectedErr {
+				t.Errorf("expected %s, got %v", expectedErr, r)
+			}
+			wg.Done()
+		}()
+		v = Cut(v, 1, len(v)+1)
+	}()
+	wg.Wait()
+
+	v = []float64{1.0, 2.0, 3.0, 4.0, 5.0, 6.0}
+	wg.Add(1)
+	go func() {
+		defer func() {
+			r := recover()
+			expectedErr := fmt.Sprintf(errStrings[3], "Cut()", 1, 3)
+			if r != expectedErr {
+				t.Errorf("expected %s, got %v", expectedErr, r)
+			}
+			wg.Done()
+		}()
+		v = Cut(v, 3, 1)
+	}()
+	wg.Wait()
 }
