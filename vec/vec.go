@@ -39,6 +39,10 @@ var (
 		"\ngocrunch/vec error.\nIn vec.%s, %d is outside of range (%d, %d).\n",
 		"\ngocrunch/vec error.\nIn vec.%s, second arg, %d is not greater than third arg, %d.\n",
 		"\ngocrunch/vec error.\nIn vec.%s, incorrect number of arguments recieved.\n",
+		"\ngocrunch/vec error.\nIn vec.%s, the length the passed slices does not match: %d and %d.\n",
+		"\ngocrunch/vec error.\nIn vec.%s, second arg must be float64 or []float64, recieved %v.\n",
+		"\ngocrunch/vec error.\nIn vec.%s, the passed float64 cannot be 0.0\n",
+		"\ngocrunch/vec error.\nIn vec.%s, in the second []float64, zero value found at index %d.\n",
 	}
 )
 
@@ -119,8 +123,6 @@ func Cut(v []float64, args ...int) []float64 {
 	}
 	return v
 }
-
-// TODO: Add out of bounds check to Cut()
 
 /*
 Equal checks if two []float64s are equal, by checking that they have the same length,
@@ -293,21 +295,13 @@ func Mul(v []float64, val interface{}) {
 		}
 	case []float64:
 		if len(v) != len(w) {
-			fmt.Println("\ngocrunch/vec error.")
-			s := "In vec.%s, the length of the first []float64 is %d, while\n "
-			s += "the length of the second []float64 is 5d. They must match."
-			s = fmt.Sprintf(s, "Mul()", len(v), len(w))
-			panic(s)
+			panic(fmt.Sprintf(errStrings[5], "Mul()", len(v), len(w)))
 		}
 		for i := range v {
 			v[i] *= w[i]
 		}
 	default:
-		fmt.Println("\ngocrunch/vec error.")
-		s := "In vec.%s, only accepts a float64 or []float64 as the second argument.\n"
-		s += "However, an argument of type %v was recieved."
-		s = fmt.Sprintf(s, "Mul()", reflect.TypeOf(v))
-		panic(s)
+		panic(fmt.Sprintf(errStrings[6], "Mul()", reflect.TypeOf(v)))
 	}
 }
 
@@ -339,21 +333,13 @@ func Add(v []float64, val interface{}) {
 		}
 	case []float64:
 		if len(v) != len(w) {
-			fmt.Println("\ngocrunch/vec error.")
-			s := "In vec.%s, the length of the first []float64 is %d, while\n "
-			s += "the length of the second []float64 is 5d. They must match."
-			s = fmt.Sprintf(s, "Add()", len(v), len(w))
-			panic(s)
+			panic(fmt.Sprintf(errStrings[5], "Add()", len(v), len(w)))
 		}
 		for i := range v {
 			v[i] += w[i]
 		}
 	default:
-		fmt.Println("\ngocrunch/vec error.")
-		s := "In vec.%s, only accepts a float64 or []float64 as the second argument.\n"
-		s += "However, an argument of type %v was recieved."
-		s = fmt.Sprintf(s, "Add()", reflect.TypeOf(v))
-		panic(s)
+		panic(fmt.Sprintf(errStrings[6], "Mul()", reflect.TypeOf(v)))
 	}
 }
 
@@ -385,21 +371,13 @@ func Sub(v []float64, val interface{}) {
 		}
 	case []float64:
 		if len(v) != len(w) {
-			fmt.Println("\ngocrunch/vec error.")
-			s := "In vec.%s, the length of the first []float64 is %d, while\n "
-			s += "the length of the second []float64 is 5d. They must match."
-			s = fmt.Sprintf(s, "Sub()", len(v), len(w))
-			panic(s)
+			panic(fmt.Sprintf(errStrings[5], "Sub()", len(v), len(w)))
 		}
 		for i := range v {
 			v[i] -= w[i]
 		}
 	default:
-		fmt.Println("\ngocrunch/vec error.")
-		s := "In vec.%s, only accepts a float64 or []float64 as the second argument.\n"
-		s += "However, an argument of type %v was recieved."
-		s = fmt.Sprintf(s, "Sub()", reflect.TypeOf(v))
-		panic(s)
+		panic(fmt.Sprintf(errStrings[6], "Mul()", reflect.TypeOf(v)))
 	}
 }
 
@@ -431,39 +409,24 @@ func Div(v []float64, val interface{}) {
 	switch w := val.(type) {
 	case float64:
 		if w == 0.0 {
-			fmt.Println("\ngocrunch/vec error.")
-			s := "In vec.%s, the devisor cannot be zero"
-			s = fmt.Sprintf(s, "Div()")
-			panic(s)
+			panic(fmt.Sprintf(errStrings[7], "Div()"))
 		}
 		for i := range v {
 			v[i] /= w
 		}
 	case []float64:
 		if len(v) != len(w) {
-			fmt.Println("\ngocrunch/vec error.")
-			s := "In vec.%s, the length of the first []float64 is %d, while\n "
-			s += "the length of the second []float64 is 5d. They must match."
-			s = fmt.Sprintf(s, "Div()", len(v), len(w))
-			panic(s)
+			panic(fmt.Sprintf(errStrings[5], "Div()", len(v), len(w)))
 		}
 		for i := range w {
 			if w[i] == 0.0 {
-				fmt.Println("\ngocrunch/vec error.")
-				s := "In vec.%s, the value of the second argument at index %d is zero.\n "
-				s += "Division by zero is not allowed."
-				s = fmt.Sprintf(s, "Div()", i)
-				panic(s)
+				panic(fmt.Sprintf(errStrings[8], "Div()", i))
 			}
 		}
 		for i := range v {
 			v[i] /= w[i]
 		}
 	default:
-		fmt.Println("\ngocrunch/vec error.")
-		s := "In vec.%s, only accepts a float64 or []float64 as the second argument.\n"
-		s += "However, an argument of type %v was recieved."
-		s = fmt.Sprintf(s, "Div()", reflect.TypeOf(v))
-		panic(s)
+		panic(fmt.Sprintf(errStrings[6], "Mul()", reflect.TypeOf(v)))
 	}
 }
