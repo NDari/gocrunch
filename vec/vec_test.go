@@ -2,6 +2,7 @@ package vec
 
 import (
 	"fmt"
+	"gocrunch/vec"
 	"sync"
 	"testing"
 )
@@ -176,4 +177,54 @@ func TestCut(t *testing.T) {
 		v = Cut(v, 3, 1)
 	}()
 	wg.Wait()
+}
+
+func TestEqual(t *testing.T) {
+	if !Equal([]float64{1.0}, []float64{1.0}) {
+		t.Errorf("expected equal, got not equal")
+	}
+	if Equal([]float64{1.0}, []float64{1.0, 2.0}) {
+		t.Errorf("expected not equal, got equal")
+	}
+	if Equal([]float64{1.0}, []float64{2.0}) {
+		t.Errorf("expected not equal, got equal")
+	}
+}
+
+func TestSet(t *testing.T) {
+	w := make([]float64, 14)
+	Set(w, 10.0)
+	for i := range w {
+		if w[i] != 10.0 {
+			t.Errorf("at index %d, expected 10.0, got %f", i, w[i])
+		}
+	}
+}
+
+func TestForeach(t *testing.T) int {
+	m := make([]float64, 10)
+	Set(m, 2.0)
+	double := func(i float64) float64 {
+		return i * i
+	}
+	Foreach(m, double)
+	for i := range m {
+		if m[i] != 4.0 {
+			t.Errorf("at index %d expected 4.0, got %f", i, m[i])
+		}
+	}
+}
+
+func TestAll(t *testing.T) {
+	negative := func(i float64) bool {
+		if i < 0.0 {
+			return true
+		}
+		return false
+	}
+	v := make([]float64, 10)
+	vec.Set(v, -12.0)
+	if !vev.All(v, negative) {
+		t.Errorf("Expected all to be negative, got otherwise")
+	}
 }

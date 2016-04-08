@@ -92,7 +92,7 @@ func Unshift(v []float64, x float64) []float64 {
 }
 
 /*
-Cut removes a range of enteries from a []float64. This function can be used
+Cut removes a range of entries from a []float64. This function can be used
 in one of two ways. First is providing a single int, such as:
 	vec.Cut(v, x)
 which means that all elements of v whose index is x or larger will be
@@ -126,7 +126,7 @@ func Cut(v []float64, args ...int) []float64 {
 
 /*
 Equal checks if two []float64s are equal, by checking that they have the same length,
-and the same enteries in each index.
+and the same entries in each index.
 */
 func Equal(v, w []float64) bool {
 	if len(v) != len(w) {
@@ -169,7 +169,7 @@ func Foreach(v []float64, f func(float64) float64) {
 
 /*
 All checks to see if all elements of a []float64 return true for a passed
-function. If not, All() returns false. consider:
+function. If not, All() returns false. Consider:
 
 	negative := func(i float64) bool {
 		if i < 0.0 {
@@ -402,8 +402,8 @@ when the first argument is a float64, it cannot be 0.0. as division by zero is
 not allowed.
 
 In the case where the second argument is a []float64, the length of both
-arguments must be equal. Adiitionally, the second argument must not contain
-any elements whos value is 0.0.
+arguments must be equal. Additionally, the second argument must not contain
+any elements whose value is 0.0.
 */
 func Div(v []float64, val interface{}) {
 	switch w := val.(type) {
