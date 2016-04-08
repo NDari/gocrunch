@@ -179,7 +179,7 @@ function. If not, All() returns false. Consider:
 	}
 	v := make([]float64, 10)
 	vec.Set(v, -12.0)
-	allNegatives := vev.All(v, negative) // true
+	allNegatives := vec.All(v, negative) // true
 
 To check if any element of a []float64 pass a certain function, look
 at vec.Any().
@@ -205,7 +205,7 @@ function. If no elements return true, then Any() will return false. Consider:
 	}
 	v := make([]float64, 10)
 	vec.Set(v, 12.0)
-	anyNegatives := vev.Any(v, negative) // false
+	anyNegatives := vec.Any(v, negative) // false
 
 To check if all elements of a []float64 pass a certain function, look
 at vec.All().

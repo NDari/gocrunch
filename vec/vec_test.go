@@ -2,7 +2,6 @@ package vec
 
 import (
 	"fmt"
-	"gocrunch/vec"
 	"sync"
 	"testing"
 )
@@ -201,7 +200,7 @@ func TestSet(t *testing.T) {
 	}
 }
 
-func TestForeach(t *testing.T) int {
+func TestForeach(t *testing.T) {
 	m := make([]float64, 10)
 	Set(m, 2.0)
 	double := func(i float64) float64 {
@@ -223,8 +222,8 @@ func TestAll(t *testing.T) {
 		return false
 	}
 	v := make([]float64, 10)
-	vec.Set(v, -12.0)
-	if !vev.All(v, negative) {
+	Set(v, -12.0)
+	if !All(v, negative) {
 		t.Errorf("Expected all to be negative, got otherwise")
 	}
 }
