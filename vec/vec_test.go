@@ -295,3 +295,124 @@ func TestAvg(t *testing.T) {
 		t.Errorf("expected the average to be -1.0, got %f", s)
 	}
 }
+
+func TestMul(t *testing.T) {
+	v := make([]float64, 10)
+	Set(v, 10.0)
+	Mul(v, 3.0)
+	for i := range v {
+		if v[i] != 30.0 {
+			t.Errorf("at index %d, expected, 30.0, got %f", i, v[i])
+		}
+	}
+	v1 := make([]float64, 10)
+	v2 := make([]float64, 10)
+	Set(v2, 10.0)
+	Mul(v1, v2)
+	for i := range v1 {
+		if v1[i] != 0.0 {
+			t.Errorf("at index %d, expected 0.0, got %f", i, v1[i])
+		}
+	}
+	Set(v1, 12.0)
+	Mul(v1, v2)
+	for i := range v1 {
+		if v1[i] != 120.0 {
+			t.Errorf("at index %d, expected 120.0, got %f", i, v1[i])
+		}
+	}
+}
+
+func TestAdd(t *testing.T) {
+	v := make([]float64, 10)
+	Set(v, 10.0)
+	Add(v, 3.0)
+	for i := range v {
+		if v[i] != 13.0 {
+			t.Errorf("at index %d, expected, 13.0, got %f", i, v[i])
+		}
+	}
+	v1 := make([]float64, 10)
+	v2 := make([]float64, 10)
+	Set(v2, 10.0)
+	Add(v1, v2)
+	for i := range v1 {
+		if v1[i] != 10.0 {
+			t.Errorf("at index %d, expected 10.0, got %f", i, v1[i])
+		}
+	}
+	Set(v1, 12.0)
+	Add(v1, v2)
+	for i := range v1 {
+		if v1[i] != 22.0 {
+			t.Errorf("at index %d, expected 22.0, got %f", i, v1[i])
+		}
+	}
+}
+
+func TestSub(t *testing.T) {
+	v := make([]float64, 10)
+	Set(v, 10.0)
+	Sub(v, 3.0)
+	for i := range v {
+		if v[i] != 7.0 {
+			t.Errorf("at index %d, expected, 7.0, got %f", i, v[i])
+		}
+	}
+	v1 := make([]float64, 10)
+	v2 := make([]float64, 10)
+	Set(v2, 10.0)
+	Sub(v1, v2)
+	for i := range v1 {
+		if v1[i] != -10.0 {
+			t.Errorf("at index %d, expected -10..0, got %f", i, v1[i])
+		}
+	}
+	Set(v1, 12.0)
+	Sub(v1, v2)
+	for i := range v1 {
+		if v1[i] != 2.0 {
+			t.Errorf("at index %d, expected 2.0, got %f", i, v1[i])
+		}
+	}
+}
+
+func TestDiv(t *testing.T) {
+	v := make([]float64, 10)
+	Set(v, 10.0)
+	Div(v, 2.0)
+	for i := range v {
+		if v[i] != 5.0 {
+			t.Errorf("at index %d, expected, 5.0, got %f", i, v[i])
+		}
+	}
+	v1 := make([]float64, 10)
+	v2 := make([]float64, 10)
+	Set(v1, 10.0)
+	Set(v2, 10.0)
+	Div(v1, v2)
+	for i := range v1 {
+		if v1[i] != 1.0 {
+			t.Errorf("at index %d, expected 1.0, got %f", i, v1[i])
+		}
+	}
+	Set(v1, 10.0)
+	Set(v2, -1.0)
+	Div(v1, v2)
+	for i := range v1 {
+		if v1[i] != -10.0 {
+			t.Errorf("at index %d, expected -10.0, got %f", i, v1[i])
+		}
+	}
+}
+
+func TestDot(t *testing.T) {
+	v1 := make([]float64, 13)
+	v2 := make([]float64, 13)
+	Set(v1, 1.0)
+	Set(v2, 3.0)
+	res := Dot(v1, v2)
+	if res != 13.0*3.0 {
+		t.Errorf("expected result to be %f, but got %f", 13.0*3.0, res)
+	}
+}

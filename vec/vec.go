@@ -38,9 +38,9 @@ var (
 		"\ngocrunch/vec error.\nIn vec.%s, %d is outside of range [0, %d).\n",
 		"\ngocrunch/vec error.\nIn vec.%s, %d is outside of range (%d, %d).\n",
 		"\ngocrunch/vec error.\nIn vec.%s, second arg, %d is not greater than third arg, %d.\n",
-		"\ngocrunch/vec error.\nIn vec.%s, incorrect number of arguments recieved.\n",
+		"\ngocrunch/vec error.\nIn vec.%s, incorrect number of arguments received.\n",
 		"\ngocrunch/vec error.\nIn vec.%s, the length the passed slices does not match: %d and %d.\n",
-		"\ngocrunch/vec error.\nIn vec.%s, second arg must be float64 or []float64, recieved %v.\n",
+		"\ngocrunch/vec error.\nIn vec.%s, second arg must be float64 or []float64, received %v.\n",
 		"\ngocrunch/vec error.\nIn vec.%s, the passed float64 cannot be 0.0\n",
 		"\ngocrunch/vec error.\nIn vec.%s, in the second []float64, zero value found at index %d.\n",
 	}
@@ -82,7 +82,7 @@ func Shift(v []float64) (float64, []float64) {
 }
 
 /*
-Unshift appends a float64 to the begening of a []float64, returning the
+Unshift appends a float64 to the beginning of a []float64, returning the
 modified []float64. The elements in the original []float64 remain intact,
 however their order is now changed (the first element is now the second, etc.)
 */
@@ -429,4 +429,19 @@ func Div(v []float64, val interface{}) {
 	default:
 		panic(fmt.Sprintf(errStrings[6], "Mul()", reflect.TypeOf(v)))
 	}
+}
+
+/*
+Dot returns the sum of the element-wise multiplication of two []float64s passed
+to it. The passed slices are not altered in this function.
+*/
+func Dot(v1, v2 []float64) float64 {
+	if len(v1) != len(v2) {
+		panic(fmt.Sprintf(errStrings[5], "Dot()", len(v1), len(v2)))
+	}
+	result := 0.0
+	for i := range v1 {
+		result += (v1[i] * v2[i])
+	}
+	return result
 }
