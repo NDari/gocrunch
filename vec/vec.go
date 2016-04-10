@@ -313,13 +313,13 @@ the second argument is a float64:
 
 	val := 10
 	v := []float64{1.0, 2.0, 3.0}
-	vec.Mul(v, val) // v is now {11.0, 12.0, 13.0}
+	vec.Add(v, val) // v is now {11.0, 12.0, 13.0}
 
 The second argument can also we a []float64, as below:
 
 	v := []float64{1.0, 2.0, 3.0}
 	w := []float64{3.0, 2.0, 4.0}
-	vec.Mul(v, w) // v is now {4.0, 4.0, 7.0}
+	vec.Add(v, w) // v is now {4.0, 4.0, 7.0}
 
 The original []float64 (the first argument) is modified, but the second is not.
 In the case where the second argument is a []float64, the length of both
