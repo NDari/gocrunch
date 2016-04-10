@@ -3,7 +3,8 @@
     import "github.com/NDari/gocrunch/mat"
 
 Package mat implements a large set of functions which act on one and two
-dimensional slices of float64.
+dimensional slices of float64. For functions that act on one dimentional
+slices of float64, look at the `gocrunch/vec` package.
 
 Many of the functions in this library expect either a float64, a []float64,
 or [][]float64, and do "the right thing" based on what is passed. For example,
@@ -49,14 +50,14 @@ Check if all elements of m are set to 11.0:
 
 ```go
 isEleven := func(i float64) float64 {
-  if i == 11.0 {
-    return true
-  }
-  return false
+    if i == 11.0 {
+        return true
+    }
+    return false
 }
 
 if !mat.All(m, isEleven) {
-  log.Fatal("Non-11 values found!")
+    log.Fatal("Non-11 values found!")
 }
 ```
 Calculate the  dot product of m with the identity matrix:
@@ -68,17 +69,16 @@ Check if m and m2 are equal:
 
  ```go
 if !mat.Equal(m, m2) {
-  log.Fatal("We have a problem...")
+    log.Fatal("We have a problem...")
 }
 
  ```
 ## Documentation
 
-Full documentation is at below
-
-[![GoDoc](https://godoc.org/github.com/NDari/gocrunch/mat?status.svg)](https://godoc.org/github.com/NDari/gocrunch/mat)
+Full documentation is under badges, below.
 
 ## Badges
 
 ![](https://img.shields.io/badge/license-MIT-blue.svg)
 ![](https://img.shields.io/badge/status-stable-green.svg)
+[![GoDoc](https://godoc.org/github.com/NDari/gocrunch/mat?status.svg)](https://godoc.org/github.com/NDari/gocrunch/mat)

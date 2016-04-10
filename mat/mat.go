@@ -1,6 +1,6 @@
 /*
-Package mat implements a large set of functions which act on one and two
-dimensional slices of float64.
+Package mat implements a large set of functions which act on two dimensional
+slices of float64.
 
 Many of the functions in this library expect either a float64, a []float64,
 or [][]float64, and do "the right thing" based on what is passed. For example,
@@ -8,7 +8,7 @@ consider the function
 
 	mat.Mul(m, n)
 
-In this function, m can be a [][]float64, where as n could be
+In this function, m is a [][]float64, where as n could be
 a float64, []float64, or [][]float64. This allows the same function to be called
 for wide range of situations. This trades compile time safety for runtime errors.
 We believe that Go's fast compile time, along with the verbose errors in this
@@ -831,13 +831,18 @@ func Any(f BooleanFunc, m [][]float64) bool {
 }
 
 /*
-Sum returns the sum of all elements in a [][]float64. It is also
-possible for this function to return the sum of a specific row or column in
-a [][]float64, by passing two additional integers to it: The first integer
-must be either 0 for picking a row, or 1 for picking a column. The second
-integer determines the specific row or column for which the sum is desired.
-This function allow the index to be negative. For example, the sum of the
-last row of a [][]float64 is given by:
+Sum returns the sum of all elements in a [][]float64. For example:
+
+	m := mat.New(10, 5)
+	mat.Set(m, 1.0)
+	x := mat.Sum(m) // x is 50.0
+
+It is also possible for this function to return the sum of a specific row
+or column in a [][]float64, by passing two additional integers to it: The
+first integer must be either 0 for picking a row, or 1 for picking a column.
+The second integer determines the specific row or column for which the sum is
+desired. This function allow the index to be negative. For example, the sum
+of the last row of a [][]float64 is given by:
 
 	mat.Sum(m, 0, -1)
 
@@ -910,8 +915,14 @@ func Sum(m [][]float64, args ...int) float64 {
 }
 
 /*
-Avg returns the average value of all the elements in a [][]float64. It's also
-possible for this function to return the sum of a specific row or column in
+Avg returns the average value of all the elements in a [][]float64. For
+example:
+
+	m := mat.New(12, 13)
+	mat.Set(m, 1.0)
+	x := mat.Avg(m) // x is 1.0
+
+It's also possible to return the sum of a specific row or column in
 a [][]float64, by passing two additional integers to it: The first integer
 must be either 0 for picking a row, or 1 for picking a column. The second
 integer determines the specific row or column for which the average is desired.
