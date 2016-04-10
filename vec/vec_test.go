@@ -227,3 +227,71 @@ func TestAll(t *testing.T) {
 		t.Errorf("Expected all to be negative, got otherwise")
 	}
 }
+
+func TestAny(t *testing.T) {
+	negative := func(i float64) bool {
+		if i < 0.0 {
+			return true
+		}
+		return false
+	}
+	v := make([]float64, 10)
+	Set(v, 12.0)
+	if Any(v, negative) {
+		t.Errorf("Expected no negative values, got otherwise")
+	}
+}
+
+func TestSum(t *testing.T) {
+	v := make([]float64, 10)
+	s := Sum(v)
+	if s != 0.0 {
+		t.Errorf("expected sum of zeros to be zero, but got %f", s)
+	}
+	Set(v, 1.0)
+	s = Sum(v)
+	if s != float64(len(v)) {
+		t.Errorf("expected the sum to be %f, got %f", float64(len(v)), s)
+	}
+	Set(v, -1.0)
+	s = Sum(v)
+	if s != -float64(len(v)) {
+		t.Errorf("expected the sum to be %f, got %f", -float64(len(v)), s)
+	}
+}
+
+func TestProd(t *testing.T) {
+	v := make([]float64, 10)
+	s := Prod(v)
+	if s != 0.0 {
+		t.Errorf("expected product of zeros to be zero, but got %f", s)
+	}
+	Set(v, 1.0)
+	s = Prod(v)
+	if s != 1.0 {
+		t.Errorf("expected the prod to be 1.0, got %f", s)
+	}
+	Set(v, -1.0)
+	s = Prod(v)
+	if s != 1.0 {
+		t.Errorf("expected the prod to be -1.0, got %f", s)
+	}
+}
+
+func TestAvg(t *testing.T) {
+	v := make([]float64, 10)
+	s := Avg(v)
+	if s != 0.0 {
+		t.Errorf("expected average of zeros to be zero, but got %f", s)
+	}
+	Set(v, 1.0)
+	s = Avg(v)
+	if s != 1.0 {
+		t.Errorf("expected the average to be 1.0, got %f", s)
+	}
+	Set(v, -1.0)
+	s = Avg(v)
+	if s != -1.0 {
+		t.Errorf("expected the average to be -1.0, got %f", s)
+	}
+}
