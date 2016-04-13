@@ -133,7 +133,7 @@ func BenchmarkForeach(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = Foreach(m, f)
+		m = Foreach(m, f)
 	}
 }
 
@@ -156,7 +156,7 @@ func BenchmarkSet(b *testing.B) {
 	m := New(300, 1000)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = Set(m, 10.0)
+		m = Set(m, 10.0)
 	}
 }
 
@@ -213,6 +213,7 @@ func TestMul(t *testing.T) {
 func BenchmarkMul(b *testing.B) {
 	m := New(1000, 1000)
 	n := New(1000, 1000)
+	q := New(1000, 1000)
 	for i := range m {
 		for j := range m[i] {
 			m[i][j] = float64(i*1000 + j)
@@ -221,7 +222,7 @@ func BenchmarkMul(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = Mul(m, n)
+		q = Mul(m, n)
 	}
 }
 
@@ -454,6 +455,7 @@ func TestCol(t *testing.T) {
 
 func BenchmarkCol(b *testing.B) {
 	m := New(1721, 311)
+	q := make([]float64, 1721)
 	for i := range m {
 		for j := range m[i] {
 			m[i][j] = float64(i*1721 + j)
@@ -461,7 +463,7 @@ func BenchmarkCol(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = Col(m, 211)
+		q = Col(m, 211)
 	}
 }
 
@@ -499,6 +501,7 @@ func TestRow(t *testing.T) {
 
 func BenchmarkRow(b *testing.B) {
 	m := New(1721, 311)
+	q := make([]float64, 311)
 	for i := range m {
 		for j := range m[i] {
 			m[i][j] = float64(i*1721 + j)
@@ -506,7 +509,7 @@ func BenchmarkRow(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = Row(m, 211)
+		q = Row(m, 211)
 	}
 }
 
@@ -648,6 +651,43 @@ func TestSum(t *testing.T) {
 		}
 	}
 }
+func TestProd(t *testing.T) {
+	row, col, val := 3, 2, 2.0
+	m := New(row, col)
+	m = Set(m, val)
+	res := Prod(m)
+	if res != 64.0 {
+		t.Errorf("expected %f, got %f", 64.0, res)
+	}
+	row = 12
+	col = 17
+	m = New(row, col)
+	m = Set(m, 1.0)
+	for i := 0; i < col; i++ {
+		q := Prod(m, 1, i)
+		if q != 1.0 {
+			t.Errorf("at col %d expected prod to be 1.0, got %f", i, q)
+		}
+	}
+	for i := col; i > 0; i-- {
+		q := Prod(m, 1, -i)
+		if q != 1.0 {
+			t.Errorf("at col %d expected prod to be 1.0, got %f", i, q)
+		}
+	}
+	for i := 0; i < row; i++ {
+		q := Prod(m, 0, i)
+		if q != 1.0 {
+			t.Errorf("at col %d expected Prod to be 1.0, got %f", i, q)
+		}
+	}
+	for i := row; i > 0; i-- {
+		q := Prod(m, 0, -i)
+		if q != 1.0 {
+			t.Errorf("at col %d expected sum to be 1.0, got %f", i, q)
+		}
+	}
+}
 
 func TestAvg(t *testing.T) {
 	row, col, val := 7, 6, 3.0
@@ -691,6 +731,7 @@ func TestDot(t *testing.T) {
 func BenchmarkDot(b *testing.B) {
 	m := New(1000)
 	n := New(1000)
+	q := New(1000)
 	for i := range m {
 		for j := range m[i] {
 			m[i][j] = float64(i*10 + j)
@@ -701,7 +742,7 @@ func BenchmarkDot(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = Dot(m, n)
+		q = Dot(m, n)
 	}
 }
 

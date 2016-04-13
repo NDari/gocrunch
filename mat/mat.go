@@ -871,8 +871,8 @@ func Sum(m [][]float64, args ...int) float64 {
 			x := args[1]
 			if (x >= len(m)) || (x < -len(m)) {
 				fmt.Println("\ngocrunch/mat error.")
-				s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
-				s = fmt.Sprintf(s, "SumRow()", x, len(m), len(m))
+				s := "In mat.%s the requested row %d is outside of bounds [-%d, %d)\n"
+				s = fmt.Sprintf(s, "Sum()", x, len(m), len(m))
 				panic(s)
 			}
 			if x >= 0 {
@@ -918,6 +918,90 @@ func Sum(m [][]float64, args ...int) float64 {
 
 	}
 	return sum
+}
+
+/*
+Prod returns the product of all elements in a [][]float64. For example:
+
+	m := mat.New(2, 2)
+	mat.Set(m, 2.0)
+	x := mat.Prod(m) // x is 16.0
+
+It is also possible for this function to return the Product of a specific row
+or column in a [][]float64, by passing two additional integers to it: The
+first integer must be either 0 for picking a row, or 1 for picking a column.
+The second integer determines the specific row or column for which the product is
+desired. This function allow the index to be negative. For example, the product
+of the last row of a [][]float64 is given by:
+
+	mat.Prod(m, 0, -1)
+
+where as the product of the first column is given by:
+
+	mat.Prod(m, 1, 0)
+*/
+func Prod(m [][]float64, args ...int) float64 {
+	prod := 1.0
+	switch len(args) {
+	case 0:
+		for i := range m {
+			for j := range m[i] {
+				prod *= m[i][j]
+			}
+		}
+	case 2:
+		switch args[0] {
+		case 0:
+			x := args[1]
+			if (x >= len(m)) || (x < -len(m)) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%s the requested row %d is outside of bounds [-%d, %d)\n"
+				s = fmt.Sprintf(s, "Prod()", x, len(m), len(m))
+				panic(s)
+			}
+			if x >= 0 {
+				for i := range m[x] {
+					prod *= m[x][i]
+				}
+			} else {
+				for i := range m[len(m)+x] {
+					prod *= m[len(m)+x][i]
+				}
+			}
+		case 1:
+			x := args[1]
+			if (x >= len(m[0])) || (x < -len(m[0])) {
+				fmt.Println("\ngocrunch/mat error.")
+				s := "In mat.%s the requested column %d is outside of bounds [-%d, %d)\n"
+				s = fmt.Sprintf(s, "Prod()", x, len(m[0]), len(m[0]))
+				panic(s)
+			}
+			if x >= 0 {
+				for i := range m {
+					prod *= m[i][x]
+				}
+			} else {
+				for i := range m {
+					prod *= m[i][len(m[0])+x]
+				}
+			}
+		default:
+			fmt.Println("\ngocrunch/mat error.")
+			s := "In mat.%s the first argument after the [][]float64 determines the axis.\n"
+			s += "It must be 0 for row, or 1 for column. but %d was passed."
+			s = fmt.Sprintf(s, "Prod()", args[0])
+			panic(s)
+
+		}
+	default:
+		fmt.Println("\ngocrunch/mat error.")
+		s := "In mat.%s expected 0 or 2 arguments after the [][]float64 \n"
+		s += "but recieved %d"
+		s = fmt.Sprintf(s, "Prod()", len(args))
+		panic(s)
+
+	}
+	return prod
 }
 
 /*
