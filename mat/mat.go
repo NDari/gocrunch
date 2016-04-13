@@ -32,7 +32,6 @@ import (
 	"io"
 	"math/rand"
 	"os"
-	"reflect"
 	"runtime/debug"
 	"strconv"
 )
@@ -395,7 +394,7 @@ func Mul(m [][]float64, val interface{}) [][]float64 {
 		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%v, expected float64, []float64, or [][]float64 for the second\n"
 		s += "argument, but received argument of type: %v."
-		s = fmt.Sprintf(s, "Mul()", reflect.TypeOf(v))
+		s = fmt.Sprintf(s, "Mul()", v)
 		panic(s)
 	}
 	return n
@@ -474,7 +473,7 @@ func Add(m [][]float64, val interface{}) [][]float64 {
 		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%v, expected float64, []float64, or [][]float64 for the second\n"
 		s += "argument, but received argument of type: %v."
-		s = fmt.Sprintf(s, "Add()", reflect.TypeOf(v))
+		s = fmt.Sprintf(s, "Add()", v)
 		panic(s)
 	}
 	return n
@@ -553,14 +552,14 @@ func Sub(m [][]float64, val interface{}) [][]float64 {
 		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%v, expected float64, []float64, or [][]float64 for the second\n"
 		s += "argument, but received argument of type: %v."
-		s = fmt.Sprintf(s, "Sub()", reflect.TypeOf(v))
+		s = fmt.Sprintf(s, "Sub()", v)
 		panic(s)
 	}
 	return n
 }
 
 /*
-Div devides all elements of a [][]float64 by the passed value. The passed value can be
+Div divides all elements of a [][]float64 by the passed value. The passed value can be
 a float64, []float64, or a [][]float64.
 
 When the passed value is a float64, then each element of the [][]float64 is devided
@@ -657,7 +656,7 @@ func Div(m [][]float64, val interface{}) [][]float64 {
 		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%v, expected float64, []float64, or [][]float64 for the second\n"
 		s += "argument, but received argument of type: %v."
-		s = fmt.Sprintf(s, "Sub()", reflect.TypeOf(v))
+		s = fmt.Sprintf(s, "Sub()", v)
 		panic(s)
 	}
 	return n
@@ -778,7 +777,7 @@ func T(m [][]float64) [][]float64 {
 
 /*
 All checks if a supplied function is true for all elements of a mat object.
-The supplied function is expected to have the signature of a BooleanFunc, which
+The supplied function is expected to have the signature of a function that
 takes a float64, returning a bool.
 For instance, consider
 
@@ -809,7 +808,7 @@ func All(m [][]float64, f func(float64) bool) bool {
 /*
 Any checks if a supplied function is true for at least one elements of
 a [][]float64. The supplied function must have the signature of
-a BooleanFunc, meaning that it takes a float64, and returns a bool.
+a function that takes a float64, and returns a bool.
 For instance,
 
 	positive := func(i float64) bool {
@@ -912,7 +911,7 @@ func Sum(m [][]float64, args ...int) float64 {
 	default:
 		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%s expected 0 or 2 arguments after the [][]float64 \n"
-		s += "but recieved %d"
+		s += "but received %d"
 		s = fmt.Sprintf(s, "Sum()", len(args))
 		panic(s)
 
@@ -996,7 +995,7 @@ func Prod(m [][]float64, args ...int) float64 {
 	default:
 		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%s expected 0 or 2 arguments after the [][]float64 \n"
-		s += "but recieved %d"
+		s += "but received %d"
 		s = fmt.Sprintf(s, "Prod()", len(args))
 		panic(s)
 
@@ -1079,14 +1078,14 @@ func Avg(m [][]float64, args ...int) float64 {
 		default:
 			fmt.Println("\ngocrunch/mat error.")
 			s := "In mat.%s the first argument after the [][]float64 determines the axis.\n"
-			s += "It must be 0 for row, or 1 for column. but %d was passed."
+			s += "It must be 0 for row, or 1 for column, but %d was passed."
 			s = fmt.Sprintf(s, "Avg()", args[0])
 			panic(s)
 		}
 	default:
 		fmt.Println("\ngocrunch/mat error.")
 		s := "In mat.%s expected 0 or 2 arguments after the [][]float64 \n"
-		s += "but recieved %d"
+		s += "but received %d"
 		s = fmt.Sprintf(s, "Avg()", len(args))
 		panic(s)
 	}
@@ -1108,8 +1107,8 @@ func Dot(m, n [][]float64) [][]float64 {
 	if len(m[0]) != len(n) {
 		fmt.Println("\ngocrunch/mat error.")
 		s := "The number of elements in the first row of the first argument is %d,\n"
-		s += "while the lenof the second argument is %d. They must match.\n"
-		s += fmt.Sprintf(s, "DotC()", len(m[0]), len(n))
+		s += "while the len of the second argument is %d. They must match.\n"
+		s += fmt.Sprintf(s, "Dot()", len(m[0]), len(n))
 		debug.PrintStack()
 		panic(s)
 	}
@@ -1125,7 +1124,7 @@ func Dot(m, n [][]float64) [][]float64 {
 }
 
 /*
-AppendCol retruns a copy of a passed [][]float64, with the second argument, a
+AppendCol returns a copy of a passed [][]float64, with the second argument, a
 []float64, appended to its right side. For example, consider:
 
 	m := mat.New(2, 2) // [[0.0, 0.0], [0.0, 0.0]]
@@ -1139,7 +1138,7 @@ func AppendCol(m [][]float64, v []float64) [][]float64 {
 		fmt.Println("\ngocrunch/mat error.")
 		s := "The length of the first argument is %d,\n"
 		s += "while the len of the second argument is %d. They must match.\n"
-		s += fmt.Sprintf(s, "DotC()", len(m), len(v))
+		s += fmt.Sprintf(s, "AppendCol()", len(m), len(v))
 		debug.PrintStack()
 		panic(s)
 	}
