@@ -116,7 +116,7 @@ func TestForeach(t *testing.T) {
 		return 1.0
 	}
 	m := New(rows, cols)
-	Foreach(f, m)
+	m = Foreach(m, f)
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
 			if m[i][j] != 1.0 {
@@ -133,7 +133,7 @@ func BenchmarkForeach(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Foreach(f, m)
+		_ = Foreach(m, f)
 	}
 }
 
@@ -142,7 +142,7 @@ func TestSet(t *testing.T) {
 	col := 4
 	val := 11.0
 	m := New(row, col)
-	Set(m, val)
+	m = Set(m, val)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] != val {
@@ -156,7 +156,7 @@ func BenchmarkSet(b *testing.B) {
 	m := New(300, 1000)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Set(m, 10.0)
+		_ = Set(m, 10.0)
 	}
 }
 
@@ -168,7 +168,7 @@ func TestMul(t *testing.T) {
 			m[i][j] = float64(i*row + j)
 		}
 	}
-	Mul(m, 0.0)
+	m = Mul(m, 0.0)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] != 0.0 {
@@ -184,7 +184,7 @@ func TestMul(t *testing.T) {
 		}
 	}
 	v := make([]float64, col)
-	Mul(m, v)
+	m = Mul(m, v)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] != 0.0 {
@@ -200,7 +200,7 @@ func TestMul(t *testing.T) {
 		}
 	}
 	n := Copy(m)
-	Mul(m, m)
+	m = Mul(m, m)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] != n[i][j]*n[i][j] {
@@ -221,7 +221,7 @@ func BenchmarkMul(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Mul(m, n)
+		_ = Mul(m, n)
 	}
 }
 
@@ -234,7 +234,7 @@ func TestAdd(t *testing.T) {
 		}
 	}
 	n := Copy(m)
-	Add(m, 0.0)
+	m = Add(m, 0.0)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] != n[i][j] {
@@ -254,7 +254,7 @@ func TestAdd(t *testing.T) {
 		v[i] = 2.0
 	}
 	n = Copy(m)
-	Add(m, v)
+	m = Add(m, v)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] != n[i][j]+2.0 {
@@ -270,7 +270,7 @@ func TestAdd(t *testing.T) {
 		}
 	}
 	n = Copy(m)
-	Add(m, m)
+	m = Add(m, m)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] != n[i][j]+n[i][j] {
@@ -289,7 +289,7 @@ func TestSub(t *testing.T) {
 		}
 	}
 	n := Copy(m)
-	Sub(m, 0.0)
+	m = Sub(m, 0.0)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] != n[i][j] {
@@ -309,7 +309,7 @@ func TestSub(t *testing.T) {
 		v[i] = 2.0
 	}
 	n = Copy(m)
-	Sub(m, v)
+	m = Sub(m, v)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] != n[i][j]-2.0 {
@@ -324,7 +324,7 @@ func TestSub(t *testing.T) {
 			m[i][j] = float64(i*row + j)
 		}
 	}
-	Sub(m, m)
+	m = Sub(m, m)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] != 0.0 {
@@ -344,7 +344,7 @@ func TestDiv(t *testing.T) {
 		}
 	}
 	n := Copy(m)
-	Div(m, 1.0)
+	m = Div(m, 1.0)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] != n[i][j] {
@@ -364,7 +364,7 @@ func TestDiv(t *testing.T) {
 		v[i] = 1.0
 	}
 	n = Copy(m)
-	Div(m, v)
+	m = Div(m, v)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] != n[i][j] {
@@ -380,7 +380,7 @@ func TestDiv(t *testing.T) {
 		}
 	}
 	m[0][0] = 1.0
-	Div(m, m)
+	m = Div(m, m)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] != 1.0 {
@@ -394,8 +394,7 @@ func TestDiv(t *testing.T) {
 func TestRand(t *testing.T) {
 	row := 31
 	col := 42
-	m := New(row, col)
-	Rand(m)
+	m := Rand(row, col)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] < 0.0 || m[i][j] >= 1.0 {
@@ -403,7 +402,7 @@ func TestRand(t *testing.T) {
 			}
 		}
 	}
-	Rand(m, 100.0)
+	m = Rand(row, col, 100.0)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] < 0.0 || m[i][j] >= 100.0 {
@@ -411,7 +410,7 @@ func TestRand(t *testing.T) {
 			}
 		}
 	}
-	Rand(m, -12.0, 2.0)
+	m = Rand(row, col, -12.0, 2.0)
 	for i := range m {
 		for j := range m[i] {
 			if m[i][j] < -12.0 || m[i][j] >= 2.0 {
@@ -430,7 +429,7 @@ func TestCol(t *testing.T) {
 		}
 	}
 	for i := 0; i < col; i++ {
-		got := Col(i, m)
+		got := Col(m, i)
 		if len(got) != row {
 			t.Errorf("expected %d, got %d", row, len(got))
 		}
@@ -441,7 +440,7 @@ func TestCol(t *testing.T) {
 		}
 	}
 	for i := col; i > 0; i-- {
-		got := Col(-i, m)
+		got := Col(m, -i)
 		if len(got) != row {
 			t.Errorf("expected %d, got %d", row, len(got))
 		}
@@ -462,7 +461,7 @@ func BenchmarkCol(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = Col(211, m)
+		_ = Col(m, 211)
 	}
 }
 
@@ -475,7 +474,7 @@ func TestRow(t *testing.T) {
 		}
 	}
 	for i := 0; i < row; i++ {
-		got := Row(i, m)
+		got := Row(m, i)
 		if len(got) != col {
 			t.Errorf("expected %d, got %d", row, len(got))
 		}
@@ -486,7 +485,7 @@ func TestRow(t *testing.T) {
 		}
 	}
 	for i := row; i > 0; i-- {
-		got := Row(-i, m)
+		got := Row(m, -i)
 		if len(got) != col {
 			t.Errorf("expected %d, got %d", row, len(got))
 		}
@@ -507,7 +506,7 @@ func BenchmarkRow(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = Row(211, m)
+		_ = Row(m, 211)
 	}
 }
 
@@ -568,7 +567,7 @@ func TestAll(t *testing.T) {
 		}
 		return false
 	}
-	if !All(positive, m) {
+	if !All(m, positive) {
 		t.Errorf("All(positive) is false, expected true")
 	}
 	notOne := func(i float64) bool {
@@ -577,8 +576,8 @@ func TestAll(t *testing.T) {
 		}
 		return false
 	}
-	Set(m, 1.0)
-	if All(notOne, m) {
+	m = Set(m, 1.0)
+	if All(m, notOne) {
 		t.Errorf("m has non-one values in it, expected none")
 	}
 }
@@ -596,7 +595,7 @@ func TestAny(t *testing.T) {
 		}
 		return false
 	}
-	if Any(negative, m) {
+	if Any(m, negative) {
 		t.Errorf("Any(negiative) is true, expected false")
 	}
 	notOne := func(i float64) bool {
@@ -605,8 +604,8 @@ func TestAny(t *testing.T) {
 		}
 		return false
 	}
-	Set(m, 1.0)
-	if Any(notOne, m) {
+	m = Set(m, 1.0)
+	if Any(m, notOne) {
 		t.Errorf("has non-one values in it, expected none")
 	}
 }
@@ -614,7 +613,7 @@ func TestAny(t *testing.T) {
 func TestSum(t *testing.T) {
 	row, col, val := 131, 12, 2.0
 	m := New(row, col)
-	Set(m, val)
+	m = Set(m, val)
 	res := Sum(m)
 	if res != float64(row*col)*val {
 		t.Errorf("expected %f, got %f", float64(row*col)*val, res)
@@ -622,7 +621,7 @@ func TestSum(t *testing.T) {
 	row = 12
 	col = 17
 	m = New(row, col)
-	Set(m, 1.0)
+	m = Set(m, 1.0)
 	for i := 0; i < col; i++ {
 		q := Sum(m, 1, i)
 		if q != float64(row) {
@@ -635,7 +634,7 @@ func TestSum(t *testing.T) {
 			t.Errorf("at col %d expected sum to be %f, got %f", i, float64(row), q)
 		}
 	}
-	Set(m, 1.0)
+	m = Set(m, 1.0)
 	for i := 0; i < row; i++ {
 		q := Sum(m, 0, i)
 		if q != float64(col) {
@@ -653,19 +652,19 @@ func TestSum(t *testing.T) {
 func TestAvg(t *testing.T) {
 	row, col, val := 7, 6, 3.0
 	m := New(row, col)
-	Set(m, val)
+	m = Set(m, val)
 	a := Avg(m)
 	if a != val {
 		t.Errorf("expected %f, got %f", val, a)
 	}
 	val = 2.1
-	Set(m, val)
+	m = Set(m, val)
 	a = Avg(m, 1, 0)
 	if a != val {
 		t.Errorf("expected %f, got %f", val, a)
 	}
 	val = 1.0
-	Set(m, val)
+	m = Set(m, val)
 	a = Avg(m, 0, 1)
 	if a != val {
 		t.Errorf("expected %f, got %f", val, a)
@@ -706,44 +705,10 @@ func BenchmarkDot(b *testing.B) {
 	}
 }
 
-func TestDotC(t *testing.T) {
-	m := New(10)
-	n := New(10)
-	for i := range m {
-		for j := range m[i] {
-			m[i][j] = float64(i*10 + j)
-		}
-	}
-	for i := range n {
-		n[i][i] = 1.0
-	}
-	o := DotC(m, n)
-	if !Equal(o, m) {
-		t.Errorf("expected equal, got not equal")
-	}
-}
-
-func BenchmarkDotC(b *testing.B) {
-	m := New(1000)
-	n := New(1000)
-	for i := range m {
-		for j := range m[i] {
-			m[i][j] = float64(i*10 + j)
-		}
-	}
-	for i := range n {
-		n[i][i] = 1.0
-	}
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_ = DotC(m, n)
-	}
-}
-
 func TestAppendCol(t *testing.T) {
 	v := make([]float64, 10)
 	m := New(10, 5)
-	AppendCol(m, v)
+	m = AppendCol(m, v)
 	for i := range m {
 		if len(m[i]) != 6 {
 			t.Errorf("expected length of 6, got %d", len(m))
