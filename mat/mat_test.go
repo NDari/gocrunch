@@ -199,7 +199,7 @@ func TestMul(t *testing.T) {
 			m[i][j] = float64(i*row + j)
 		}
 	}
-	n := Copy(m)
+	n := Clone(m)
 	m = Mul(m, m)
 	for i := range m {
 		for j := range m[i] {
@@ -213,7 +213,6 @@ func TestMul(t *testing.T) {
 func BenchmarkMul(b *testing.B) {
 	m := New(1000, 1000)
 	n := New(1000, 1000)
-	q := New(1000, 1000)
 	for i := range m {
 		for j := range m[i] {
 			m[i][j] = float64(i*1000 + j)
@@ -222,7 +221,7 @@ func BenchmarkMul(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		q = Mul(m, n)
+		_ = Mul(m, n)
 	}
 }
 
@@ -234,7 +233,7 @@ func TestAdd(t *testing.T) {
 			m[i][j] = float64(i*row + j)
 		}
 	}
-	n := Copy(m)
+	n := Clone(m)
 	m = Add(m, 0.0)
 	for i := range m {
 		for j := range m[i] {
@@ -254,7 +253,7 @@ func TestAdd(t *testing.T) {
 	for i := range v {
 		v[i] = 2.0
 	}
-	n = Copy(m)
+	n = Clone(m)
 	m = Add(m, v)
 	for i := range m {
 		for j := range m[i] {
@@ -270,7 +269,7 @@ func TestAdd(t *testing.T) {
 			m[i][j] = float64(i*row + j)
 		}
 	}
-	n = Copy(m)
+	n = Clone(m)
 	m = Add(m, m)
 	for i := range m {
 		for j := range m[i] {
@@ -289,7 +288,7 @@ func TestSub(t *testing.T) {
 			m[i][j] = float64(i*row + j)
 		}
 	}
-	n := Copy(m)
+	n := Clone(m)
 	m = Sub(m, 0.0)
 	for i := range m {
 		for j := range m[i] {
@@ -309,7 +308,7 @@ func TestSub(t *testing.T) {
 	for i := range v {
 		v[i] = 2.0
 	}
-	n = Copy(m)
+	n = Clone(m)
 	m = Sub(m, v)
 	for i := range m {
 		for j := range m[i] {
@@ -344,7 +343,7 @@ func TestDiv(t *testing.T) {
 			m[i][j] = float64(i*row + j)
 		}
 	}
-	n := Copy(m)
+	n := Clone(m)
 	m = Div(m, 1.0)
 	for i := range m {
 		for j := range m[i] {
@@ -364,7 +363,7 @@ func TestDiv(t *testing.T) {
 	for i := range v {
 		v[i] = 1.0
 	}
-	n = Copy(m)
+	n = Clone(m)
 	m = Div(m, v)
 	for i := range m {
 		for j := range m[i] {
@@ -455,7 +454,6 @@ func TestCol(t *testing.T) {
 
 func BenchmarkCol(b *testing.B) {
 	m := New(1721, 311)
-	q := make([]float64, 1721)
 	for i := range m {
 		for j := range m[i] {
 			m[i][j] = float64(i*1721 + j)
@@ -463,7 +461,7 @@ func BenchmarkCol(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		q = Col(m, 211)
+		_ = Col(m, 211)
 	}
 }
 
@@ -501,7 +499,6 @@ func TestRow(t *testing.T) {
 
 func BenchmarkRow(b *testing.B) {
 	m := New(1721, 311)
-	q := make([]float64, 311)
 	for i := range m {
 		for j := range m[i] {
 			m[i][j] = float64(i*1721 + j)
@@ -509,7 +506,7 @@ func BenchmarkRow(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		q = Row(m, 211)
+		_ = Row(m, 211)
 	}
 }
 
@@ -520,14 +517,14 @@ func TestEqual(t *testing.T) {
 	}
 }
 
-func TestCopy(t *testing.T) {
+func TestClone(t *testing.T) {
 	m := New(13, 13)
 	for i := range m {
 		for j := range m[i] {
 			m[i][j] = float64(i*13 + j)
 		}
 	}
-	n := Copy(m)
+	n := Clone(m)
 	if !Equal(m, n) {
 		t.Errorf("not equal to its own copy")
 	}
@@ -731,7 +728,6 @@ func TestDot(t *testing.T) {
 func BenchmarkDot(b *testing.B) {
 	m := New(1000)
 	n := New(1000)
-	q := New(1000)
 	for i := range m {
 		for j := range m[i] {
 			m[i][j] = float64(i*10 + j)
@@ -742,7 +738,7 @@ func BenchmarkDot(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		q = Dot(m, n)
+		_ = Dot(m, n)
 	}
 }
 

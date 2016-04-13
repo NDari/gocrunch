@@ -343,7 +343,7 @@ The original [][]float64 (the first arg of this function) is not mutated in this
 function.
 */
 func Mul(m [][]float64, val interface{}) [][]float64 {
-	n := Copy(m)
+	n := Clone(m)
 	switch v := val.(type) {
 	case float64:
 		for i := range n {
@@ -424,7 +424,7 @@ The original [][]float64 (the first arg of this function) is not mutated in this
 function.
 */
 func Add(m [][]float64, val interface{}) [][]float64 {
-	n := Copy(m)
+	n := Clone(m)
 	switch v := val.(type) {
 	case float64:
 		for i := range n {
@@ -503,7 +503,7 @@ The original [][]float64 (the first arg of this function) is not mutated in this
 function.
 */
 func Sub(m [][]float64, val interface{}) [][]float64 {
-	n := Copy(m)
+	n := Clone(m)
 	switch v := val.(type) {
 	case float64:
 		for i := range n {
@@ -583,7 +583,7 @@ The original [][]float64 (the first arg of this function) is not mutated in this
 function.
 */
 func Div(m [][]float64, val interface{}) [][]float64 {
-	n := Copy(m)
+	n := Clone(m)
 	switch v := val.(type) {
 	case float64:
 		if val == 0.0 {
@@ -744,10 +744,10 @@ func Equal(m, n [][]float64) bool {
 }
 
 /*
-Copy returns a duplicate of a [][]float64. The returned copy is "deep", meaning
-that the object can be manipulated without effecting the original.
+Clone returns a duplicate of a [][]float64. The returned duplicate is "deep",
+meaning that the object can be manipulated without effecting the original.
 */
-func Copy(m [][]float64) [][]float64 {
+func Clone(m [][]float64) [][]float64 {
 	n := make([][]float64, len(m))
 	for i := range m {
 		n[i] = make([]float64, len(m[i]))
@@ -1143,7 +1143,7 @@ func AppendCol(m [][]float64, v []float64) [][]float64 {
 		debug.PrintStack()
 		panic(s)
 	}
-	n := Copy(m)
+	n := Clone(m)
 	for i := range v {
 		n[i] = append(n[i], v[i])
 	}
