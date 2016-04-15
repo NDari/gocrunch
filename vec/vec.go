@@ -26,7 +26,10 @@ which allows the code to be easily modified to serve in different situations.
 */
 package vec
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 var (
 	errStrings = []string{
@@ -39,6 +42,7 @@ var (
 		"\ngocrunch/vec error.\nIn vec.%s, second arg must be float64 or []float64, received %v.\n",
 		"\ngocrunch/vec error.\nIn vec.%s, the passed float64 cannot be 0.0\n",
 		"\ngocrunch/vec error.\nIn vec.%s, in the second []float64, zero value found at index %d.\n",
+		"\ngocrunch/vec error.\nIn vec.%s, the length of slice %d is not divisible by the stride %d.\n",
 	}
 )
 
@@ -148,6 +152,36 @@ func Cut(v []float64, args ...int) []float64 {
 		panic(fmt.Sprintf(errStrings[4], "Cut()"))
 	}
 	return v
+}
+
+/*
+To2D converts a []float64 to a [][]float64, using a passed stride. The values
+of the entries in the []float64 are put into the [][]float64 row by row. For
+example:
+
+	v := []float64{0.0, 1.0, 2.0, 3.0}
+	m := vec.To2D(v, 2) // m is [[0.0, 1.0], [2.0, 3.0]]
+
+The original []float64 is not mutated in this function. The length of the
+[]float64 must be exactly divisible by the passed stride, otherwise this
+function will panic.
+*/
+func To2D(v []float64, stride int) [][]float64 {
+	if math.Mod(float64(len(v)), float64(stride)) != 0.0 {
+		panic(fmt.Sprintf(errStrings[9], "To2D()", len(v), stride))
+	}
+	m := make([][]float64, len(v)/stride)
+	for i := range m {
+		m[i] = make([]float64, stride)
+	}
+	idx := 0
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = v[idx]
+			idx++
+		}
+	}
+	return m
 }
 
 /*
