@@ -178,6 +178,29 @@ func TestCut(t *testing.T) {
 	wg.Wait()
 }
 
+func TestTo2D(t *testing.T) {
+	v := []float64{0.0, 1.0, 2.0, 3.0}
+	m := To2D(v, 2)
+	if len(m) != 2 {
+		t.Errorf("Expected 2 rows, but got %d", len(m))
+	}
+	if m[1][1] != 3.0 {
+		t.Errorf("Expected 3.0, got %f", m[1][1])
+	}
+}
+
+func TestClone(t *testing.T) {
+	v := []float64{0.0, 1.0, 2.0, 3.0}
+	w := Clone(v)
+	if !Equal(v, w) {
+		t.Errorf("The original and Clone are not equal")
+	}
+	v[3] = 4.0
+	if v[3] == w[3] {
+		t.Errorf("The clone was not a deep copy")
+	}
+}
+
 func TestEqual(t *testing.T) {
 	if !Equal([]float64{1.0}, []float64{1.0}) {
 		t.Errorf("expected equal, got not equal")

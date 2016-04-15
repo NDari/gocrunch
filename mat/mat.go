@@ -192,15 +192,21 @@ and y are integers which are passed to this function. The range from which
 the random numbers are selected is determined based on the arguments passed.
 
 For no additional arguments, such as
+
 	mat.Rand(x, y)
+
 the range is [0, 1)
 
 For 1 argument, such as
+
 	mat.Rand(x, y, arg)
+
 the range is [0, arg) for arg > 0, or (arg, 0] is arg < 0.
 
 For 2 arguments, such as
+
 	mat.Rand(x, y, arg1, arg2)
+
 the range is [arg1, arg2). For this case, arg1 must be less than arg2, or
 the function will panic.
 */
@@ -247,7 +253,8 @@ func Rand(x, y int, args ...float64) [][]float64 {
 
 /*
 Flatten turns a [][]float64 into a 1D slice of float64. This is done
-by appending all rows tip to tail.
+by appending all rows tip to tail. The original [][]float 64 is not
+mutated in this function.
 */
 func Flatten(m [][]float64) []float64 {
 	var n []float64
@@ -671,6 +678,8 @@ Col returns a column from a [][]float64. For example:
 Col also accepts negative indices. For example:
 
 	mat.Col(m, -1) // [2.3, 1.7]
+
+The original [][]float64 is not mutated in this function.
 */
 func Col(m [][]float64, x int) []float64 {
 	if (x >= len(m[0])) || (x < -len(m[0])) {
@@ -701,6 +710,8 @@ Row returns a row from a [][]float64. For example:
 Row also accepts negative indices. For example:
 
 	mat.Row(m, -1) // [3.4, 1.7]
+
+The original [][]float64 is not mutated in this function.
 */
 func Row(m [][]float64, x int) []float64 {
 	if (x >= len(m)) || (x < -len(m)) {
@@ -854,6 +865,8 @@ of the last row of a [][]float64 is given by:
 where as the sum of the first column is given by:
 
 	mat.Sum(m, 1, 0)
+
+The original [][]float64 is not mutated in this function.
 */
 func Sum(m [][]float64, args ...int) float64 {
 	sum := 0.0
@@ -938,6 +951,8 @@ of the last row of a [][]float64 is given by:
 where as the product of the first column is given by:
 
 	mat.Prod(m, 1, 0)
+
+The original [][]float64 is not mutated in this function.
 */
 func Prod(m [][]float64, args ...int) float64 {
 	prod := 1.0
@@ -1023,6 +1038,8 @@ last row of a [][]float64 is given by:
 where as the sum of the first column is given by:
 
 	mat.Avg(m, 1, 0)
+
+The original [][]float64 is not mutated in this function.
 */
 func Avg(m [][]float64, args ...int) float64 {
 	avg := 0.0
@@ -1102,6 +1119,8 @@ For the sake of simplicity, it is assumed that both passed [][]float64s are
 non-jagged, meaning that each row has the same number of entries as any
 other row in both [][]float64, and each column has the same number of entries
 as any other column in both [][]float64s passed to this function.
+
+The original [][]float64s is not mutated in this function.
 */
 func Dot(m, n [][]float64) [][]float64 {
 	if len(m[0]) != len(n) {
