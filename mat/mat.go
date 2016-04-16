@@ -201,7 +201,7 @@ For 1 argument, such as
 
 	mat.Rand(x, y, arg)
 
-the range is [0, arg) for arg > 0, or (arg, 0] is arg < 0.
+the range is [0, arg) for arg > 0, or (arg, 0] if arg < 0.
 
 For 2 arguments, such as
 

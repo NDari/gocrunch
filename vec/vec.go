@@ -29,6 +29,7 @@ package vec
 import (
 	"fmt"
 	"math"
+	"math/rand"
 )
 
 var (
@@ -43,6 +44,8 @@ var (
 		"\ngocrunch/vec error.\nIn vec.%s, the passed float64 cannot be 0.0\n",
 		"\ngocrunch/vec error.\nIn vec.%s, in the second []float64, zero value found at index %d.\n",
 		"\ngocrunch/vec error.\nIn vec.%s, the length of slice %d is not divisible by the stride %d.\n",
+		"\ngocrunch/vec error.\nIn vec.%s, the first argument %f must be less than the second, %f.\n",
+		"\ngocrunch/vec error.\nIn vec.%s, expected 0 to 0 float64 arguments, but got %d.\n",
 	}
 )
 
@@ -182,6 +185,51 @@ func To2D(v []float64, stride int) [][]float64 {
 		}
 	}
 	return m
+}
+
+/*
+Rand creates []float64 of length x with the entries set to random numbers.
+The x is and integers passed to this function. The range from which
+the random numbers are selected is determined based on the arguments passed.
+
+For no additional arguments, such as
+
+	vec.Rand(x)
+
+the range is [0, 1), which is from and including 0.0, to and excluding 1.0.
+
+For 1 argument, such as
+
+	vec.Rand(x, arg)
+
+the range is [0, arg) for arg > 0, or (arg, 0] if arg < 0.
+
+For 2 arguments, such as
+
+	vec.Rand(x, arg1, arg2)
+
+the range is [arg1, arg2). For this case, arg1 must be less than arg2, or
+the function will panic.
+*/
+func Rand(x int, args ...float64) []float64 {
+	v := make([]float64, x)
+	switch len(args) {
+	case 0:
+		for i := range v {
+			v[i] = rand.Float64()
+		}
+	case 1:
+		for i := range v {
+			v[i] = rand.Float64() * args[0]
+		}
+	case 2:
+		if !(args[2] > args[1]) {
+			panic(fmt.Sprintf(errStrings[10], "Rand()", args[0], args[1]))
+		}
+	default:
+		panic(fmt.Sprintf(errStrings[11], "Rand()", len(args)))
+	}
+	return v
 }
 
 /*

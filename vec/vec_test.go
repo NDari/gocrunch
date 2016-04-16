@@ -189,6 +189,18 @@ func TestTo2D(t *testing.T) {
 	}
 }
 
+func TestRand(t *testing.T) {
+	v := Rand(5)
+	if len(v) != 5 {
+		t.Errorf("expected length of 5, but got %d", len(v))
+	}
+	for i := range v {
+		if v[i] >= 1.0 || v[i] < 0.0 {
+			t.Errorf("expected value in [0.0, 1.0] but got %f", v[i])
+		}
+	}
+}
+
 func TestClone(t *testing.T) {
 	v := []float64{0.0, 1.0, 2.0, 3.0}
 	w := Clone(v)
