@@ -11,7 +11,6 @@ function
 In this function, m is a []float64, where as n could be a float64 or a
 []float64. This allows the same function to be called for wide range of
 situations. This trades compile time safety for runtime errors.
-
 We believe that Go's fast compile time, along with the verbose errors in this
 package make up for that, however.
 
@@ -29,7 +28,7 @@ package vec
 
 import (
 	"fmt"
-	"reflect"
+	"math"
 )
 
 var (
@@ -43,12 +42,20 @@ var (
 		"\ngocrunch/vec error.\nIn vec.%s, second arg must be float64 or []float64, received %v.\n",
 		"\ngocrunch/vec error.\nIn vec.%s, the passed float64 cannot be 0.0\n",
 		"\ngocrunch/vec error.\nIn vec.%s, in the second []float64, zero value found at index %d.\n",
+		"\ngocrunch/vec error.\nIn vec.%s, the length of slice %d is not divisible by the stride %d.\n",
 	}
 )
 
 /*
 Pop takes a []float64, and "pops" the last entry, returning it along with the
-modified []float64. The other elements of the []float64 remain intact.
+modified []float64. The other elements of the []float64 remain intact. For
+example:
+
+	v := []float64{1.0, 2.0, 3.0}
+	x, v := vec.Pop(v) // x is 3.0, v is [1.0, 2.0]
+
+This function mutates the passed []float64, and panics if the length of the
+slice is 0 since it cannot be "popped".
 */
 func Pop(v []float64) (float64, []float64) {
 	if len(v) == 0 {
@@ -61,7 +68,12 @@ func Pop(v []float64) (float64, []float64) {
 /*
 Push appends a float64 to the end of a []float64, returning the modified
 []float64. The returned []float64 is one element longer, and the other
-elements remain intact.
+elements remain intact. For example:
+
+	v := []float64{1.0, 2.0, 3.0}
+	v = vec.Push(v, 4.0) // v is [1.0, 2.0, 3.0, 4.0]
+
+This function alters the passed []float64.
 */
 func Push(v []float64, x float64) []float64 {
 	v = append(v, x)
@@ -72,6 +84,13 @@ func Push(v []float64, x float64) []float64 {
 Shift removes the first element of a []float64, returning it along with the
 modified []float64. All the other elements in the []float64 remain intact,
 however their order is changed (the second element is now the first, etc).
+For example:
+
+	v := []float64{1.0, 2.0, 3.0}
+	x, v := vec.Shift(v) // x is 1.0, v is [2.0, 3.0]
+
+This function alters the passed []float64, and panics if the length of the
+slice is 0 since it cannot be "shifted".
 */
 func Shift(v []float64) (float64, []float64) {
 	if len(v) == 0 {
@@ -85,6 +104,12 @@ func Shift(v []float64) (float64, []float64) {
 Unshift appends a float64 to the beginning of a []float64, returning the
 modified []float64. The elements in the original []float64 remain intact,
 however their order is now changed (the first element is now the second, etc.)
+For example:
+
+	v := []float64{1.0, 2.0, 3.0}
+	v = vec.Shift(v, 10.0) // v is [10.0, 1.0, 2.0, 3.0]
+
+The passed slice is mutated in this function.
 */
 func Unshift(v []float64, x float64) []float64 {
 	v = append([]float64{x}, v...)
@@ -94,11 +119,16 @@ func Unshift(v []float64, x float64) []float64 {
 /*
 Cut removes a range of entries from a []float64. This function can be used
 in one of two ways. First is providing a single int, such as:
+
 	vec.Cut(v, x)
+
 which means that all elements of v whose index is x or larger will be
 dropped. The second method of using this function is as:
+
 	vec.Cut(v, 2, 4)
-which means that the second and 3rd elements of v are dropped.
+
+which means that the second and 3rd elements of v are dropped. The passed
+slice is mutated in this function.
 */
 func Cut(v []float64, args ...int) []float64 {
 	switch len(args) {
@@ -125,6 +155,48 @@ func Cut(v []float64, args ...int) []float64 {
 }
 
 /*
+To2D converts a []float64 to a [][]float64, using a passed stride. The values
+of the entries in the []float64 are put into the [][]float64 row by row. For
+example:
+
+	v := []float64{0.0, 1.0, 2.0, 3.0}
+	m := vec.To2D(v, 2) // m is [[0.0, 1.0], [2.0, 3.0]]
+
+The original []float64 is not mutated in this function. The length of the
+[]float64 must be exactly divisible by the passed stride, otherwise this
+function will panic.
+*/
+func To2D(v []float64, stride int) [][]float64 {
+	if math.Mod(float64(len(v)), float64(stride)) != 0.0 {
+		panic(fmt.Sprintf(errStrings[9], "To2D()", len(v), stride))
+	}
+	m := make([][]float64, len(v)/stride)
+	for i := range m {
+		m[i] = make([]float64, stride)
+	}
+	idx := 0
+	for i := range m {
+		for j := range m[i] {
+			m[i][j] = v[idx]
+			idx++
+		}
+	}
+	return m
+}
+
+/*
+Clone replicated the passed []slice. The returned slice is a copy of
+original, both in terms of the length and the value of the elements
+at each index. The returned copy is "deep", and manupilating it does
+not effect the original slice.
+*/
+func Clone(v []float64) []float64 {
+	c := make([]float64, len(v))
+	copy(c, v)
+	return c
+}
+
+/*
 Equal checks if two []float64s are equal, by checking that they have the same length,
 and the same entries in each index.
 */
@@ -141,30 +213,37 @@ func Equal(v, w []float64) bool {
 }
 
 /*
-Set sets all elements in a []float64 to the passed value.
+Set returns a copy of the passed []float64 where all of the elements are set to
+the passed float64 in the second argument.
+
+The original []float64 is not mutated in this function.
 */
-func Set(v []float64, val float64) {
-	for i := range v {
-		v[i] = val
+func Set(v []float64, val float64) []float64 {
+	c := Clone(v)
+	for i := range c {
+		c[i] = val
 	}
+	return c
 }
 
 /*
 Foreach applies a function to each element of a []float64, storing the result
-in the same index.  Consider:
+in a new []float64 which is returned.  Consider:
 
 	double := func(i float64) float64 {
 		return i * i
 	}
 	v := []float64{1.0, 2.0, 3.0}
-	vec.Foreach(v, double) // v is {1.0, 4.0, 9.0}
+	c := vec.Foreach(v, double) // c is {1.0, 4.0, 9.0}
 
-Thus the []float64 is modified by Foreach().
+Thus the original []float64 is not modified in this function.
 */
-func Foreach(v []float64, f func(float64) float64) {
+func Foreach(v []float64, f func(float64) float64) []float64 {
+	c := Clone(v)
 	for i := range v {
-		v[i] = f(v[i])
+		c[i] = f(v[i])
 	}
+	return c
 }
 
 /*
@@ -178,7 +257,7 @@ function. If not, All() returns false. Consider:
 		return false
 	}
 	v := make([]float64, 10)
-	vec.Set(v, -12.0)
+	v = vec.Set(v, -12.0)
 	allNegatives := vec.All(v, negative) // true
 
 To check if any element of a []float64 pass a certain function, look
@@ -204,7 +283,7 @@ function. If no elements return true, then Any() will return false. Consider:
 		return false
 	}
 	v := make([]float64, 10)
-	vec.Set(v, 12.0)
+	v = vec.Set(v, 12.0)
 	anyNegatives := vec.Any(v, negative) // false
 
 To check if all elements of a []float64 pass a certain function, look
@@ -275,34 +354,36 @@ the second argument is a float64:
 
 	val := 10
 	v := []float64{1.0, 2.0, 3.0}
-	vec.Mul(v, val) // v is now {10.0, 20.0, 30.0}
+	v := vec.Mul(v, val) // v is now {10.0, 20.0, 30.0}
 
 The second argument can also we a []float64, as below:
 
 	v := []float64{1.0, 2.0, 3.0}
 	w := []float64{3.0, 2.0, 4.0}
-	vec.Mul(v, w) // v is now {3.0, 4.0, 12.0}
+	q := vec.Mul(v, w) // q is now {3.0, 4.0, 12.0}
 
-The original []float64 (the first argument) is modified, but the second is not.
+The original arguments are not modified in this function.
 In the case where the second argument is a []float64, the length of both
 arguments must be equal.
 */
-func Mul(v []float64, val interface{}) {
+func Mul(v []float64, val interface{}) []float64 {
+	c := Clone(v)
 	switch w := val.(type) {
 	case float64:
-		for i := range v {
-			v[i] *= w
+		for i := range c {
+			c[i] *= w
 		}
 	case []float64:
 		if len(v) != len(w) {
-			panic(fmt.Sprintf(errStrings[5], "Mul()", len(v), len(w)))
+			panic(fmt.Sprintf(errStrings[5], "Mul()", len(c), len(w)))
 		}
-		for i := range v {
-			v[i] *= w[i]
+		for i := range c {
+			c[i] *= w[i]
 		}
 	default:
-		panic(fmt.Sprintf(errStrings[6], "Mul()", reflect.TypeOf(v)))
+		panic(fmt.Sprintf(errStrings[6], "Mul()", w))
 	}
+	return c
 }
 
 /*
@@ -313,34 +394,36 @@ the second argument is a float64:
 
 	val := 10
 	v := []float64{1.0, 2.0, 3.0}
-	vec.Add(v, val) // v is now {11.0, 12.0, 13.0}
+	v := vec.Add(v, val) // v is {11.0, 12.0, 13.0}
 
 The second argument can also we a []float64, as below:
 
 	v := []float64{1.0, 2.0, 3.0}
 	w := []float64{3.0, 2.0, 4.0}
-	vec.Add(v, w) // v is now {4.0, 4.0, 7.0}
+	q := vec.Add(v, w) // q is {4.0, 4.0, 7.0}
 
-The original []float64 (the first argument) is modified, but the second is not.
+The original arguments are not modified in this function.
 In the case where the second argument is a []float64, the length of both
 arguments must be equal.
 */
-func Add(v []float64, val interface{}) {
+func Add(v []float64, val interface{}) []float64 {
+	c := Clone(v)
 	switch w := val.(type) {
 	case float64:
-		for i := range v {
-			v[i] += w
+		for i := range c {
+			c[i] += w
 		}
 	case []float64:
-		if len(v) != len(w) {
-			panic(fmt.Sprintf(errStrings[5], "Add()", len(v), len(w)))
+		if len(c) != len(w) {
+			panic(fmt.Sprintf(errStrings[5], "Add()", len(c), len(w)))
 		}
-		for i := range v {
-			v[i] += w[i]
+		for i := range c {
+			c[i] += w[i]
 		}
 	default:
-		panic(fmt.Sprintf(errStrings[6], "Mul()", reflect.TypeOf(v)))
+		panic(fmt.Sprintf(errStrings[6], "Mul()", w))
 	}
+	return c
 }
 
 /*
@@ -351,34 +434,36 @@ the second argument is a float64:
 
 	val := 10
 	v := []float64{1.0, 2.0, 3.0}
-	vec.Sub(v, val) // v is now {-9.0, -8.0, -7.0}
+	v = vec.Sub(v, val) // v is now {-9.0, -8.0, -7.0}
 
 The second argument can also we a []float64, as below:
 
 	v := []float64{1.0, 2.0, 5.0}
 	w := []float64{3.0, 2.0, 4.0}
-	vec.Sub(v, w) // v is now {-2.0, 0.0, 1.0}
+	q := vec.Sub(v, w) // q is now {-2.0, 0.0, 1.0}
 
-The original []float64 (the first argument) is modified, but the second is not.
+The original arguments are not modified in this function.
 In the case where the second argument is a []float64, the length of both
 arguments must be equal.
 */
-func Sub(v []float64, val interface{}) {
+func Sub(v []float64, val interface{}) []float64 {
+	c := Clone(v)
 	switch w := val.(type) {
 	case float64:
-		for i := range v {
-			v[i] -= w
+		for i := range c {
+			c[i] -= w
 		}
 	case []float64:
-		if len(v) != len(w) {
-			panic(fmt.Sprintf(errStrings[5], "Sub()", len(v), len(w)))
+		if len(c) != len(w) {
+			panic(fmt.Sprintf(errStrings[5], "Sub()", len(c), len(w)))
 		}
-		for i := range v {
-			v[i] -= w[i]
+		for i := range c {
+			c[i] -= w[i]
 		}
 	default:
-		panic(fmt.Sprintf(errStrings[6], "Mul()", reflect.TypeOf(v)))
+		panic(fmt.Sprintf(errStrings[6], "Mul()", w))
 	}
+	return c
 }
 
 /*
@@ -389,15 +474,15 @@ the second argument is a float64:
 
 	val := 1.0
 	v := []float64{1.0, 2.0, 3.0}
-	vec.Div(v, val) // v is now {1.0, 2.0, 3.0}
+	v = vec.Div(v, val) // v is now {1.0, 2.0, 3.0}
 
 The second argument can also we a []float64, as below:
 
 	v := []float64{1.0, 2.0, 3.0}
 	w := []float64{3.0, 2.0, 4.0}
-	vec.Div(v, w) // v is now {0.33, 1.0, 0.75}
+	q := vec.Div(v, w) // q is now {0.33, 1.0, 0.75}
 
-The original []float64 (the first argument) is modified, but the second is not.
+The original arguments are not modified in this function.
 when the first argument is a float64, it cannot be 0.0. as division by zero is
 not allowed.
 
@@ -405,30 +490,32 @@ In the case where the second argument is a []float64, the length of both
 arguments must be equal. Additionally, the second argument must not contain
 any elements whose value is 0.0.
 */
-func Div(v []float64, val interface{}) {
+func Div(v []float64, val interface{}) []float64 {
+	c := Clone(v)
 	switch w := val.(type) {
 	case float64:
 		if w == 0.0 {
 			panic(fmt.Sprintf(errStrings[7], "Div()"))
 		}
-		for i := range v {
-			v[i] /= w
+		for i := range c {
+			c[i] /= w
 		}
 	case []float64:
-		if len(v) != len(w) {
-			panic(fmt.Sprintf(errStrings[5], "Div()", len(v), len(w)))
+		if len(c) != len(w) {
+			panic(fmt.Sprintf(errStrings[5], "Div()", len(c), len(w)))
 		}
 		for i := range w {
 			if w[i] == 0.0 {
 				panic(fmt.Sprintf(errStrings[8], "Div()", i))
 			}
 		}
-		for i := range v {
-			v[i] /= w[i]
+		for i := range c {
+			c[i] /= w[i]
 		}
 	default:
-		panic(fmt.Sprintf(errStrings[6], "Mul()", reflect.TypeOf(v)))
+		panic(fmt.Sprintf(errStrings[6], "Mul()", w))
 	}
+	return c
 }
 
 /*
