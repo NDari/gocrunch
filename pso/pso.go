@@ -57,20 +57,35 @@ type Swarm struct {
 	GBestID  int
 }
 
+func Solve(c []Candidate, numIterations int) {
+	s := InitSwarm(c)
+	for i := 0; i < numIterations; i++ {
+		s.Iterate(i)
+	}
+	fmt.Println("\n=========================================================================\n")
+	fmt.Println("\n=========================================================================\n")
+	fmt.Println("\n=========================================================================\n")
+	fmt.Println("The minimum ftness found is", s.GBestFit)
+	fmt.Println("The location of the minimum is as follows:")
+	for i := range s.BPos[s.GBestID] {
+		fmt.Println("In dimension\t", i, "location\t", s.BPos[s.GBestID][i])
+	}
+}
+
 func InitSwarm(c []Candidate) *Swarm {
 	s := new(Swarm)
 	for i := range c {
 		s.Candids = append(s.Candids, c[i])
 		upper, lower := c[i].Bounderies()
-		if len(upper) > len(lower) {
+		if len(upper) != len(lower) {
 			panic("aw shucks")
 		}
 		pos := make([]float64, len(upper))
 		for i := range pos {
-			if upper[i] > lower[i] {
+			if upper[i] < lower[i] {
 				panic("aw shucks")
 			}
-			pos[i] = rand.Float64()*(lower[i]-upper[i]) + lower[i]
+			pos[i] = rand.Float64()*(lower[i]-upper[i]) + upper[i]
 		}
 		fitness := c[i].EvalFitness(pos)
 		s.Pos = append(s.Pos, pos)
@@ -80,6 +95,7 @@ func InitSwarm(c []Candidate) *Swarm {
 		s.V = append(s.V, make([]float64, len(pos)))
 	}
 	s.FindGBest()
+	fmt.Println(s)
 	return s
 }
 
@@ -92,15 +108,31 @@ func (s *Swarm) FindGBest() {
 			s.GBestFit = s.BFit[i]
 		}
 	}
+	for i := range s.BPos[s.GBestID] {
+		fmt.Println("gbest", s.BPos[s.GBestID][i])
+	}
 }
 
-func (s *Swarm) UpdatePersonalBests() {
-	for i := range s.Candids {
-		if s.Fit[i] < s.BFit[i] {
-			s.BFit[i] = s.Fit[i]
-			copy(s.BPos[i], s.Pos[i])
-		}
+func (s *Swarm) Iterate(iteration int) {
+	s.UpdateVelocity()
+	fmt.Println(s.V)
+	s.UpdatePos()
+	s.CheckBoundaries()
+	s.GetFitness()
+	s.UpdatePersonalBests()
+	s.FindGBest()
+	x1 := 0.0
+	x2 := 0.0
+	for i := range s.Fit {
+		x1 += s.Fit[i]
+		x2 += s.BFit[i]
 	}
+	x1 /= float64(len(s.Fit))
+	x2 /= float64(len(s.BFit))
+	fmt.Println("Finished with iteration", iteration)
+	fmt.Println("The global best is", s.GBestID, "with a fitness of", s.GBestFit)
+	fmt.Println("The average fitness in this iteration is", x1)
+	fmt.Println("The average best fitness over all iterations is", x2)
 }
 
 func (s *Swarm) UpdateVelocity() {
@@ -128,7 +160,6 @@ func (s *Swarm) CheckBoundaries() {
 			if s.Pos[i][j] > upper[j] {
 				s.Pos[i][j] = upper[j]
 				s.V[i][j] = 0.0
-				continue // skip the checking of the lower boundaries.
 			}
 			if s.Pos[i][j] < lower[j] {
 				s.Pos[i][j] = lower[j]
@@ -144,39 +175,11 @@ func (s *Swarm) GetFitness() {
 	}
 }
 
-func (s *Swarm) Iterate(iteration int) {
-	s.UpdateVelocity()
-	s.UpdatePos()
-	s.CheckBoundaries()
-	s.GetFitness()
-	s.FindGBest()
-	s.UpdatePersonalBests()
-	x1 := 0.0
-	x2 := 0.0
-	for i := range s.Fit {
-		x1 += s.Fit[i]
-		x2 += s.BFit[i]
-	}
-	x1 /= float64(len(s.Fit))
-	x2 /= float64(len(s.BFit))
-	fmt.Println("Finished with iteration", iteration)
-	fmt.Sprintf("The global best is candidate %d, with a fitness of %f\n", s.GBestID, s.GBestFit)
-	fmt.Println("The average fitness in this iteration is", x1)
-	fmt.Println("The average best fitness over all iterations is", x2)
-}
-
-func Solve(c []Candidate, numIterations int) {
-	fmt.Sprintf("Solving with %d potential solutions over %d iterations\n", len(c), numIterations)
-	s := InitSwarm(c)
-	for i := 0; i < numIterations; i++ {
-		s.Iterate(i)
-	}
-	fmt.Println("\n=========================================================================\n")
-	fmt.Println("\n=========================================================================\n")
-	fmt.Println("\n=========================================================================\n")
-	fmt.Println("The minimum ftness found is", s.GBestFit)
-	fmt.Println("The location of the minimum is as follows:")
-	for i := range s.BPos[s.GBestID] {
-		fmt.Println("In dimension\t", i, "location\t", s.BPos[s.GBestID][i])
+func (s *Swarm) UpdatePersonalBests() {
+	for i := range s.Candids {
+		if s.Fit[i] < s.BFit[i] {
+			s.BFit[i] = s.Fit[i]
+			copy(s.BPos[i], s.Pos[i])
+		}
 	}
 }
