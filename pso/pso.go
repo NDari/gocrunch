@@ -62,9 +62,9 @@ func Solve(c []Candidate, numIterations int) {
 	for i := 0; i < numIterations; i++ {
 		s.Iterate(i)
 	}
-	fmt.Println("\n=========================================================================\n")
-	fmt.Println("\n=========================================================================\n")
-	fmt.Println("\n=========================================================================\n")
+	fmt.Println("\n=========================================================================")
+	fmt.Println("\n=========================================================================")
+	fmt.Println("\n=========================================================================")
 	fmt.Println("The minimum ftness found is", s.GBestFit)
 	fmt.Println("The location of the minimum is as follows:")
 	for i := range s.BPos[s.GBestID] {
