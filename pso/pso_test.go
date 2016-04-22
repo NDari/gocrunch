@@ -1,6 +1,9 @@
 package pso
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 type an struct{}
 
@@ -17,32 +20,7 @@ func (c an) Bounderies() ([]float64, []float64) {
 }
 
 func TestAll(t *testing.T) {
-	r := []Candidate{
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-		an{},
-	}
-	Solve(r, 100)
+	var sol an
+	fit, pos := Solve(sol, 10, 100)
+	fmt.Println(fit, pos)
 }

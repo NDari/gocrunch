@@ -54,10 +54,15 @@ type Swarm struct {
 	BFit     []float64
 	V        [][]float64
 	GBestFit float64
+	GBestPos []float64
 	GBestID  int
 }
 
-func Solve(c []Candidate, numIterations int) {
+func Solve(sol Candidate, numCandids, numIterations int) (float64, []float64) {
+	var c []Candidate
+	for i := 0; i < numCandids; i++ {
+		c = append(c, sol)
+	}
 	s := InitSwarm(c)
 	for i := 0; i < numIterations; i++ {
 		s.Iterate(i)
@@ -65,22 +70,35 @@ func Solve(c []Candidate, numIterations int) {
 	fmt.Println("\n=========================================================================")
 	fmt.Println("\n=========================================================================")
 	fmt.Println("\n=========================================================================")
-	fmt.Println("The minimum ftness found is", s.GBestFit)
+	fmt.Println("The minimum fitness found is", s.GBestFit)
 	fmt.Println("The location of the minimum is as follows:")
 	for i := range s.BPos[s.GBestID] {
 		fmt.Println("In dimension\t", i, "location\t", s.BPos[s.GBestID][i])
 	}
+	return s.GBestFit, s.GBestPos
 }
 
 func InitSwarm(c []Candidate) *Swarm {
 	s := new(Swarm)
+
+	s.Pos = make([][]float64, len(c))
+	s.BPos = make([][]float64, len(c))
+	s.V = make([][]float64, len(c))
+	s.Fit = make([]float64, len(c))
+	s.BFit = make([]float64, len(c))
+
 	for i := range c {
 		s.Candids = append(s.Candids, c[i])
 		upper, lower := c[i].Bounderies()
 		if len(upper) != len(lower) {
 			panic("aw shucks")
 		}
+
 		pos := make([]float64, len(upper))
+		s.Pos[i] = make([]float64, len(upper))
+		s.BPos[i] = make([]float64, len(upper))
+		s.V[i] = make([]float64, len(upper))
+
 		for i := range pos {
 			if upper[i] < lower[i] {
 				panic("aw shucks")
@@ -88,14 +106,16 @@ func InitSwarm(c []Candidate) *Swarm {
 			pos[i] = rand.Float64()*(lower[i]-upper[i]) + upper[i]
 		}
 		fitness := c[i].EvalFitness(pos)
-		s.Pos = append(s.Pos, pos)
-		s.Fit = append(s.Fit, fitness)
-		s.BPos = append(s.BPos, pos)
-		s.BFit = append(s.BFit, fitness)
-		s.V = append(s.V, make([]float64, len(pos)))
+		copy(s.Pos[i], pos)
+		s.Fit[i] = fitness
+		copy(s.BPos[i], pos)
+		s.BFit[i] = fitness
 	}
 	s.FindGBest()
-	fmt.Println(s)
+	s.GBestPos = make([]float64, len(s.BPos[s.GBestID]))
+	for i := range s.BPos[s.GBestID] {
+		s.GBestPos[i] = s.BPos[s.GBestID][i]
+	}
 	return s
 }
 
@@ -108,14 +128,11 @@ func (s *Swarm) FindGBest() {
 			s.GBestFit = s.BFit[i]
 		}
 	}
-	for i := range s.BPos[s.GBestID] {
-		fmt.Println("gbest", s.BPos[s.GBestID][i])
-	}
+	copy(s.GBestPos, s.BPos[s.GBestID])
 }
 
 func (s *Swarm) Iterate(iteration int) {
 	s.UpdateVelocity()
-	fmt.Println(s.V)
 	s.UpdatePos()
 	s.CheckBoundaries()
 	s.GetFitness()
@@ -133,6 +150,9 @@ func (s *Swarm) Iterate(iteration int) {
 	fmt.Println("The global best is", s.GBestID, "with a fitness of", s.GBestFit)
 	fmt.Println("The average fitness in this iteration is", x1)
 	fmt.Println("The average best fitness over all iterations is", x2)
+	fmt.Println()
+	fmt.Println()
+	fmt.Println()
 }
 
 func (s *Swarm) UpdateVelocity() {
@@ -140,7 +160,7 @@ func (s *Swarm) UpdateVelocity() {
 		for j := range s.V[i] {
 			s.V[i][j] = 0.729 * (s.V[i][j] +
 				(rand.Float64() * 2.05 * (s.BPos[i][j] - s.Pos[i][j])) +
-				(rand.Float64() * 2.05 * (s.BPos[s.GBestID][j] - s.Pos[i][j])))
+				(rand.Float64() * 2.05 * (s.GBestPos[j] - s.Pos[i][j])))
 		}
 	}
 }
