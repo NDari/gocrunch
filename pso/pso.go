@@ -24,6 +24,7 @@ package pso
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 )
 
@@ -47,26 +48,31 @@ type Candidate interface {
 }
 
 type Swarm struct {
-	Candids  []Candidate
-	Pos      [][]float64
-	Fit      []float64
-	BPos     [][]float64
-	BFit     []float64
-	V        [][]float64
-	GBestFit float64
-	GBestPos []float64
-	GBestID  int
+	Candids          []Candidate
+	Pos              [][]float64
+	Fit              []float64
+	BPos             [][]float64
+	BFit             []float64
+	V                [][]float64
+	GBestFit         float64
+	GBestPos         []float64
+	GBestID          int
+	C1               float64
+	C2               float64
+	W                float64
+	PsoType          string
+	Topology         string
+	NumIterations    int
+	CurrentIteration int
 }
 
-func Solve(sol Candidate, numCandids, numIterations int) (float64, []float64) {
+func DefaultSolver(sol Candidate, numCandids, numIterations int) (float64, []float64) {
 	var c []Candidate
 	for i := 0; i < numCandids; i++ {
 		c = append(c, sol)
 	}
-	s := InitSwarm(c)
-	for i := 0; i < numIterations; i++ {
-		s.Iterate(i)
-	}
+	s := InitSwarm(c, numIterations)
+	s.RunIterations()
 	fmt.Println("\n=========================================================================")
 	fmt.Println("\n=========================================================================")
 	fmt.Println("\n=========================================================================")
@@ -78,7 +84,7 @@ func Solve(sol Candidate, numCandids, numIterations int) (float64, []float64) {
 	return s.GBestFit, s.GBestPos
 }
 
-func InitSwarm(c []Candidate) *Swarm {
+func InitSwarm(c []Candidate, numIterations int) *Swarm {
 	s := new(Swarm)
 
 	s.Pos = make([][]float64, len(c))
@@ -116,6 +122,13 @@ func InitSwarm(c []Candidate) *Swarm {
 	for i := range s.BPos[s.GBestID] {
 		s.GBestPos[i] = s.BPos[s.GBestID][i]
 	}
+	s.C1 = 2.05
+	s.C2 = 2.05
+	s.W = 0.9
+	s.PsoType = "constriction"
+	s.Topology = "global"
+	s.NumIterations = numIterations
+	s.CurrentIteration = 0
 	return s
 }
 
@@ -131,7 +144,14 @@ func (s *Swarm) FindGBest() {
 	copy(s.GBestPos, s.BPos[s.GBestID])
 }
 
-func (s *Swarm) Iterate(iteration int) {
+func (s *Swarm) RunIterations() {
+	for s.CurrentIteration < s.NumIterations {
+		s.Iterate()
+		s.CurrentIteration++
+	}
+}
+
+func (s *Swarm) Iterate() {
 	s.UpdateVelocity()
 	s.UpdatePos()
 	s.CheckBoundaries()
@@ -146,7 +166,7 @@ func (s *Swarm) Iterate(iteration int) {
 	}
 	x1 /= float64(len(s.Fit))
 	x2 /= float64(len(s.BFit))
-	fmt.Println("Finished with iteration", iteration)
+	fmt.Println("Finished with iteration", s.CurrentIteration)
 	fmt.Println("The global best is", s.GBestID, "with a fitness of", s.GBestFit)
 	fmt.Println("The average fitness in this iteration is", x1)
 	fmt.Println("The average best fitness over all iterations is", x2)
@@ -156,12 +176,19 @@ func (s *Swarm) Iterate(iteration int) {
 }
 
 func (s *Swarm) UpdateVelocity() {
-	for i := range s.Candids {
-		for j := range s.V[i] {
-			s.V[i][j] = 0.729 * (s.V[i][j] +
-				(rand.Float64() * 2.05 * (s.BPos[i][j] - s.Pos[i][j])) +
-				(rand.Float64() * 2.05 * (s.GBestPos[j] - s.Pos[i][j])))
+	switch s.PsoType {
+	case "constriction":
+		phi := s.C1 + s.C2
+		chi := (2.0 / math.Abs(2.0-phi-math.Sqrt((phi*phi)-(4.0*phi))))
+		for i := range s.Candids {
+			for j := range s.V[i] {
+				s.V[i][j] = chi * (s.V[i][j] +
+					(rand.Float64() * s.C1 * (s.BPos[i][j] - s.Pos[i][j])) +
+					(rand.Float64() * s.C1 * (s.GBestPos[j] - s.Pos[i][j])))
+			}
 		}
+	default:
+		panic("This PSO type is not implemented")
 	}
 }
 

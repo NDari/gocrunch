@@ -21,6 +21,6 @@ func (c an) Bounderies() ([]float64, []float64) {
 
 func TestAll(t *testing.T) {
 	var sol an
-	fit, pos := Solve(sol, 10, 100)
+	fit, pos := DefaultSolver(sol, 10, 100)
 	fmt.Println(fit, pos)
 }
