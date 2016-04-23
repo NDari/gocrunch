@@ -50,7 +50,6 @@ func main() {
 }
 ```
 
- ```
 ## Documentation
 
 Full documentation is under badges, below.
@@ -59,4 +58,4 @@ Full documentation is under badges, below.
 
 ![](https://img.shields.io/badge/license-MIT-blue.svg)
 ![](https://img.shields.io/badge/status-stable-green.svg)
-[![GoDoc](https://godoc.org/github.com/NDari/gocrunch/mat?status.svg)](https://godoc.org/github.com/NDari/gocrunch/mat)
+[![GoDoc](https://godoc.org/github.com/NDari/gocrunch/pso?status.svg)](https://godoc.org/github.com/NDari/gocrunch/pso)
