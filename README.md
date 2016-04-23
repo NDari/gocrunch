@@ -25,6 +25,9 @@ A one dimentional slice can be thought of as a Vector.
 - [gocrunch/mat](https://github.com/NDari/gocrunch/tree/master/mat): Package mat
 implements functions that create or act upon two dimentional slices of float64s,
 `[][]float64`. A two dimentional slice can be thought of as a Matrix.
+- [gocrunch/pso](https://github.com/NDari/gocrunch/tree/master/pso): Package pso
+implements the Particle Swarm Optimization method in a fast, flexible, and
+extendable way.
 
 ## Badges
 
