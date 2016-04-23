@@ -93,6 +93,7 @@ func InitSwarm(c []Candidate, numIterations int) *Swarm {
 	s.V = make([][]float64, len(c))
 	s.Fit = make([]float64, len(c))
 	s.BFit = make([]float64, len(c))
+	s.Target = make([]int, len(c))
 
 	for i := range c {
 		s.Candids = append(s.Candids, c[i])
@@ -153,6 +154,7 @@ func (s *Swarm) RunIterations() {
 }
 
 func (s *Swarm) Iterate() {
+	s.UpdateTargets()
 	s.UpdateVelocity()
 	s.UpdatePos()
 	s.CheckBoundaries()
@@ -183,10 +185,33 @@ func (s *Swarm) UpdateTargets() {
 			s.Target[i] = s.GBestID
 		}
 	case "Ring":
-		panic("Ring topology not yet implemented")
+		for i := 0; i < len(s.Target)-1; i++ {
+			s.Target[i] = i + 1
+		}
+		s.Target[len(s.Target)-1] = 0
 	case "Von Neuman":
 		panic("Von Neumann topology not yet implemented")
 	case "Random":
+		for i := range s.Target {
+			// Find a random target, redo if the target is the candidate itself.
+			redo := true
+			for redo {
+				target := rand.Intn(len(s.Candids))
+				if target == i {
+					continue
+				}
+				// if the fitness of the target is higher, then we wish to accelerate
+				// away from it, and not toward it as the PSO algorithm normally does.
+				// For this reason, we will assign the target to be negative (-target
+				// instead of target), so that we know to move away from it.
+				if s.BFit[target] > s.BFit[i] {
+					s.Target[i] = -target
+				} else {
+					s.Target[i] = target
+				}
+				redo = false
+			}
+		}
 		panic("Random topology not yet implemented")
 	default:
 		panic("Unknown topology requested")
@@ -200,9 +225,17 @@ func (s *Swarm) UpdateVelocity() {
 		chi := (2.0 / math.Abs(2.0-phi-math.Sqrt((phi*phi)-(4.0*phi))))
 		for i := range s.Candids {
 			for j := range s.V[i] {
-				s.V[i][j] = chi * (s.V[i][j] +
-					(rand.Float64() * s.C1 * (s.BPos[i][j] - s.Pos[i][j])) +
-					(rand.Float64() * s.C1 * (s.GBestPos[j] - s.Pos[i][j])))
+				t := s.Target[i]
+				if t < 0 {
+					t = -t // set it back to positive for indexing
+					s.V[i][j] = chi * (s.V[i][j] +
+						(rand.Float64() * s.C1 * (s.BPos[i][j] - s.Pos[i][j])) +
+						(rand.Float64() * s.C1 * (s.BPos[t][j] + s.Pos[i][j])))
+				} else {
+					s.V[i][j] = chi * (s.V[i][j] +
+						(rand.Float64() * s.C1 * (s.BPos[i][j] - s.Pos[i][j])) +
+						(rand.Float64() * s.C1 * (s.BPos[t][j] - s.Pos[i][j])))
+				}
 			}
 		}
 	case "Standard":
