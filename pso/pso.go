@@ -64,6 +64,7 @@ type Swarm struct {
 	Topology         string
 	NumIterations    int
 	CurrentIteration int
+	Target           []int
 }
 
 func DefaultSolver(sol Candidate, numCandids, numIterations int) (float64, []float64) {
@@ -125,8 +126,8 @@ func InitSwarm(c []Candidate, numIterations int) *Swarm {
 	s.C1 = 2.05
 	s.C2 = 2.05
 	s.W = 0.9
-	s.PsoType = "constriction"
-	s.Topology = "global"
+	s.PsoType = "Constriction"
+	s.Topology = "Global"
 	s.NumIterations = numIterations
 	s.CurrentIteration = 0
 	return s
@@ -175,9 +176,26 @@ func (s *Swarm) Iterate() {
 	fmt.Println()
 }
 
+func (s *Swarm) UpdateTargets() {
+	switch s.Topology {
+	case "Global":
+		for i := range s.Target {
+			s.Target[i] = s.GBestID
+		}
+	case "Ring":
+		panic("Ring topology not yet implemented")
+	case "Von Neuman":
+		panic("Von Neumann topology not yet implemented")
+	case "Random":
+		panic("Random topology not yet implemented")
+	default:
+		panic("Unknown topology requested")
+	}
+}
+
 func (s *Swarm) UpdateVelocity() {
 	switch s.PsoType {
-	case "constriction":
+	case "Constriction":
 		phi := s.C1 + s.C2
 		chi := (2.0 / math.Abs(2.0-phi-math.Sqrt((phi*phi)-(4.0*phi))))
 		for i := range s.Candids {
@@ -187,8 +205,10 @@ func (s *Swarm) UpdateVelocity() {
 					(rand.Float64() * s.C1 * (s.GBestPos[j] - s.Pos[i][j])))
 			}
 		}
+	case "Standard":
+		panic("Standard PSO algorithm not yet implemented")
 	default:
-		panic("This PSO type is not implemented")
+		panic("Requested PSO type is not implemented")
 	}
 }
 
