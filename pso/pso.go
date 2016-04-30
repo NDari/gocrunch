@@ -15,7 +15,7 @@ from -100.0 to 100.0.
 
 Now, we start with a given set of (typically) random guesses of candidates for
 where we think the minimum would be (pretending that we do not already know).
-Say that we randomly choose the set of candiates to be [1.2, 4.3, 9.7, 72.0].
+Say that we randomly choose the set of candidates to be [1.2, 4.3, 9.7, 72.0].
 PSO method will attempt to find the minimum (0.0 in this case) by successive
 evaluation of the function, and the interaction between the set of these
 candidates.
@@ -29,54 +29,86 @@ import (
 )
 
 /*
-Candidate is the primary type in this library. In an abstract sense, a candidate
-represents a potential solution to a particular problem which we want to optimize.
+Candidate represents a potential solution to a particular problem which
+we want to optimize.
 
 The candidate must provide a function that takes a []float64 representing
 the position of the candidate at each dimension, and return a float64 which
 is the fitness of the candidate at that position in configuration space.
 
-The candidate must provide a function that returns the upper and lower
+The candidate must also provide a function that returns the upper and lower
 boundaries for each one of the dimensions of the configuration space
 of the problem. The boundaries are represented by two float64 slices,
 The first of which is the upper limits of each dimension, and the
 second is the lower limits of the same dimensions.
 */
 type Candidate interface {
-	EvalFitness([]float64) float64
+	EvalFitness(position []float64) (fitness float64)
 	Bounderies() (upper []float64, lower []float64)
 }
 
+/*
+Swarm is the primary data structure of the PSO package. It represents a set
+of candidates (potential solutions), which it randomly scatters around the
+configuration space of the problem.
+
+The Swarm is also responsible for all the bookkeeping needed in a typical
+PSO run, such as the current and best position of each candidate solution,
+the current global best solution, and so on.
+
+Finally, the Swarm also contains the various settings and configurations for
+the implementation of the PSO algorithm to use, the neighborhood topology,
+the social and cognitive acceleration coefficients, and so on. All of the
+various settings and methods of the Swarm can be adjusted to implement a
+wide range of the various PSO algorithms with minimal work.
+*/
 type Swarm struct {
-	candids          []Candidate
-	pos              [][]float64
-	fit              []float64
-	bPos             [][]float64
-	bFit             []float64
-	v                [][]float64
-	gBestFit         float64
-	gBestPos         []float64
-	gBestID          int
+	candids  []Candidate
+	pos      [][]float64
+	fit      []float64
+	bPos     [][]float64
+	bFit     []float64
+	v        [][]float64
+	gBestFit float64
+	gBestPos []float64
+	gBestID  int
+	target   []int
+
 	c1               float64
 	c2               float64
-	w                float64
+	w                float64 // w = (0.9 - 0.4) * ((maxiter-iter)/maxiter) + 0.4
 	psoType          string
 	topology         string
 	numIterations    int
 	currentIteration int
-	target           []int
+	verbose          bool
 }
 
-func DefaultSolver(sol Candidate, numCandids, numIterations int) (float64, []float64) {
+/*
+The DefaultSolver is a collection of sensible preset configurations for a PSO
+implementation. For a large number of cases, using this solver will be
+sufficient. For the cases where higher performance is needed, the user can
+tinker with the various settings themselves.
+
+The settings used in this solver are as follows:
+
+- psoType: "Constriction"
+- topology: "Global"
+- social acceleration weight: 2.05
+- cognitive acceleration weight: 2.05
+- initial velocity: 0.0 in all dimensions.
+
+*/
+func DefaultSolver(sol Candidate, nCandids, nIters int) (float64, []float64) {
 	var c []Candidate
-	for i := 0; i < numCandids; i++ {
+	for i := 0; i < nCandids; i++ {
 		c = append(c, sol)
 	}
-	s := InitSwarm(c, numIterations)
+	s := InitSwarm(c, nIters)
 	s.RunIterations()
-	fmt.Println("\n=========================================================================")
-	fmt.Println("\n=========================================================================")
-	fmt.Println("\n=========================================================================")
+	fmt.Println("==============================================================")
+	fmt.Println("==============================================================")
+	fmt.Println("==============================================================")
 	fmt.Println("The minimum fitness found is", s.gBestFit)
 	fmt.Println("The location of the minimum is as follows:")
 	for i := range s.bPos[s.gBestID] {
@@ -132,6 +164,7 @@ func InitSwarm(c []Candidate, numIterations int) *Swarm {
 	s.topology = "Global"
 	s.numIterations = numIterations
 	s.currentIteration = 0
+	s.verbose = true
 	return s
 }
 
@@ -162,21 +195,23 @@ func (s *Swarm) Iterate() {
 	s.GetFitness()
 	s.UpdatePersonalBests()
 	s.FindGBest()
-	x1 := 0.0
-	x2 := 0.0
-	for i := range s.fit {
-		x1 += s.fit[i]
-		x2 += s.bFit[i]
+	if s.verbose {
+		x1 := 0.0
+		x2 := 0.0
+		for i := range s.fit {
+			x1 += s.fit[i]
+			x2 += s.bFit[i]
+		}
+		x1 /= float64(len(s.fit))
+		x2 /= float64(len(s.bFit))
+		fmt.Println("Finished with iteration", s.currentIteration)
+		fmt.Println("The global best is", s.gBestID, "with a fitness of", s.gBestFit)
+		fmt.Println("The average fitness in this iteration is", x1)
+		fmt.Println("The average best fitness over all iterations is", x2)
+		fmt.Println()
+		fmt.Println()
+		fmt.Println()
 	}
-	x1 /= float64(len(s.fit))
-	x2 /= float64(len(s.bFit))
-	fmt.Println("Finished with iteration", s.currentIteration)
-	fmt.Println("The global best is", s.gBestID, "with a fitness of", s.gBestFit)
-	fmt.Println("The average fitness in this iteration is", x1)
-	fmt.Println("The average best fitness over all iterations is", x2)
-	fmt.Println()
-	fmt.Println()
-	fmt.Println()
 }
 
 func (s *Swarm) UpdateTargets() {
@@ -201,10 +236,10 @@ func (s *Swarm) UpdateTargets() {
 				if target == i {
 					continue
 				}
-				// if the fitness of the target is higher, then we wish to accelerate
-				// away from it, and not toward it as the PSO algorithm normally does.
-				// For this reason, we will assign the target to be negative (-target
-				// instead of target), so that we know to move away from it.
+				// if the fitness of the target is higher, then we accelerate
+				// away from it, and not toward it as the normal PSO algorithm.
+				// For this reason, we will assign the target to be negative
+				// so that we know to move away from it.
 				if s.bFit[target] > s.bFit[i] {
 					s.target[i] = -target
 				} else {
